@@ -1,19 +1,38 @@
-// =========================
-// LIVE CLOCK
-// =========================
+/* ===========================
+   MyDisplay Configuration
+   Edit these values only
+=========================== */
+
+const CONFIG = {
+
+    city: "Langley",
+
+    latitude: 49.1044,
+
+    longitude: -122.6580,
+
+    refreshMinutes: 5,
+
+    weatherMinutes: 15
+
+};
+
+/* ===========================
+      LIVE CLOCK & DATE
+=========================== */
 
 function updateClock() {
 
     const now = new Date();
 
-    document.getElementById("clock").innerHTML =
+    document.getElementById("clock").textContent =
         now.toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
             second: "2-digit"
         });
 
-    document.getElementById("date").innerHTML =
+    document.getElementById("date").textContent =
         now.toLocaleDateString([], {
             weekday: "long",
             year: "numeric",
@@ -26,123 +45,154 @@ function updateClock() {
 updateClock();
 setInterval(updateClock,1000);
 
-
-// =========================
-// WEATHER
-// Uses Open-Meteo (FREE)
-// Default: Vancouver, BC
-// Change latitude & longitude to your location
-// =========================
+/* ===========================
+          WEATHER
+=========================== */
 
 async function loadWeather(){
 
-    try{
+try{
 
-        const url="https://api.open-meteo.com/v1/forecast?latitude=49.28&longitude=-123.12&current=temperature_2m,weather_code";
+const url=`https://api.open-meteo.com/v1/forecast?latitude=${CONFIG.latitude}&longitude=${CONFIG.longitude}&current=temperature_2m,weather_code`;
 
-        const response=await fetch(url);
+const response=await fetch(url);
 
-        const data=await response.json();
+const data=await response.json();
 
-        document.getElementById("temperature").innerHTML=
-            Math.round(data.current.temperature_2m)+"°C";
+const temp=Math.round(data.current.temperature_2m);
 
-        let code=data.current.weather_code;
+const code=data.current.weather_code;
 
-        let icon="☀️";
-        let text="Clear";
+document.getElementById("temperature").textContent=temp+"°C";
 
-        if(code>=1 && code<=3){
+let icon="☀️";
+let text="Clear";
 
-            icon="⛅";
-            text="Partly Cloudy";
+if(code>=1 && code<=3){
 
-        }
+icon="⛅";
+text="Partly Cloudy";
 
-        if(code>=45){
+}
 
-            icon="🌫️";
-            text="Fog";
+else if(code>=45 && code<=48){
 
-        }
+icon="🌫️";
+text="Fog";
 
-        if(code>=51){
+}
 
-            icon="🌧️";
-            text="Rain";
+else if(code>=51 && code<=67){
 
-        }
+icon="🌧️";
+text="Rain";
 
-        if(code>=71){
+}
 
-            icon="❄️";
-            text="Snow";
+else if(code>=71 && code<=86){
 
-        }
+icon="❄️";
+text="Snow";
 
-        if(code>=95){
+}
 
-            icon="⛈️";
-            text="Storm";
+else if(code>=95){
 
-        }
+icon="⛈️";
+text="Thunderstorm";
 
-        document.getElementById("weatherIcon").innerHTML=icon;
-        document.getElementById("weatherText").innerHTML=text;
+}
 
-    }
+document.getElementById("weatherIcon").textContent=icon;
+document.getElementById("weatherText").textContent=text;
 
-    catch(e){
+}
 
-        document.getElementById("weatherText").innerHTML="Offline";
+catch(e){
 
-    }
+document.getElementById("weatherText").textContent="Offline";
+
+}
 
 }
 
 loadWeather();
 
-// Refresh weather every 15 minutes
-setInterval(loadWeather,900000);
+setInterval(loadWeather,CONFIG.weatherMinutes*60*1000);
 
-
-// =========================
-// AUTO REFRESH PAGE
-// Every 5 minutes
-// =========================
-
-setTimeout(function(){
-
-    location.reload();
-
-},300000);
-
-
-// =========================
-// OPTIONAL
-// Rotate notices every 10 sec
-// =========================
-
-const notices=[
-"Safety First<br><br>Wear PPE",
-"Check Today's Shift Schedule",
-"Report Hazards Immediately",
-"Have A Great Day!"
-];
-
-let noticeIndex=0;
+/* ===========================
+     AUTO REFRESH WEBSITE
+=========================== */
 
 setInterval(function(){
 
-    noticeIndex++;
+location.reload();
 
-    if(noticeIndex>=notices.length){
+},CONFIG.refreshMinutes*60*1000);
 
-        noticeIndex=0;
+/* ===========================
+      ANNOUNCEMENTS
+=========================== */
 
-    }
+const announcements=[
 
-    document.getElementById("notice").innerHTML=
-        notices[noticeIndex];
+"👷 Wear PPE at all times",
 
-},10000);
+"📋 Check today's shift schedule",
+
+"🚨 Report hazards immediately",
+
+"☕ Enjoy your shift",
+
+"✅ Safety starts with you"
+
+];
+
+let notice=0;
+
+function rotateAnnouncements(){
+
+const list=document.getElementById("announcements");
+
+if(!list) return;
+
+list.innerHTML="<li>"+announcements[notice]+"</li>";
+
+notice++;
+
+if(notice>=announcements.length){
+
+notice=0;
+
+}
+
+}
+
+rotateAnnouncements();
+
+setInterval(rotateAnnouncements,8000);
+
+/* ===========================
+       TICKER TEXT
+=========================== */
+
+const ticker=document.getElementById("tickerText");
+
+ticker.innerHTML=
+"📢 Welcome &nbsp;&nbsp; • &nbsp;&nbsp; Wear PPE &nbsp;&nbsp; • &nbsp;&nbsp; Check Today's Shift Schedule &nbsp;&nbsp; • &nbsp;&nbsp; Have A Safe Day &nbsp;&nbsp; • &nbsp;&nbsp;";
+
+/* ===========================
+      IMAGE AUTO RELOAD
+=========================== */
+
+setInterval(function(){
+
+const img=document.getElementById("scheduleImage");
+
+if(img){
+
+img.src="schedule/schedule.png?"+new Date().getTime();
+
+}
+
+},60000);
