@@ -2,150 +2,158 @@
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:Arial,Helvetica,sans-serif;
+    font-family:Segoe UI,Arial,sans-serif;
+}
+
+:root{
+
+    --bg:#0f172a;
+    --panel:#1e293b;
+    --card:#334155;
+    --accent:#38bdf8;
+    --text:#ffffff;
+    --muted:#cbd5e1;
+
 }
 
 body{
-    background:#0d1117;
-    color:white;
-    overflow:hidden;
+
+    background:linear-gradient(135deg,#0f172a,#111827,#1e293b);
+    color:var(--text);
+    min-height:100vh;
+
 }
 
-.container{
-    display:flex;
-    height:94vh;
-}
+.wrapper{
 
-/* LEFT PANEL */
-
-.left-panel{
-    width:75%;
     display:flex;
     flex-direction:column;
-    padding:20px;
+    min-height:100vh;
+
 }
 
-.header{
-    height:70px;
+header{
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:20px 35px;
+    background:rgba(255,255,255,.05);
+    backdrop-filter:blur(12px);
+    border-bottom:1px solid rgba(255,255,255,.1);
+
+}
+
+.company{
+
     display:flex;
     align-items:center;
-    justify-content:space-between;
-    margin-bottom:15px;
+    gap:20px;
+
 }
 
-.title{
-    font-size:38px;
-    font-weight:bold;
-    color:#58a6ff;
-    letter-spacing:2px;
-}
+#logo{
 
-.logo img{
-    height:60px;
-    max-width:220px;
+    width:70px;
+    height:70px;
     object-fit:contain;
-}
-
-.schedule{
-    flex:1;
-    background:#161b22;
-    border-radius:18px;
-    overflow:hidden;
-    box-shadow:0 0 25px rgba(0,0,0,.4);
-}
-
-#scheduleFrame{
-    width:100%;
-    height:100%;
-    border:none;
-    background:white;
-}
-
-/* RIGHT PANEL */
-
-.right-panel{
-    width:25%;
-    padding:20px;
-    display:flex;
-    flex-direction:column;
-    gap:15px;
-}
-
-.clock-card,
-.date-card,
-.weather-card,
-.notice-card{
-
-    background:#161b22;
-    border-radius:18px;
-    padding:20px;
-    box-shadow:0 0 20px rgba(0,0,0,.4);
 
 }
 
-.clock-card{
+.company h1{
 
-    height:170px;
-
-}
-
-.date-card{
-
-    height:120px;
+    font-size:clamp(24px,3vw,42px);
+    color:var(--accent);
 
 }
 
-.weather-card{
+.datetime{
 
-    height:210px;
-
-}
-
-.notice-card{
-
-    flex:1;
-
-}
-
-.clock-title{
-
-    color:#8b949e;
-    font-size:15px;
-    margin-bottom:12px;
-    letter-spacing:1px;
+    text-align:right;
 
 }
 
 #clock{
 
-    font-size:52px;
-    text-align:center;
-    color:#58a6ff;
+    font-size:clamp(30px,4vw,58px);
     font-weight:bold;
 
 }
 
 #date{
 
-    text-align:center;
-    font-size:24px;
-    font-weight:bold;
+    color:var(--muted);
+    margin-top:5px;
+    font-size:clamp(14px,1.4vw,20px);
+
+}
+
+main{
+
+    flex:1;
+    display:grid;
+    grid-template-columns:3fr 1fr;
+    gap:20px;
+    padding:20px;
+
+}
+
+.schedule{
+
+    background:var(--panel);
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:0 10px 30px rgba(0,0,0,.35);
+
+}
+
+#scheduleImage{
+
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    background:white;
+
+}
+
+aside{
+
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+
+}
+
+.card{
+
+    background:rgba(255,255,255,.08);
+    border-radius:20px;
+    padding:20px;
+    backdrop-filter:blur(12px);
+    box-shadow:0 10px 20px rgba(0,0,0,.25);
+
+}
+
+.card h2{
+
+    margin-bottom:15px;
+    color:var(--accent);
 
 }
 
 #weatherIcon{
 
-    font-size:54px;
+    font-size:55px;
     text-align:center;
 
 }
 
 #temperature{
 
-    font-size:44px;
+    font-size:42px;
     text-align:center;
-    margin-top:8px;
-    color:#58a6ff;
+    font-weight:bold;
+    margin-top:10px;
 
 }
 
@@ -153,39 +161,39 @@ body{
 
     text-align:center;
     margin-top:10px;
-    font-size:22px;
+    color:var(--muted);
 
 }
 
-#notice{
+#announcements{
 
-    font-size:22px;
-    line-height:1.6;
-    text-align:center;
+    line-height:2;
+    font-size:18px;
+    padding-left:20px;
 
 }
 
-/* TICKER */
+footer{
 
-.ticker{
-
-    position:fixed;
-    bottom:0;
-    width:100%;
-    height:6vh;
-    background:#238636;
-    display:flex;
-    align-items:center;
+    background:#0284c7;
     overflow:hidden;
 
 }
 
-.ticker-text{
+.ticker{
+
+    height:60px;
+    display:flex;
+    align-items:center;
+
+}
+
+#tickerText{
 
     white-space:nowrap;
-    font-size:28px;
+    font-size:24px;
     font-weight:bold;
-    animation:scroll 25s linear infinite;
+    animation:scroll 22s linear infinite;
 
 }
 
@@ -205,16 +213,15 @@ body{
 
 }
 
-/* Nice fade */
+header,
+.schedule,
+.card{
 
-.left-panel,
-.right-panel{
-
-    animation:fadeIn .8s;
+    animation:fade .8s;
 
 }
 
-@keyframes fadeIn{
+@keyframes fade{
 
     from{
 
@@ -229,5 +236,79 @@ body{
         transform:translateY(0);
 
     }
+
+}
+
+/* ---------- TABLET ---------- */
+
+@media(max-width:1000px){
+
+main{
+
+grid-template-columns:1fr;
+
+}
+
+aside{
+
+display:grid;
+
+grid-template-columns:1fr 1fr;
+
+}
+
+}
+
+/* ---------- MOBILE ---------- */
+
+@media(max-width:700px){
+
+header{
+
+flex-direction:column;
+
+gap:20px;
+
+text-align:center;
+
+}
+
+.company{
+
+flex-direction:column;
+
+}
+
+.datetime{
+
+text-align:center;
+
+}
+
+aside{
+
+grid-template-columns:1fr;
+
+}
+
+main{
+
+padding:12px;
+
+gap:12px;
+
+}
+
+.card{
+
+padding:15px;
+
+}
+
+#tickerText{
+
+font-size:18px;
+
+}
 
 }
