@@ -1,124 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lobby Display</title>
 
-    <link rel="stylesheet" href="style.css">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MyDisplay</title>
+
+<link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
 
-<div class="container">
+<div class="wrapper">
 
-    <!-- LEFT SIDE -->
-    <div class="left-panel">
+<header>
 
-        <div class="header">
+<div class="company">
 
-            <div class="logo">
-                <img src="assets/logo.png" alt="Logo" id="logo">
-            </div>
+<img src="assets/logo.png" id="logo">
 
-            <div class="title">
-                SHIFT SCHEDULE
-            </div>
-
-        </div>
-
-        <div class="schedule">
-
-            <iframe
-                src="pdf/schedule.pdf"
-                id="scheduleFrame"
-                frameborder="0">
-            </iframe>
-
-        </div>
-
-    </div>
-
-    <!-- RIGHT SIDE -->
-    <div class="right-panel">
-
-        <div class="clock-card">
-
-            <div class="clock-title">
-                CURRENT TIME
-            </div>
-
-            <div id="clock">
-                00:00:00
-            </div>
-
-        </div>
-
-        <div class="date-card">
-
-            <div class="clock-title">
-                TODAY
-            </div>
-
-            <div id="date">
-                Loading...
-            </div>
-
-        </div>
-
-        <div class="weather-card">
-
-            <div class="clock-title">
-                WEATHER
-            </div>
-
-            <div id="weatherIcon">
-                ☀️
-            </div>
-
-            <div id="temperature">
-                --
-            </div>
-
-            <div id="weatherText">
-                Loading...
-            </div>
-
-        </div>
-
-        <div class="notice-card">
-
-            <div class="clock-title">
-                NOTICE
-            </div>
-
-            <div id="notice">
-
-                Safety First<br><br>
-
-                Wear PPE<br><br>
-
-                Have a great shift!
-
-            </div>
-
-        </div>
-
-    </div>
+<h1>SHIFT SCHEDULE</h1>
 
 </div>
 
+<div class="datetime">
+
+<div id="clock">00:00:00</div>
+
+<div id="date">Loading...</div>
+
+</div>
+
+</header>
+
+<main>
+
+<section class="schedule">
+
+<img src="schedule/schedule.png"
+id="scheduleImage"
+alt="Schedule">
+
+</section>
+
+<aside>
+
+<div class="card">
+
+<h2>Weather</h2>
+
+<div id="weatherIcon">☀️</div>
+
+<div id="temperature">--°C</div>
+
+<div id="weatherText">Loading...</div>
+
+</div>
+
+<div class="card">
+
+<h2>Announcements</h2>
+
+<ul id="announcements">
+
+<li>Welcome</li>
+
+<li>Wear PPE</li>
+
+<li>Stay Safe</li>
+
+</ul>
+
+</div>
+
+</aside>
+
+</main>
+
+<footer>
+
 <div class="ticker">
 
-    <div class="ticker-text">
+<div id="tickerText">
 
-        📢 Welcome • Stay Safe • Check Today's Shift Carefully • Report Safety Hazards Immediately • Have A Great Day!
+Welcome • Stay Safe • Have a Great Shift • Follow Safety Procedures • Report Hazards Immediately
 
-    </div>
+</div>
+
+</div>
+
+</footer>
 
 </div>
 
 <script src="script.js"></script>
 
 </body>
+
 </html>
