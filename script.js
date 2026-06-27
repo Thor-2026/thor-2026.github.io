@@ -191,7 +191,7 @@ const img=document.getElementById("scheduleImage");
 
 if(img){
 
-img.src="schedule/schedule.png?"+new Date().getTime();
+img.src="schedule/schedule.png?v="+new Date().getTime();
 
 }
 
