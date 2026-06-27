@@ -7,10 +7,13 @@ media_folder: "schedule"
 public_folder: "/schedule"
 
 collections:
-  - name: "schedule_image"
+  - name: "schedule"
     label: "Schedule Image"
     files:
       - file: "schedule/schedule.png"
         label: "Daily Schedule Image"
         name: "schedule_image"
-        widget: image
+        fields:
+          - name: image
+            label: Schedule Image
+            widget: image
