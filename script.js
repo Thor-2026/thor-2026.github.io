@@ -207,3 +207,15 @@ img.src="schedule/schedule.png?v="+new Date().getTime();
     }
 
 })();
+const scheduleImage = document.getElementById("scheduleImage");
+
+if (scheduleImage) {
+
+    const imageUrl = supabaseClient.storage
+        .from("display")
+        .getPublicUrl("schedule/current.png")
+        .data.publicUrl;
+
+    scheduleImage.src = imageUrl + "?t=" + Date.now();
+
+}
