@@ -1,7 +1,12 @@
 document.getElementById("logoutBtn").addEventListener("click", async () => {
 
-    await supabaseClient.auth.signOut();
+    const { error } = await supabaseClient.auth.signOut();
 
-    window.location.href="index.html";
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    window.location.href = "index.html";
 
 });
