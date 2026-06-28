@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Schedule Manager</title>
+
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="sidebar">
+
+<h2>THOR DISPLAY</h2>
+
+<button onclick="location.href='dashboard.html'">📊 Dashboard</button>
+<button class="menu active">📄 Schedule</button>
+<button>📢 Announcements</button>
+<button>🖼 Branding</button>
+<button>🌤 Weather</button>
+<button>⚙ Settings</button>
+
+<div class="bottom">
+<button id="logoutBtn">🚪 Logout</button>
+</div>
+
+</div>
+
+<div class="content">
+
+<h1>Schedule Manager</h1>
+
+<div class="card">
+
+<input type="file" id="scheduleFile" accept="image/*">
+
+<br><br>
+
+<img id="preview" style="max-width:100%;border-radius:12px;display:none;">
+
+<br><br>
+
+<button id="uploadBtn">Upload Schedule</button>
+
+<p id="status"></p>
+
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script src="dashboard.js"></script>
+
+</body>
+</html>
