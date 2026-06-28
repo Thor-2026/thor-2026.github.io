@@ -99,7 +99,20 @@ Welcome • Stay Safe • Have a Great Shift • Follow Safety Procedures • Re
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase.js"></script>
+ <script>
+const SUPABASE_URL = "https://ggohaurqbsyamznzuuaf.supabase.co";
+const SUPABASE_KEY = "sb_publishable_ZpHvrV-a_BmznhfbVupvxQ_b5NKYPYk";
 
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const scheduleImage = document.getElementById("scheduleImage");
+
+scheduleImage.src =
+supabase.storage
+.from("display")
+.getPublicUrl("schedule/current.png").data.publicUrl
++ "?t=" + Date.now();
+</script>
 </body>
 
 </html>
