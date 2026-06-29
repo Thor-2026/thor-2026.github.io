@@ -207,9 +207,12 @@ img.src="schedule/schedule.png?v="+new Date().getTime();
     }
 
 })();
-const scheduleImage = document.getElementById("scheduleImage");
 
-if (scheduleImage) {
+async function loadSchedule() {
+
+    const scheduleImage = document.getElementById("scheduleImage");
+
+    if (!scheduleImage) return;
 
     const imageUrl = supabaseClient.storage
         .from("display")
@@ -219,3 +222,8 @@ if (scheduleImage) {
     scheduleImage.src = imageUrl + "?t=" + Date.now();
 
 }
+
+loadSchedule();
+
+// Check for a new schedule every minute
+setInterval(loadSchedule, 60000);
