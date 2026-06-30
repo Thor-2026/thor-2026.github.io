@@ -1,31 +1,54 @@
-async function loadPage(page){
+async function loadPage(page) {
 
-    const response = await fetch(
-        "views/" + page + ".html"
-    );
+    try {
 
-    const html = await response.text();
+        const response = await fetch("views/" + page + ".html");
 
-    document.getElementById("pageContent").innerHTML = html;
+        if (!response.ok) {
+            throw new Error("Could not load " + page);
+        }
+
+        const html = await response.text();
+
+        document.getElementById("pageContent").innerHTML = html;
+
+    } catch (err) {
+
+        document.getElementById("pageContent").innerHTML =
+            "<h2>Error loading page</h2><p>" + err.message + "</p>";
+
+        console.error(err);
+
+    }
 
 }
 
 loadPage("dashboard");
 
-document.querySelectorAll(".menu").forEach(button=>{
+document.querySelectorAll(".menu").forEach(button => {
 
-button.onclick=()=>{
+    button.addEventListener("click", () => {
 
-document.querySelectorAll(".menu").forEach(m=>{
+        document.querySelectorAll(".menu").forEach(m => m.classList.remove("active"));
 
-m.classList.remove("active");
+        button.classList.add("active");
 
-});
+        loadPage(button.dataset.page);
 
-button.classList.add("active");
-
-loadPage(button.dataset.page);
-
-};
+    });
 
 });
+
+const logoutBtn = document.getElementById("logoutBtn");
+
+if (logoutBtn) {
+
+    logoutBtn.addEventListener("click", async () => {
+
+        await supabaseClient.auth.signOut();
+
+        window.location.href = "index.html";
+
+    });
+
+}
