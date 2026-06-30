@@ -1,7 +1,7 @@
 async function loadPage(page){
 
     const response = await fetch(
-        "..views/" + page + ".html"
+        "../views/" + page + ".html"
     );
 
     const html = await response.text();
