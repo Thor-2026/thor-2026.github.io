@@ -33,7 +33,16 @@ document.querySelectorAll(".menu").forEach(button => {
 
         button.classList.add("active");
 
-        loadPage(button.dataset.page);
+        //loadPage(button.dataset.page);
+        loadPage(button.dataset.page).then(() => {
+
+    if (button.dataset.page === "schedule") {
+
+        initSchedulePage();
+
+    }
+
+});
 
     });
 
