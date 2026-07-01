@@ -1,17 +1,71 @@
-<h1>📢 Announcements</h1>
+<h1>📢 Announcements Manager</h1>
 
-<div style="margin-bottom:20px;">
+<div class="cards">
 
-<button id="newAnnouncement">
+    <!-- Add / Edit Panel -->
+    <div class="card">
 
-➕ New Announcement
+        <h2>Create / Edit Announcement</h2>
 
-</button>
+        <label>Title</label>
 
-</div>
+        <input
+            type="text"
+            id="announcementTitle"
+            placeholder="Safety Meeting">
 
-<div id="announcementList">
+        <br><br>
 
-Loading...
+        <label>Message</label>
+
+        <textarea
+            id="announcementMessage"
+            rows="5"
+            placeholder="Meeting today at 2:00 PM in the lunch room"></textarea>
+
+        <br><br>
+
+        <label>
+
+            <input
+                type="checkbox"
+                id="announcementEnabled"
+                checked>
+
+            Enabled
+
+        </label>
+
+        <br><br>
+
+        <button id="saveAnnouncement">
+
+            💾 Save Announcement
+
+        </button>
+
+        <button id="cancelEdit">
+
+            Cancel
+
+        </button>
+
+        <p id="announcementStatus"></p>
+
+    </div>
+
+    <!-- Current Announcements -->
+
+    <div class="card">
+
+        <h2>Current Announcements</h2>
+
+        <div id="announcementList">
+
+            Loading...
+
+        </div>
+
+    </div>
 
 </div>
