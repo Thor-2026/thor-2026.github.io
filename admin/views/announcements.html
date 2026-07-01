@@ -1,117 +1,31 @@
 <h1>📢 Announcements Manager</h1>
 
-<div class="announcement-layout">
+<div class="card">
 
-    <!-- LEFT PANEL -->
+    <h3>Add New Announcement</h3>
 
-    <div class="announcement-sidebar">
+    <input
+        type="text"
+        id="newAnnouncement"
+        placeholder="Enter announcement...">
 
-        <div class="announcement-header">
+    <br><br>
 
-            <h2>Announcements</h2>
+    <button id="addAnnouncement">
+        Add Announcement
+    </button>
 
-            <button id="newAnnouncement">
-                ➕ New
-            </button>
+</div>
 
-        </div>
+<br>
 
-        <div id="announcementList">
-            Loading...
-        </div>
+<div class="card">
 
-    </div>
+    <h3>Current Announcements</h3>
 
-    <!-- RIGHT PANEL -->
+    <div id="announcementList">
 
-    <div class="announcement-editor">
-
-        <!-- Welcome Screen -->
-
-        <div id="announcementWelcome" class="card">
-
-            <h2>📢 Announcements</h2>
-
-            <p style="margin-top:20px;font-size:18px;opacity:.8;line-height:1.8">
-
-                Select an announcement from the left to edit it.
-
-                <br><br>
-
-                or click
-
-                <strong>➕ New</strong>
-
-                to create a new announcement.
-
-            </p>
-
-        </div>
-
-        <!-- Editor -->
-
-        <div id="announcementEditor" class="card" style="display:none;">
-
-            <h2 id="editorTitle">
-                New Announcement
-            </h2>
-
-            <label>Title</label>
-
-            <input
-                id="announcementTitle"
-                type="text"
-                placeholder="Safety Meeting">
-
-            <br><br>
-
-            <label>Message</label>
-
-            <textarea
-                id="announcementMessage"
-                rows="8"
-                placeholder="Meeting today at 2 PM"></textarea>
-
-            <br><br>
-
-            <label>
-
-                <input
-                    id="announcementEnabled"
-                    type="checkbox"
-                    checked>
-
-                Enabled
-
-            </label>
-
-            <br><br>
-
-            <div class="button-row">
-
-                <button id="saveAnnouncement">
-
-                    💾 Save
-
-                </button>
-
-                <button id="deleteAnnouncement">
-
-                    🗑 Delete
-
-                </button>
-
-                <button id="cancelEdit">
-
-                    Cancel
-
-                </button>
-
-            </div>
-
-            <p id="announcementStatus"></p>
-
-        </div>
+        Loading...
 
     </div>
 
