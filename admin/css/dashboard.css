@@ -231,3 +231,40 @@ height:auto;
 }
 
 }
+.announcementRow{
+
+display:flex;
+
+gap:10px;
+
+margin-bottom:12px;
+
+align-items:center;
+
+}
+
+.announcementRow input{
+
+flex:1;
+
+padding:10px;
+
+border-radius:8px;
+
+border:none;
+
+font-size:15px;
+
+}
+
+.announcementRow button{
+
+padding:10px 16px;
+
+cursor:pointer;
+
+border:none;
+
+border-radius:8px;
+
+}
