@@ -1,68 +1,93 @@
 <h1>📢 Announcements Manager</h1>
 
-<div class="cards">
+<div class="announcement-layout">
 
-    <!-- Add / Edit Panel -->
-    <div class="card">
+    <!-- LEFT PANEL -->
 
-        <h2>Create / Edit Announcement</h2>
+    <div class="announcement-sidebar">
 
-        <label>Title</label>
+        <div class="announcement-header">
 
-        <input
-            type="text"
-            id="announcementTitle"
-            placeholder="Safety Meeting">
+            <h2>Announcements</h2>
 
-        <br><br>
+            <button id="newAnnouncement">
+                ➕ New
+            </button>
 
-        <label>Message</label>
-
-        <textarea
-            id="announcementMessage"
-            rows="5"
-            placeholder="Meeting today at 2:00 PM in the lunch room"></textarea>
-
-        <br><br>
-
-        <label>
-
-            <input
-                type="checkbox"
-                id="announcementEnabled"
-                checked>
-
-            Enabled
-
-        </label>
-
-        <br><br>
-
-        <button id="saveAnnouncement">
-
-            💾 Save Announcement
-
-        </button>
-
-        <button id="cancelEdit">
-
-            Cancel
-
-        </button>
-
-        <p id="announcementStatus"></p>
-
-    </div>
-
-    <!-- Current Announcements -->
-
-    <div class="card">
-
-        <h2>Current Announcements</h2>
+        </div>
 
         <div id="announcementList">
 
             Loading...
+
+        </div>
+
+    </div>
+
+    <!-- RIGHT PANEL -->
+
+    <div class="announcement-editor">
+
+        <div class="card">
+
+            <h2 id="editorTitle">
+                New Announcement
+            </h2>
+
+            <label>Title</label>
+
+            <input
+                type="text"
+                id="announcementTitle"
+                placeholder="Safety Meeting">
+
+            <br><br>
+
+            <label>Message</label>
+
+            <textarea
+                id="announcementMessage"
+                rows="8"
+                placeholder="Meeting today at 2 PM in lunch room"></textarea>
+
+            <br><br>
+
+            <label>
+
+                <input
+                    type="checkbox"
+                    id="announcementEnabled"
+                    checked>
+
+                Enabled
+
+            </label>
+
+            <br><br>
+
+            <div class="button-row">
+
+                <button id="saveAnnouncement">
+
+                    💾 Save
+
+                </button>
+
+                <button id="deleteAnnouncement">
+
+                    🗑 Delete
+
+                </button>
+
+                <button id="cancelEdit">
+
+                    Cancel
+
+                </button>
+
+            </div>
+
+            <p id="announcementStatus"></p>
 
         </div>
 
