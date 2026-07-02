@@ -134,6 +134,7 @@ location.reload();
       ANNOUNCEMENTS
 =========================== */
 
+
 let announcements = [];
 let notice = 0;
 
@@ -151,6 +152,7 @@ async function loadAnnouncements() {
     }
 
     announcements = data;
+    notice = 0;
 
     rotateAnnouncements();
 
@@ -160,16 +162,41 @@ function rotateAnnouncements() {
 
     const list = document.getElementById("announcements");
 
-    if (!list || announcements.length === 0) return;
+    if (!list) return;
 
-    list.innerHTML = "<li>" + announcements[notice].message + "</li>";
+    if (announcements.length === 0) {
+
+        list.innerHTML = `
+            <li>
+                <strong>No Announcements</strong><br>
+                Everything is up to date.
+            </li>
+        `;
+
+        return;
+
+    }
+
+    const item = announcements[notice];
+
+    list.innerHTML = `
+        <li>
+            <strong style="font-size:22px;color:#FFD54F;">
+                ${item.title}
+            </strong>
+
+            <br><br>
+
+            <span style="font-size:18px;">
+                ${item.message}
+            </span>
+        </li>
+    `;
 
     notice++;
 
     if (notice >= announcements.length) {
-
         notice = 0;
-
     }
 
 }
