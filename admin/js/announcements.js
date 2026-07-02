@@ -1,27 +1,37 @@
-// =======================================
+// ======================================
 // THOR DISPLAY CMS
 // Announcements Manager
-// =======================================
+// ======================================
+
+let editingId = null;
 
 async function initAnnouncementsPage() {
 
-    const list = document.getElementById("announcementList");
-    const input = document.getElementById("newAnnouncement");
-    const addBtn = document.getElementById("addAnnouncement");
+    const title = document.getElementById("title");
+    const message = document.getElementById("message");
+    const enabled = document.getElementById("enabled");
+    const sortOrder = document.getElementById("sortOrder");
 
-    if (!list) return;
+    const saveBtn = document.getElementById("saveAnnouncement");
+    const cancelBtn = document.getElementById("cancelEdit");
+    const list = document.getElementById("announcementList");
+
+    if (!title || !message || !enabled || !sortOrder || !saveBtn || !list) {
+        return;
+    }
 
     async function loadAnnouncements() {
+
+        list.innerHTML = "Loading...";
 
         const { data, error } = await supabaseClient
             .from("announcements")
             .select("*")
-            .order("sort_order");
+            .order("sort_order", { ascending: true });
 
         if (error) {
 
             list.innerHTML = error.message;
-
             return;
 
         }
@@ -35,19 +45,72 @@ async function initAnnouncementsPage() {
             row.className = "announcementRow";
 
             row.innerHTML = `
-                <input
-                    type="text"
-                    value="${item.message}"
-                    id="msg-${item.id}">
 
-                <button onclick="saveAnnouncement(${item.id})">
-                    💾 Save
+                <div style="flex:1">
+
+                    <strong>${item.title}</strong>
+
+                    <br>
+
+                    ${item.message}
+
+                    <br><br>
+
+                    <small>
+
+                    Enabled:
+                    ${item.enabled ? "✅ Yes" : "❌ No"}
+
+                    |
+
+                    Sort:
+                    ${item.sort_order}
+
+                    </small>
+
+                </div>
+
+                <button class="editBtn">
+                    ✏ Edit
                 </button>
 
-                <button onclick="deleteAnnouncement(${item.id})">
+                <button class="deleteBtn">
                     🗑 Delete
                 </button>
+
             `;
+
+            row.querySelector(".editBtn").onclick = () => {
+
+                editingId = item.id;
+
+                title.value = item.title;
+                message.value = item.message;
+                enabled.checked = item.enabled;
+                sortOrder.value = item.sort_order;
+
+                cancelBtn.style.display = "inline-block";
+
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth"
+                });
+
+            };
+
+            row.querySelector(".deleteBtn").onclick = async () => {
+
+                if (!confirm("Delete this announcement?"))
+                    return;
+
+                await supabaseClient
+                    .from("announcements")
+                    .delete()
+                    .eq("id", item.id);
+
+                loadAnnouncements();
+
+            };
 
             list.appendChild(row);
 
@@ -55,25 +118,44 @@ async function initAnnouncementsPage() {
 
     }
 
-    addBtn.onclick = async () => {
+    saveBtn.onclick = async () => {
 
-        const text = input.value.trim();
+        if (title.value.trim() === "" || message.value.trim() === "") {
 
-        if (text === "") return;
+            alert("Please enter Title and Message.");
 
-        const { error } = await supabaseClient
+            return;
 
-            .from("announcements")
+        }
 
-            .insert({
+        const payload = {
 
-                message: text,
+            title: title.value,
 
-                enabled: true,
+            message: message.value,
 
-                sort_order: Date.now()
+            enabled: enabled.checked,
 
-            });
+            sort_order: Number(sortOrder.value)
+
+        };
+
+        let error;
+
+        if (editingId === null) {
+
+            ({ error } = await supabaseClient
+                .from("announcements")
+                .insert(payload));
+
+        } else {
+
+            ({ error } = await supabaseClient
+                .from("announcements")
+                .update(payload)
+                .eq("id", editingId));
+
+        }
 
         if (error) {
 
@@ -83,50 +165,34 @@ async function initAnnouncementsPage() {
 
         }
 
-        input.value = "";
+        editingId = null;
+
+        title.value = "";
+        message.value = "";
+        enabled.checked = true;
+        sortOrder.value = 1;
+
+        cancelBtn.style.display = "none";
 
         loadAnnouncements();
 
     };
 
-    window.saveAnnouncement = async function(id) {
+    cancelBtn.onclick = () => {
 
-        const value =
-            document.getElementById("msg-" + id).value;
+        editingId = null;
 
-        await supabaseClient
+        title.value = "";
+        message.value = "";
+        enabled.checked = true;
+        sortOrder.value = 1;
 
-            .from("announcements")
-
-            .update({
-
-                message: value
-
-            })
-
-            .eq("id", id);
-
-        loadAnnouncements();
-
-    };
-
-    window.deleteAnnouncement = async function(id) {
-
-        if (!confirm("Delete this announcement?"))
-            return;
-
-        await supabaseClient
-
-            .from("announcements")
-
-            .delete()
-
-            .eq("id", id);
-
-        loadAnnouncements();
+        cancelBtn.style.display = "none";
 
     };
 
     loadAnnouncements();
 
 }
+
+initAnnouncementsPage();
