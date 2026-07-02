@@ -226,54 +226,50 @@ ticker.innerHTML=
 async function loadBranding() {
 
     const { data, error } = await supabaseClient
-    .from("branding")
-    .select("*");
+        .from("branding")
+        .select("*");
 
-if (error) {
-    console.error(error);
-    return;
-}
+    if (error) {
+        console.error(error);
+        return;
+    }
 
-if (!data || data.length === 0) {
-    console.log("No branding row found.");
-    return;
-}
+    if (!data || data.length === 0) {
+        console.log("No branding row found.");
+        return;
+    }
 
-const branding = data[0];
-
-}
+    const branding = data[0];
 
     // Company Name
     const companyName = document.getElementById("companyName");
 
-    if (companyName)
-        companyName.textContent = data.company_name;
+    if (companyName) {
+        companyName.textContent = branding.company_name || "THOR DISPLAY";
+    }
 
     // Welcome Message
     const welcomeText = document.getElementById("welcomeText");
 
-    if (welcomeText)
-        welcomeText.textContent = data.welcome_text;
+    if (welcomeText) {
+        welcomeText.textContent = branding.welcome_text || "";
+    }
 
     // Logo
-    if (data.logo_url) {
+    const logo = document.getElementById("logo");
 
-        document.getElementById("logo").src =
-            data.logo_url + "?t=" + Date.now();
-
+    if (logo && branding.logo_url) {
+        logo.src = branding.logo_url + "?t=" + Date.now();
     }
 
     // Background
-
-    if (data.background_url) {
+    if (branding.background_url) {
 
         document.body.style.backgroundImage =
-            `url(${data.background_url}?t=${Date.now()})`;
+            `url(${branding.background_url}?t=${Date.now()})`;
 
         document.body.style.backgroundSize = "cover";
-
         document.body.style.backgroundPosition = "center";
-
         document.body.style.backgroundRepeat = "no-repeat";
 
     }
@@ -282,7 +278,6 @@ const branding = data[0];
 
 loadBranding();
 
-// Refresh branding every minute
 setInterval(loadBranding, 60000);
 
 async function loadSchedule() {
