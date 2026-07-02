@@ -217,22 +217,7 @@ const ticker=document.getElementById("tickerText");
 ticker.innerHTML=
 "📢 Welcome &nbsp;&nbsp; • &nbsp;&nbsp; Wear PPE &nbsp;&nbsp; • &nbsp;&nbsp; Check Today's Shift Schedule &nbsp;&nbsp; • &nbsp;&nbsp; Have A Safe Day &nbsp;&nbsp; • &nbsp;&nbsp;";
 
-/* ===========================
-      IMAGE AUTO RELOAD
-=========================== */
-
-
-(async () => {
-
-    const settings = await loadSettings();
-
-    if (settings) {
-        alert("✅ Connected to Supabase successfully!");
-    } else {
-        alert("❌ Could not connect to Supabase.");
-    }
-
-})();
+;
 
 /* ===========================
         BRANDING
