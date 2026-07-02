@@ -226,17 +226,22 @@ ticker.innerHTML=
 async function loadBranding() {
 
     const { data, error } = await supabaseClient
-        .from("branding")
-        .select("*")
-        .limit(1)
-        .single();
+    .from("branding")
+    .select("*");
 
-    if (error) {
+if (error) {
+    console.error(error);
+    return;
+}
 
-        console.error(error);
-        return;
+if (!data || data.length === 0) {
+    console.log("No branding row found.");
+    return;
+}
 
-    }
+const branding = data[0];
+
+}
 
     // Company Name
     const companyName = document.getElementById("companyName");
