@@ -234,6 +234,67 @@ ticker.innerHTML=
 
 })();
 
+/* ===========================
+        BRANDING
+=========================== */
+
+async function loadBranding() {
+
+    const { data, error } = await supabaseClient
+        .from("branding")
+        .select("*")
+        .limit(1)
+        .single();
+
+    if (error) {
+
+        console.error(error);
+        return;
+
+    }
+
+    // Company Name
+    const companyName = document.getElementById("companyName");
+
+    if (companyName)
+        companyName.textContent = data.company_name;
+
+    // Welcome Message
+    const welcomeText = document.getElementById("welcomeText");
+
+    if (welcomeText)
+        welcomeText.textContent = data.welcome_text;
+
+    // Logo
+    if (data.logo_url) {
+
+        document.getElementById("logo").src =
+            data.logo_url + "?t=" + Date.now();
+
+    }
+
+    // Background
+
+    if (data.background_url) {
+
+        document.body.style.backgroundImage =
+            `url(${data.background_url}?t=${Date.now()})`;
+
+        document.body.style.backgroundSize = "cover";
+
+        document.body.style.backgroundPosition = "center";
+
+        document.body.style.backgroundRepeat = "no-repeat";
+
+    }
+
+}
+
+loadBranding();
+
+// Refresh branding every minute
+setInterval(loadBranding, 60000);
+
 async function loadSchedule() {
 
     const scheduleImage = document.getElementById("scheduleImage");
