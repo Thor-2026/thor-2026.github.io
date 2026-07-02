@@ -2,17 +2,56 @@
 
 <div class="card">
 
-    <h3>Add New Announcement</h3>
+    <h3>Add / Edit Announcement</h3>
 
-    <input
-        type="text"
-        id="newAnnouncement"
-        placeholder="Enter announcement...">
+    <div class="form-group">
+        <label>Title</label>
+        <input
+            type="text"
+            id="title"
+            placeholder="Announcement title">
+    </div>
 
-    <br><br>
+    <div class="form-group">
+        <label>Message</label>
+        <textarea
+            id="message"
+            rows="4"
+            placeholder="Announcement message"></textarea>
+    </div>
 
-    <button id="addAnnouncement">
-        Add Announcement
+    <div class="form-group checkbox-group">
+
+        <label for="enabled">
+            <input
+                type="checkbox"
+                id="enabled"
+                checked>
+
+            Enabled
+        </label>
+
+    </div>
+
+    <div class="form-group">
+
+        <label>Sort Order</label>
+
+        <input
+            type="number"
+            id="sortOrder"
+            value="1">
+
+    </div>
+
+    <button id="saveAnnouncement">
+        💾 Save Announcement
+    </button>
+
+    <button
+        id="cancelEdit"
+        style="display:none;">
+        Cancel Edit
     </button>
 
 </div>
