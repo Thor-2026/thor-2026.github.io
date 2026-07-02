@@ -195,4 +195,3 @@ async function initAnnouncementsPage() {
 
 }
 
-initAnnouncementsPage();
