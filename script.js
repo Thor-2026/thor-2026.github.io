@@ -17,6 +17,24 @@ const CONFIG = {
 
 };
 
+async function loadSettings() {
+
+    const { data, error } = await supabaseClient
+        .from("settings")
+        .select("*")
+        .eq("id", 1)
+        .single();
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    CONFIG.city = data.city;
+    CONFIG.latitude = data.latitude;
+    CONFIG.longitude = data.longitude;
+
+}
 /* ===========================
       LIVE CLOCK & DATE
 =========================== */
