@@ -349,7 +349,16 @@ async function loadBranding() {
 
 }
 
-loadBranding();
+(async () => {
+
+    await loadSettings();
+
+    loadBranding();
+    loadWeather();
+    loadAnnouncements();
+    loadSchedule();
+
+})();
 
 setInterval(loadBranding, 60000);
 
