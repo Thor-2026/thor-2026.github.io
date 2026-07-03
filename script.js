@@ -133,6 +133,12 @@ text="Thunderstorm";
 
 document.getElementById("weatherIcon").textContent=icon;
 document.getElementById("weatherText").textContent=text;
+document.getElementById("weatherUpdated").textContent =
+"Updated: " +
+new Date().toLocaleTimeString([],{
+hour:"2-digit",
+minute:"2-digit"
+});   
 
 }
 
