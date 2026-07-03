@@ -59,6 +59,13 @@ async function loadSettings() {
     if(error){
         console.error(error);
         return;
+       
+const title = document.getElementById("displayTitle");
+
+if (title) {
+    title.textContent = SETTINGS.display_title;
+}
+       
     }
 
     CONFIG.city=data.city;
