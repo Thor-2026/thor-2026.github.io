@@ -108,7 +108,32 @@ function updateClock() {
 
 }
 
-updateClock();
+function updateClock() {
+
+    const now = new Date();
+
+    document.getElementById("clock").textContent =
+        now.toLocaleTimeString([], {
+
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+
+            hour12: SETTINGS.clock_format == 12
+
+        });
+
+    document.getElementById("date").textContent =
+        now.toLocaleDateString([], {
+
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+
+        });
+
+}
 setInterval(updateClock,1000);
 
 /* ===========================
@@ -125,11 +150,22 @@ const response=await fetch(url);
 
 const data=await response.json();
 
-const temp=Math.round(data.current.temperature_2m);
+let temp = data.current.temperature_2m;
+let unit = "°C";
+
+if (SETTINGS.temperature_unit === "F") {
+
+    temp = (temp * 9 / 5) + 32;
+    unit = "°F";
+
+}
+
+document.getElementById("temperature").textContent =
+    Math.round(temp) + unit;
 
 const code=data.current.weather_code;
 
-document.getElementById("temperature").textContent=temp+"°C";
+//document.getElementById("temperature").textContent=temp+"°C";
 
 let icon="☀️";
 let text="Clear";
@@ -203,11 +239,11 @@ document.getElementById("weatherText").textContent="Offline";
      AUTO REFRESH WEBSITE
 =========================== */
 
-setInterval(function(){
+setTimeout(function refreshPage() {
 
-location.reload();
+    location.reload();
 
-},CONFIG.refreshMinutes*60*1000);
+}, SETTINGS.refresh_minutes * 60000);
 
 /* ===========================
       ANNOUNCEMENTS
@@ -280,9 +316,11 @@ function rotateAnnouncements() {
 
 }
 
-//loadAnnouncements();
+setInterval(() => {
 
-setInterval(rotateAnnouncements, 8000);
+    rotateAnnouncements();
+
+}, SETTINGS.announcement_seconds * 1000);
 
 // Reload announcements every minute
 setInterval(loadAnnouncements, 60000);
