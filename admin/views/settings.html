@@ -1,3 +1,59 @@
-<h1>Settings</h1>
+<h1>⚙ System Settings</h1>
 
-Coming Soon
+<div class="card">
+
+<h2>Display Settings</h2>
+
+<label>Display Title</label>
+<input
+type="text"
+id="displayTitle"
+placeholder="SHIFT SCHEDULE">
+
+<br><br>
+
+<label>Auto Refresh (minutes)</label>
+<input
+type="number"
+id="refreshMinutes">
+
+<br><br>
+
+<label>Announcement Rotation (seconds)</label>
+<input
+type="number"
+id="announcementSeconds">
+
+<br><br>
+
+<label>Clock Format</label>
+
+<select id="clockFormat">
+
+<option value="12">12 Hour</option>
+
+<option value="24">24 Hour</option>
+
+</select>
+
+<br><br>
+
+<label>Temperature Unit</label>
+
+<select id="temperatureUnit">
+
+<option value="C">Celsius (°C)</option>
+
+<option value="F">Fahrenheit (°F)</option>
+
+</select>
+
+<br><br>
+
+<button id="saveSettings">
+
+💾 Save Settings
+
+</button>
+
+</div>
