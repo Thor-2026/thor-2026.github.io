@@ -33,6 +33,12 @@ async function loadSettings() {
     CONFIG.city = data.city;
     CONFIG.latitude = data.latitude;
     CONFIG.longitude = data.longitude;
+   
+   const weatherCity = document.getElementById("weatherCity");
+
+if (weatherCity) {
+    weatherCity.textContent = "📍 " + data.city;
+}
 
 }
 /* ===========================
