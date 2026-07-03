@@ -17,6 +17,37 @@ const CONFIG = {
 
 };
 
+/* ===========================
+      SYSTEM SETTINGS
+=========================== */
+
+let SETTINGS = {
+    city: CONFIG.city,
+    latitude: CONFIG.latitude,
+    longitude: CONFIG.longitude,
+    refresh_minutes: CONFIG.refreshMinutes,
+    announcement_seconds: 8,
+    display_title: "SHIFT SCHEDULE",
+    clock_format: 12,
+    temperature_unit: "C"
+};
+
+async function loadSettings() {
+
+    const { data, error } = await supabaseClient
+        .from("settings")
+        .select("*")
+        .eq("id", 1)
+        .single();
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    SETTINGS = data;
+}
+
 async function loadSettings() {
 
     const { data, error } = await supabaseClient
