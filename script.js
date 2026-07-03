@@ -186,7 +186,7 @@ document.getElementById("weatherText").textContent="Offline";
 
     await loadSettings();
 
-    loadWeather();
+  //  loadWeather();
 
     setInterval(loadWeather, CONFIG.weatherMinutes * 60 * 1000);
 
@@ -274,7 +274,7 @@ function rotateAnnouncements() {
 
 }
 
-loadAnnouncements();
+//loadAnnouncements();
 
 setInterval(rotateAnnouncements, 8000);
 
@@ -377,7 +377,7 @@ async function loadSchedule() {
 
 }
 
-loadSchedule();
+//loadSchedule();
 
 // Check for a new schedule every minute
 setInterval(loadSchedule, 60000);
