@@ -22,7 +22,7 @@ async function initBrandingPage() {
     if (!companyName) return;
 
     // -----------------------
-    // Load branding
+    // Load Branding
     // -----------------------
 
     async function loadBranding() {
@@ -30,41 +30,31 @@ async function initBrandingPage() {
         const { data, error } = await supabaseClient
             .from("branding")
             .select("*")
-            .limit(1)
+            .eq("id", 1)
             .single();
 
         if (error) {
-
             console.error(error);
             return;
-
         }
 
         companyName.value = data.company_name || "";
         welcomeText.value = data.welcome_text || "";
 
         if (data.logo_url) {
-
-            logoPreview.src =
-                data.logo_url + "?t=" + Date.now();
-
+            logoPreview.src = data.logo_url + "?t=" + Date.now();
             logoPreview.style.display = "block";
-
         }
 
         if (data.background_url) {
-
-            backgroundPreview.src =
-                data.background_url + "?t=" + Date.now();
-
+            backgroundPreview.src = data.background_url + "?t=" + Date.now();
             backgroundPreview.style.display = "block";
-
         }
 
     }
 
     // -----------------------
-    // Save text
+    // Save Text
     // -----------------------
 
     saveButton.onclick = async () => {
@@ -72,155 +62,142 @@ async function initBrandingPage() {
         const { error } = await supabaseClient
             .from("branding")
             .update({
-
                 company_name: companyName.value,
-
-                welcome_text: welcomeText.value
-
+                welcome_text: welcomeText.value,
+                updated_at: new Date().toISOString()
             })
             .eq("id", 1);
 
         if (error) {
-
             alert(error.message);
             return;
-
         }
 
-        alert("Branding saved.");
+        alert("Branding saved successfully.");
 
     };
 
     // -----------------------
-    // Logo preview
+    // Logo Preview
     // -----------------------
 
     logoFile.onchange = () => {
 
-        const file = logoFile.files[0];
+        if (!logoFile.files.length) return;
 
-        if (!file) return;
-
-        logoPreview.src = URL.createObjectURL(file);
-
+        logoPreview.src = URL.createObjectURL(logoFile.files[0]);
         logoPreview.style.display = "block";
 
     };
 
     // -----------------------
-    // Upload logo
+    // Upload Logo
     // -----------------------
 
     uploadLogo.onclick = async () => {
 
+        if (!logoFile.files.length) {
+            alert("Please choose a logo.");
+            return;
+        }
+
         const file = logoFile.files[0];
 
-        if (!file) {
-
-            alert("Choose a logo first.");
-            return;
-
-        }
-
-        const { error } = await supabaseClient.storage
+        const { error: uploadError } = await supabaseClient.storage
             .from("display")
             .upload("logo/logo.png", file, {
-
                 upsert: true
-
             });
 
-        if (error) {
-
-            alert(error.message);
+        if (uploadError) {
+            alert(uploadError.message);
             return;
-
         }
 
-        const url = supabaseClient.storage
+        const logoUrl = supabaseClient.storage
             .from("display")
             .getPublicUrl("logo/logo.png")
             .data.publicUrl;
 
-        await supabaseClient
+        const { error: dbError } = await supabaseClient
             .from("branding")
             .update({
-
-                logo_url: url
-
+                logo_url: logoUrl,
+                updated_at: new Date().toISOString()
             })
             .eq("id", 1);
 
-        alert("Logo uploaded.");
+        if (dbError) {
+            alert(dbError.message);
+            return;
+        }
 
-        loadBranding();
+        await loadBranding();
+
+        alert("Logo uploaded successfully.");
 
     };
 
     // -----------------------
-    // Background preview
+    // Background Preview
     // -----------------------
 
     backgroundFile.onchange = () => {
 
-        const file = backgroundFile.files[0];
-
-        if (!file) return;
+        if (!backgroundFile.files.length) return;
 
         backgroundPreview.src =
-            URL.createObjectURL(file);
+            URL.createObjectURL(backgroundFile.files[0]);
 
         backgroundPreview.style.display = "block";
 
     };
 
     // -----------------------
-    // Upload background
+    // Upload Background
     // -----------------------
 
     uploadBackground.onclick = async () => {
 
+        if (!backgroundFile.files.length) {
+            alert("Please choose a background.");
+            return;
+        }
+
         const file = backgroundFile.files[0];
 
-        if (!file) {
-
-            alert("Choose a background first.");
-            return;
-
-        }
-
-        const { error } = await supabaseClient.storage
+        const { error: uploadError } = await supabaseClient.storage
             .from("display")
             .upload("background/background.jpg", file, {
-
                 upsert: true
-
             });
 
-        if (error) {
-
-            alert(error.message);
+        if (uploadError) {
+            alert(uploadError.message);
             return;
-
         }
 
-        const url = supabaseClient.storage
+        const backgroundUrl = supabaseClient.storage
             .from("display")
             .getPublicUrl("background/background.jpg")
             .data.publicUrl;
 
-        await supabaseClient
+        const { error: dbError } = await supabaseClient
             .from("branding")
             .update({
-
-                background_url: url
-
+                background_url: backgroundUrl,
+                updated_at: new Date().toISOString()
             })
             .eq("id", 1);
 
-        alert("Background uploaded.");
+        if (dbError) {
+            alert(dbError.message);
+            return;
+        }
 
-        loadBranding();
+        await loadBranding();
+
+        alert("Background uploaded successfully.");
 
     };
 
