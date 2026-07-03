@@ -22,25 +22,29 @@ async function loadSettings() {
     const { data, error } = await supabaseClient
         .from("settings")
         .select("*")
-        .eq("id", 1)
+        .eq("id",1)
         .single();
 
-    if (error) {
+    if(error){
         console.error(error);
         return;
     }
 
-    CONFIG.city = data.city;
-    CONFIG.latitude = data.latitude;
-    CONFIG.longitude = data.longitude;
-   
-   const weatherCity = document.getElementById("weatherCity");
+    CONFIG.city=data.city;
+    CONFIG.latitude=data.latitude;
+    CONFIG.longitude=data.longitude;
 
-if (weatherCity) {
-    weatherCity.textContent = "📍 " + data.city;
+    const city=document.getElementById("weatherCity");
+
+    if(city){
+
+        city.textContent="📍 "+data.city;
+
+    }
+
 }
 
-}
+
 /* ===========================
       LIVE CLOCK & DATE
 =========================== */
