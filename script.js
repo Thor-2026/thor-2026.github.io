@@ -134,9 +134,17 @@ document.getElementById("weatherText").textContent="Offline";
 
 }
 
-loadWeather();
 
-setInterval(loadWeather,CONFIG.weatherMinutes*60*1000);
+(async () => {
+
+    await loadSettings();
+
+    loadWeather();
+
+    setInterval(loadWeather, CONFIG.weatherMinutes * 60 * 1000);
+
+})();
+
 
 /* ===========================
      AUTO REFRESH WEBSITE
