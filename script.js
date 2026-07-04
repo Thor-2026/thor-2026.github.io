@@ -32,7 +32,7 @@ let SETTINGS = {
     temperature_unit: "C"
 };
 
-async function loadSettings() {
+/* async function loadSettings() {
 
     const { data, error } = await supabaseClient
         .from("settings")
@@ -46,7 +46,7 @@ async function loadSettings() {
     }
 
     SETTINGS = data;
-}
+} */
 
 async function loadSettings() {
 
@@ -87,7 +87,7 @@ if (title) {
       LIVE CLOCK & DATE
 =========================== */
 
-function updateClock() {
+/* function updateClock() {
 
     const now = new Date();
 
@@ -106,7 +106,7 @@ function updateClock() {
             day: "numeric"
         });
 
-}
+} */
 
 function updateClock() {
 
