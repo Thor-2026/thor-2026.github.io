@@ -24,7 +24,7 @@ async function initDisplay() {
 
     startWeather();
 
-    loadAnnouncements();
+    startAnnouncements();
 
     startTicker();
 
