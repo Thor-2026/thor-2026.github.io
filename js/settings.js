@@ -39,6 +39,10 @@ let SETTINGS = {
 
 };
 
+// --------------------------------------
+// Load Settings
+// --------------------------------------
+
 async function loadSettings() {
 
     const { data, error } = await supabaseClient
@@ -49,7 +53,7 @@ async function loadSettings() {
 
     if (error) {
 
-        console.error("Settings Error:", error);
+        console.error("Settings:", error);
 
         return false;
 
@@ -58,7 +62,6 @@ async function loadSettings() {
     SETTINGS = {
 
         ...SETTINGS,
-
         ...data
 
     };
@@ -69,32 +72,55 @@ async function loadSettings() {
 
 }
 
+// --------------------------------------
+// Apply Settings To Display
+// --------------------------------------
+
 function applySettings() {
 
-    // Display title
+    // Display Title
 
-    const title = document.getElementById("displayTitle");
+    const displayTitle =
+        document.getElementById("displayTitle");
 
-    if (title) {
+    if (displayTitle) {
 
-        title.textContent = SETTINGS.display_title;
+        displayTitle.textContent =
+            SETTINGS.display_title;
 
     }
 
-    // Weather city
+    // Weather City
 
-    const city = document.getElementById("weatherCity");
+    const weatherCity =
+        document.getElementById("weatherCity");
 
-    if (city) {
+    if (weatherCity) {
 
-        city.textContent = "📍 " + SETTINGS.city;
+        weatherCity.textContent =
+            "📍 " + SETTINGS.city;
 
     }
 
 }
 
+// --------------------------------------
+// Get Current Settings
+// --------------------------------------
+
 function getSettings() {
 
     return SETTINGS;
+
+}
+
+// --------------------------------------
+// Restart Modules
+// (Future live updates)
+// --------------------------------------
+
+function refreshModules() {
+
+    // Reserved for future
 
 }
