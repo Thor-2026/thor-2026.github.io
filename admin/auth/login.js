@@ -1,31 +1,53 @@
-const loginBtn = document.getElementById("loginBtn");
-const message = document.getElementById("message");
+// ======================================
+// THOR DISPLAY CMS
+// Login Page
+// ======================================
 
-loginBtn.addEventListener("click", async () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
-
-    if (!email || !password) {
-        message.innerText = "Please enter your email and password.";
-        return;
-    }
-
-    loginBtn.disabled = true;
-    loginBtn.innerText = "Signing in...";
-
-    const { error } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password
-    });
-
-    if (error) {
-        message.innerText = error.message;
-        loginBtn.disabled = false;
-        loginBtn.innerText = "Login";
-        return;
-    }
-
-    window.location.href = "dashboard.html";
+    await loadBranding();
 
 });
+
+// --------------------------------------
+// Load Branding
+// --------------------------------------
+
+async function loadBranding() {
+
+    const { data, error } = await supabaseClient
+        .from("branding")
+        .select("*")
+        .eq("id", 1)
+        .single();
+
+    if (error) {
+
+        console.error(error);
+        return;
+
+    }
+
+    // Logo
+
+    const logo = document.getElementById("loginLogo");
+
+    if (logo && data.logo_url) {
+
+        logo.src = data.logo_url;
+
+    }
+
+    // Background
+
+    if (data.background_url) {
+
+        document.body.style.backgroundImage =
+            `linear-gradient(rgba(8,15,35,.75),rgba(8,15,35,.75)), url(${data.background_url})`;
+
+        document.body.style.backgroundSize = "cover";
+        document.body.style.backgroundPosition = "center";
+
+    }
+
+}
