@@ -2,44 +2,52 @@
 <html lang="en">
 
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Thor Display Admin Login</title>
 
-<link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>THOR Display Login</title>
+
+<link rel="stylesheet" href="css/login.css">
+
 </head>
 
 <body>
 
 <div class="login-card">
 
-<h1>THOR DISPLAY</h1>
+    <img id="loginLogo" src="../assets/logo.png" alt="Logo">
 
-<h2>Administrator Login</h2>
+    <h1>THOR DISPLAY CMS</h1>
 
-<input
-type="email"
-id="email"
-placeholder="Email">
+    <p>Please sign in</p>
 
-<input
-type="password"
-id="password"
-placeholder="Password">
+    <input
+        type="text"
+        id="username"
+        placeholder="Username">
 
-<button id="loginBtn">
+    <input
+        type="password"
+        id="password"
+        placeholder="Password">
 
-Login
+    <button id="loginButton">
 
-</button>
+        Login
 
-<p id="message"></p>
+    </button>
+
+    <div id="loginError"></div>
 
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../js/supabase.js"></script>
-<script src="login.js"></script>
+
+<script src="js/supabase.js"></script>
+
+<script src="auth/login.js"></script>
 
 </body>
 
