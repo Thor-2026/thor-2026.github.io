@@ -128,6 +128,16 @@ function bindTeamEvents() {
 
         openUser(id);
 
+    document
+.getElementById("closeEditor")
+?.addEventListener(
+
+"click",
+
+closeUserEditor
+
+);
+
     });
 
 }
@@ -138,6 +148,33 @@ function bindTeamEvents() {
 
 function openUser(id) {
 
-    console.log("Open user:", id);
+    const user =
+        users.find(x => x.id === id);
+
+    if (!user) return;
+
+    document
+        .getElementById("editFullName")
+        .value = user.full_name || "";
+
+    document
+        .getElementById("editUsername")
+        .value = user.username || "";
+
+    document
+        .getElementById("editStatus")
+        .value = user.active;
+
+    document
+        .getElementById("userEditor")
+        .classList.add("open");
+
+}
+
+function closeUserEditor(){
+
+    document
+        .getElementById("userEditor")
+        .classList.remove("open");
 
 }
