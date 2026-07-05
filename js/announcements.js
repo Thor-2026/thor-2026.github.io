@@ -6,10 +6,13 @@
 let announcements = [];
 let announcementIndex = 0;
 let announcementTimer = null;
+let announcementReloadTimer = null;
+
+// --------------------------------------
+// Load announcements from database
+// --------------------------------------
 
 async function loadAnnouncements() {
-
-    const settings = getSettings();
 
     const { data, error } = await supabaseClient
         .from("announcements")
@@ -20,32 +23,20 @@ async function loadAnnouncements() {
     if (error) {
 
         console.error("Announcements:", error);
-
         return;
 
     }
 
     announcements = data || [];
-
     announcementIndex = 0;
 
     showAnnouncement();
 
-    if (announcementTimer) {
-
-        clearInterval(announcementTimer);
-
-    }
-
-    announcementTimer = setInterval(
-
-        showAnnouncement,
-
-        settings.announcement_seconds * 1000
-
-    );
-
 }
+
+// --------------------------------------
+// Show next announcement
+// --------------------------------------
 
 function showAnnouncement() {
 
@@ -92,13 +83,53 @@ function showAnnouncement() {
 
 }
 
+// --------------------------------------
+// Start announcements
+// --------------------------------------
+
+function startAnnouncements() {
+
+    const settings = getSettings();
+
+    stopAnnouncements();
+
+    loadAnnouncements();
+
+    announcementTimer = setInterval(
+
+        showAnnouncement,
+
+        settings.announcement_seconds * 1000
+
+    );
+
+    announcementReloadTimer = setInterval(
+
+        loadAnnouncements,
+
+        60000
+
+    );
+
+}
+
+// --------------------------------------
+// Stop announcements
+// --------------------------------------
+
 function stopAnnouncements() {
 
     if (announcementTimer) {
 
         clearInterval(announcementTimer);
-
         announcementTimer = null;
+
+    }
+
+    if (announcementReloadTimer) {
+
+        clearInterval(announcementReloadTimer);
+        announcementReloadTimer = null;
 
     }
 
