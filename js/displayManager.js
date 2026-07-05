@@ -4,16 +4,21 @@
 // ======================================
 
 let refreshTimer = null;
+let settingsReloadTimer = null;
+
+// --------------------------------------
+// Initialize Display
+// --------------------------------------
 
 async function initDisplay() {
 
-    // Load settings first
+    console.log("Starting THOR Display CMS...");
+
     const loaded = await loadSettings();
 
     if (!loaded) {
 
         console.error("Unable to load settings.");
-
         return;
 
     }
@@ -32,7 +37,19 @@ async function initDisplay() {
 
     startSchedule();
 
-    // Auto refresh display
+    startRefreshTimer();
+
+    startSettingsWatcher();
+
+    console.log("THOR Display CMS Ready.");
+
+}
+
+// --------------------------------------
+// Refresh Page Timer
+// --------------------------------------
+
+function startRefreshTimer() {
 
     if (refreshTimer) {
 
@@ -44,14 +61,26 @@ async function initDisplay() {
 
         location.reload();
 
-    }, getSettings().refresh_minutes * 60 * 1000);
+    }, getSettings().refresh_minutes * 60000);
 
 }
 
-// Reload settings every minute
+// --------------------------------------
+// Settings Watcher
+// --------------------------------------
 
-setInterval(async () => {
+function startSettingsWatcher() {
 
-    await loadSettings();
+    if (settingsReloadTimer) {
 
-}, 60000);
+        clearInterval(settingsReloadTimer);
+
+    }
+
+    settingsReloadTimer = setInterval(async () => {
+
+        await loadSettings();
+
+    }, 60000);
+
+}
