@@ -312,3 +312,50 @@ font-size:18px;
 }
 
 }
+/* ===========================
+   Admin Button
+=========================== */
+
+#adminButton{
+
+position:fixed;
+
+right:20px;
+
+bottom:20px;
+
+padding:10px 16px;
+
+background:rgba(0,0,0,.45);
+
+backdrop-filter:blur(8px);
+
+border:1px solid rgba(255,255,255,.15);
+
+border-radius:10px;
+
+color:white;
+
+font-size:15px;
+
+font-weight:600;
+
+text-decoration:none;
+
+transition:.25s;
+
+z-index:9999;
+
+opacity:.25;
+
+}
+
+#adminButton:hover{
+
+opacity:1;
+
+background:#2196F3;
+
+transform:translateY(-2px);
+
+}
