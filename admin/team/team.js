@@ -11,6 +11,8 @@ let users = [];
 
 async function initTeam() {
 
+    await loadRoles();
+
     await loadUsers();
 
     bindTeamEvents();
@@ -166,6 +168,10 @@ function openUser(id) {
         .value = user.active;
 
     document
+.getElementById("editRole")
+.value = user.role_id || "";
+
+    document
         .getElementById("userEditor")
         .classList.add("open");
 
@@ -176,5 +182,50 @@ function closeUserEditor(){
     document
         .getElementById("userEditor")
         .classList.remove("open");
+
+}
+
+async function loadRoles() {
+
+    const { data, error } = await supabaseClient
+        .from("roles")
+        .select("*")
+        .order("id");
+
+    if (error) {
+
+        console.error(error);
+
+        return;
+
+    }
+
+    roles = data || [];
+
+    const selects = [
+
+        document.getElementById("newRole"),
+
+        document.getElementById("editRole")
+
+    ];
+
+    selects.forEach(select => {
+
+        if (!select) return;
+
+        select.innerHTML = "";
+
+        roles.forEach(role => {
+
+            select.innerHTML += `
+                <option value="${role.id}">
+                    ${role.name}
+                </option>
+            `;
+
+        });
+
+    });
 
 }
