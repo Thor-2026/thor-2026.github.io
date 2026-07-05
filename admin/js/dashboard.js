@@ -24,6 +24,10 @@ const modules = {
         file: "views/weather.html",
         init: "initWeatherPage"
     },
+    ticker: {
+    file: "views/ticker.html",
+    init: "initTickerPage"
+    },
     settings: {
         file: "views/settings.html",
         init: "initSettingsPage"
