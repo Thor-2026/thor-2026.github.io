@@ -3,272 +3,347 @@
    Team Management
 ====================================== */
 
-.page-header{
+/* ======================================
+   Layout Header
+====================================== */
 
-display:flex;
+.page-header {
 
-justify-content:space-between;
-
-align-items:center;
-
-margin-bottom:25px;
-
-}
-
-.page-header h1{
-
-font-size:30px;
-
-color:white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
 
 }
 
-.primary-btn{
+.page-header h1 {
 
-padding:12px 22px;
-
-border:none;
-
-border-radius:10px;
-
-background:#1E88E5;
-
-color:white;
-
-font-size:15px;
-
-font-weight:600;
-
-cursor:pointer;
-
-transition:.25s;
-
-}
-
-.primary-btn:hover{
-
-background:#42A5F5;
-
-transform:translateY(-2px);
-
-}
-
-.team-tabs{
-
-display:flex;
-
-gap:12px;
-
-margin-bottom:25px;
-
-}
-
-.tab{
-
-padding:10px 22px;
-
-border:none;
-
-border-radius:10px;
-
-background:rgba(255,255,255,.08);
-
-color:white;
-
-cursor:pointer;
-
-transition:.25s;
-
-}
-
-.tab.active{
-
-background:#2196F3;
-
-}
-
-.team-table{
-
-width:100%;
-
-border-collapse:collapse;
-
-background:rgba(255,255,255,.06);
-
-backdrop-filter:blur(12px);
-
-border-radius:14px;
-
-overflow:hidden;
-
-}
-
-.team-table th{
-
-padding:16px;
-
-text-align:left;
-
-background:rgba(255,255,255,.08);
-
-color:white;
-
-}
-
-.team-table td{
-
-padding:16px;
-
-border-top:1px solid rgba(255,255,255,.08);
-
-color:white;
-
-}
-
-.team-table tr:hover{
-
-background:rgba(255,255,255,.05);
-
-}
-
-.status-active{
-
-color:#4CAF50;
-
-font-weight:bold;
-
-}
-
-.status-disabled{
-
-color:#F44336;
-
-font-weight:bold;
+    font-size: 30px;
+    color: #ffffff;
 
 }
 
 /* ======================================
-   User Editor
+   Buttons
 ====================================== */
 
-.user-editor{
+.primary-btn {
 
-position:fixed;
-
-top:0;
-
-right:-430px;
-
-width:430px;
-
-height:100%;
-
-background:#152238;
-
-transition:.35s;
-
-box-shadow:-10px 0 35px rgba(0,0,0,.45);
-
-z-index:9999;
-
-padding:30px;
-
-overflow:auto;
+    padding: 12px 22px;
+    border: none;
+    border-radius: 10px;
+    background: #1E88E5;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s ease;
 
 }
 
-.user-editor.open{
+.primary-btn:hover {
 
-right:0;
-
-}
-
-.editor-header{
-
-display:flex;
-
-justify-content:space-between;
-
-align-items:center;
-
-margin-bottom:25px;
-
-color:white;
+    background: #42A5F5;
+    transform: translateY(-2px);
 
 }
 
-.editor-header button{
+.danger-btn {
 
-background:none;
-
-border:none;
-
-font-size:24px;
-
-color:white;
-
-cursor:pointer;
-
-}
-
-.editor-body{
-
-display:flex;
-
-flex-direction:column;
-
-gap:14px;
+    padding: 12px 22px;
+    border: none;
+    border-radius: 10px;
+    background: #E53935;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s ease;
 
 }
 
-.editor-body label{
+.danger-btn:hover {
 
-color:white;
+    background: #EF5350;
+    transform: translateY(-2px);
 
-font-weight:600;
+}
+
+/* ======================================
+   Tabs
+====================================== */
+
+.team-tabs {
+
+    display: flex;
+    gap: 12px;
+    margin-bottom: 25px;
+
+}
+
+.tab {
+
+    padding: 10px 22px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    cursor: pointer;
+    transition: 0.25s ease;
+
+}
+
+.tab:hover {
+
+    background: rgba(255, 255, 255, 0.12);
+
+}
+
+.tab.active {
+
+    background: #2196F3;
+
+}
+
+/* ======================================
+   Table
+====================================== */
+
+.team-table {
+
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(12px);
+    border-radius: 14px;
+    overflow: hidden;
+
+}
+
+.team-table th {
+
+    padding: 16px;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    font-weight: 600;
+
+}
+
+.team-table td {
+
+    padding: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+
+}
+
+.team-table tr:hover {
+
+    background: rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+
+}
+
+/* ======================================
+   Status
+====================================== */
+
+.status-active {
+
+    color: #4CAF50;
+    font-weight: bold;
+
+}
+
+.status-disabled {
+
+    color: #F44336;
+    font-weight: bold;
+
+}
+
+/* ======================================
+   User Editor (Slide Panel)
+====================================== */
+
+.user-editor {
+
+    position: fixed;
+    top: 0;
+    right: -430px;
+    width: 430px;
+    height: 100%;
+    background: #152238;
+    transition: right 0.35s ease;
+    box-shadow: -10px 0 35px rgba(0, 0, 0, 0.45);
+    z-index: 9999;
+    padding: 30px;
+    overflow-y: auto;
+
+}
+
+.user-editor.open {
+
+    right: 0;
+
+}
+
+/* ======================================
+   Editor Header
+====================================== */
+
+.editor-header {
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    color: #ffffff;
+
+}
+
+.editor-header button {
+
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #ffffff;
+    cursor: pointer;
+
+}
+
+/* ======================================
+   Editor Body
+====================================== */
+
+.editor-body {
+
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+
+}
+
+.editor-body h2 {
+
+    color: #ffffff;
+    margin-top: 10px;
+
+}
+
+.editor-body label {
+
+    color: #ffffff;
+    font-weight: 600;
 
 }
 
 .editor-body input,
+.editor-body select {
 
-.editor-body select{
-
-padding:12px;
-
-border-radius:10px;
-
-border:none;
-
-background:rgba(255,255,255,.1);
-
-color:white;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    outline: none;
 
 }
 
-.editor-buttons{
+.editor-body input:focus,
+.editor-body select:focus {
 
-margin-top:20px;
-
-display:flex;
-
-flex-direction:column;
-
-gap:12px;
+    background: rgba(255, 255, 255, 0.14);
 
 }
 
-#resetPasswordBtn{
+/* ======================================
+   Editor Buttons
+====================================== */
 
-padding:14px;
+.editor-buttons {
 
-background:#FF9800;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 
-color:white;
+}
 
-border:none;
+#resetPasswordBtn {
 
-border-radius:10px;
+    padding: 14px;
+    background: #FF9800;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.25s ease;
 
-cursor:pointer;
+}
+
+#resetPasswordBtn:hover {
+
+    background: #FFB74D;
+
+}
+
+#saveUserBtn {
+
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+
+}
+
+/* ======================================
+   Create User Section
+====================================== */
+
+#createUserBtn {
+
+    margin-top: 10px;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+
+}
+
+#newUserPassword {
+
+    margin-top: 10px;
+    color: #4CAF50;
+    font-weight: 600;
+
+}
+
+/* ======================================
+   Empty Panels
+====================================== */
+
+.empty-panel {
+
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    color: #ffffff;
+
+}
+
+.empty-panel h2 {
+
+    margin-bottom: 10px;
+
+}
+
+.empty-panel p {
+
+    opacity: 0.8;
 
 }
