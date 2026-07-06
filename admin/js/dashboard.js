@@ -146,7 +146,7 @@ if (logoutBtn) {
 
         await supabaseClient.auth.signOut();
 
-        window.location.href = "index.html";
+        window.location.href = "views/index.html";
 
     });
 
