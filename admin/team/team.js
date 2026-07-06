@@ -2,8 +2,10 @@
 // THOR DISPLAY CMS
 // Team Management
 // ======================================
+
 let roles = [];
 let users = [];
+let selectedUser = null;
 
 // --------------------------------------
 // Initialize
@@ -12,10 +14,58 @@ let users = [];
 async function initTeam() {
 
     await loadRoles();
-
     await loadUsers();
 
     bindTeamEvents();
+
+}
+
+// --------------------------------------
+// Load Roles
+// --------------------------------------
+
+async function loadRoles() {
+
+    const { data, error } = await supabaseClient
+        .from("roles")
+        .select("*")
+        .order("id");
+
+    if (error) {
+
+        console.error("Roles:", error);
+        return;
+
+    }
+
+    roles = data || [];
+
+    populateRoleSelect(
+        document.getElementById("newRole")
+    );
+
+    populateRoleSelect(
+        document.getElementById("editRole")
+    );
+
+}
+
+function populateRoleSelect(select) {
+
+    if (!select) return;
+
+    select.innerHTML = "";
+
+    roles.forEach(role => {
+
+        const option = document.createElement("option");
+
+        option.value = role.id;
+        option.textContent = role.name;
+
+        select.appendChild(option);
+
+    });
 
 }
 
@@ -36,7 +86,6 @@ async function loadUsers() {
     if (error) {
 
         console.error("Users:", error);
-
         return;
 
     }
@@ -48,13 +97,12 @@ async function loadUsers() {
 }
 
 // --------------------------------------
-// Render Table
+// Render Users
 // --------------------------------------
 
 function renderUsers() {
 
-    const table =
-        document.getElementById("usersTable");
+    const table = document.getElementById("usersTable");
 
     if (!table) return;
 
@@ -74,28 +122,22 @@ function renderUsers() {
 
     table.innerHTML = users.map(user => `
 
-        <tr class="team-row"
-            data-id="${user.id}">
+        <tr
+            class="team-row"
+            data-id="${user.id}"
+        >
 
-            <td>${user.full_name ?? ""}</td>
+            <td>${user.full_name || ""}</td>
 
-            <td>${user.username}</td>
+            <td>${user.username || ""}</td>
 
-            <td>${user.roles?.name ?? "-"}</td>
+            <td>${user.roles?.name || "-"}</td>
 
             <td>
 
-                <span class="${
-                    user.active
-                    ? "status-active"
-                    : "status-disabled"
-                }">
+                <span class="${user.active ? "status-active" : "status-disabled"}">
 
-                    ${
-                        user.active
-                        ? "🟢 Active"
-                        : "⚪ Disabled"
-                    }
+                    ${user.active ? "🟢 Active" : "⚪ Disabled"}
 
                 </span>
 
@@ -119,113 +161,172 @@ function renderUsers() {
 
 function bindTeamEvents() {
 
-    document.addEventListener("click", e => {
-
-        const row =
-            e.target.closest(".team-row");
-
-        if (!row) return;
-
-        const id = row.dataset.id;
-
-        openUser(id);
+    document.addEventListener("click", handleDocumentClick);
 
     document
-.getElementById("closeEditor")
-?.addEventListener(
+        .getElementById("closeEditor")
+        ?.addEventListener(
+            "click",
+            closeUserEditor
+        );
 
-"click",
+    document
+        .getElementById("saveUserBtn")
+        ?.addEventListener(
+            "click",
+            saveUser
+        );
 
-closeUserEditor
-
-);
-
-    });
+    document
+        .getElementById("deleteUserBtn")
+        ?.addEventListener(
+            "click",
+            deleteUser
+        );
 
 }
 
 // --------------------------------------
-// User Editor
+// Global Click Handler
 // --------------------------------------
 
-function openUser(id) {
+function handleDocumentClick(e) {
 
-    const user =
-        users.find(x => x.id === id);
+    const row = e.target.closest(".team-row");
 
-    if (!user) return;
+    if (row) {
 
-    document
-        .getElementById("editFullName")
-        .value = user.full_name || "";
-
-    document
-        .getElementById("editUsername")
-        .value = user.username || "";
-
-    document
-        .getElementById("editStatus")
-        .value = user.active;
-
-    document
-.getElementById("editRole")
-.value = user.role_id || "";
-
-    document
-        .getElementById("userEditor")
-        .classList.add("open");
-
-}
-
-function closeUserEditor(){
-
-    document
-        .getElementById("userEditor")
-        .classList.remove("open");
-
-}
-
-async function loadRoles() {
-
-    const { data, error } = await supabaseClient
-        .from("roles")
-        .select("*")
-        .order("id");
-
-    if (error) {
-
-        console.error(error);
+        openUser(row.dataset.id);
 
         return;
 
     }
 
-    roles = data || [];
+}
 
-    const selects = [
+// --------------------------------------
+// Open Editor
+// --------------------------------------
 
-        document.getElementById("newRole"),
+function openUser(id) {
 
-        document.getElementById("editRole")
+    const user = users.find(u => u.id === id);
 
-    ];
+    if (!user) return;
 
-    selects.forEach(select => {
+    selectedUser = user;
 
-        if (!select) return;
+    document.getElementById("editFullName").value =
+        user.full_name || "";
 
-        select.innerHTML = "";
+    document.getElementById("editUsername").value =
+        user.username || "";
 
-        roles.forEach(role => {
+    document.getElementById("editRole").value =
+        user.role_id || "";
 
-            select.innerHTML += `
-                <option value="${role.id}">
-                    ${role.name}
-                </option>
-            `;
+    document.getElementById("editStatus").value =
+        String(user.active);
 
-        });
+    document
+        .getElementById("userEditor")
+        ?.classList.add("open");
 
-    });
+}
+
+// --------------------------------------
+// Close Editor
+// --------------------------------------
+
+function closeUserEditor() {
+
+    selectedUser = null;
+
+    document
+        .getElementById("userEditor")
+        ?.classList.remove("open");
+
+}
+
+// --------------------------------------
+// Save User
+// --------------------------------------
+
+async function saveUser() {
+
+    if (!selectedUser) return;
+
+    const full_name =
+        document.getElementById("editFullName").value.trim();
+
+    const username =
+        document.getElementById("editUsername").value.trim();
+
+    const role_id =
+        Number(
+            document.getElementById("editRole").value
+        );
+
+    const active =
+        document.getElementById("editStatus").value === "true";
+
+    const { error } = await supabaseClient
+        .from("profiles")
+        .update({
+
+            full_name,
+            username,
+            role_id,
+            active
+
+        })
+        .eq("id", selectedUser.id);
+
+    if (error) {
+
+        console.error(error);
+        alert(error.message);
+
+        return;
+
+    }
+
+    closeUserEditor();
+
+    await loadUsers();
+
+}
+
+// --------------------------------------
+// Delete User
+// --------------------------------------
+
+async function deleteUser() {
+
+    if (!selectedUser) return;
+
+    const confirmed = confirm(
+        "Delete this user?"
+    );
+
+    if (!confirmed) return;
+
+    const { error } = await supabaseClient
+        .from("profiles")
+        .delete()
+        .eq("id", selectedUser.id);
+
+    if (error) {
+
+        console.error(error);
+        alert(error.message);
+
+        return;
+
+    }
+
+    closeUserEditor();
+
+    await loadUsers();
 
 }
