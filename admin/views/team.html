@@ -2,7 +2,9 @@
 
     <h1>👥 Team Management</h1>
 
-    <button id="newUserBtn" class="primary-btn">
+    <button
+        id="newUserBtn"
+        class="primary-btn">
 
         + New User
 
@@ -10,24 +12,31 @@
 
 </div>
 
+<!-- ======================================
+Tabs
+====================================== -->
+
 <div class="team-tabs">
 
-    <button class="tab active"
-            data-tab="users">
+    <button
+        class="tab active"
+        data-tab="users">
 
         Users
 
     </button>
 
-    <button class="tab"
-            data-tab="permissions">
+    <button
+        class="tab"
+        data-tab="permissions">
 
         Permissions
 
     </button>
 
-    <button class="tab"
-            data-tab="activity">
+    <button
+        class="tab"
+        data-tab="activity">
 
         Activity Log
 
@@ -35,9 +44,19 @@
 
 </div>
 
+<!-- ======================================
+Content
+====================================== -->
+
 <div id="teamContent">
 
-    <div id="usersView">
+    <!-- ======================================
+    Users
+    ====================================== -->
+
+    <section
+        id="usersView"
+        class="team-view">
 
         <table class="team-table">
 
@@ -75,45 +94,127 @@
 
         </table>
 
-    </div>
+    </section>
 
     <!-- ======================================
-     User Editor
+    Permissions
+    ====================================== -->
+
+    <section
+        id="permissionsView"
+        class="team-view"
+        style="display:none;">
+
+        <div class="empty-panel">
+
+            <h2>Permissions</h2>
+
+            <p>
+
+                Permissions management will be added
+                in the next phase.
+
+            </p>
+
+        </div>
+
+    </section>
+
+    <!-- ======================================
+    Activity
+    ====================================== -->
+
+    <section
+        id="activityView"
+        class="team-view"
+        style="display:none;">
+
+        <div class="empty-panel">
+
+            <h2>Activity Log</h2>
+
+            <p>
+
+                Activity history will be available
+                in a future update.
+
+            </p>
+
+        </div>
+
+    </section>
+
+</div>
+
+<!-- ======================================
+Slide Editor
 ====================================== -->
 
-<div id="userEditor" class="user-editor">
+<aside
+    id="userEditor"
+    class="user-editor">
+
+    <!-- Header -->
 
     <div class="editor-header">
 
         <h2>User Details</h2>
 
-        <button id="closeEditor">✕</button>
+        <button
+            id="closeEditor"
+            type="button">
+
+            ✕
+
+        </button>
 
     </div>
 
+    <!-- Body -->
+
     <div class="editor-body">
 
-        <label>Full Name</label>
+        <label for="editFullName">
+
+            Full Name
+
+        </label>
 
         <input
-            type="text"
-            id="editFullName">
+            id="editFullName"
+            type="text">
 
-        <label>Username</label>
+        <label for="editUsername">
+
+            Username
+
+        </label>
 
         <input
-            type="text"
-            id="editUsername">
+            id="editUsername"
+            type="text">
 
-        <label>Role</label>
+        <label for="editRole">
+
+            Role
+
+        </label>
 
         <select id="editRole">
 
-            <option value="">Loading...</option>
+            <option value="">
+
+                Loading...
+
+            </option>
 
         </select>
 
-        <label>Status</label>
+        <label for="editStatus">
+
+            Status
+
+        </label>
 
         <select id="editStatus">
 
@@ -133,42 +234,85 @@
 
         <div class="editor-buttons">
 
-            <button id="saveUserBtn"
-                    class="primary-btn">
+            <button
+                id="saveUserBtn"
+                class="primary-btn"
+                type="button">
 
-                Save
+                Save Changes
 
             </button>
 
-            <button id="resetPasswordBtn">
+            <button
+                id="resetPasswordBtn"
+                type="button">
 
                 Reset Password
 
             </button>
 
+            <button
+                id="deleteUserBtn"
+                class="danger-btn"
+                type="button">
+
+                Delete User
+
+            </button>
+
         </div>
 
+        <hr>
+
+        <h2>Create User</h2>
+
+        <label for="newFullName">
+
+            Full Name
+
+        </label>
+
+        <input
+            id="newFullName"
+            type="text">
+
+        <label for="newUsername">
+
+            Username
+
+        </label>
+
+        <input
+            id="newUsername"
+            type="text">
+
+        <label for="newRole">
+
+            Role
+
+        </label>
+
+        <select id="newRole">
+
+            <option value="">
+
+                Loading...
+
+            </option>
+
+        </select>
+
+        <button
+            id="createUserBtn"
+            class="primary-btn"
+            type="button">
+
+            Create User
+
+        </button>
+
+        <div id="newUserPassword"></div>
+
     </div>
-<hr style="margin:25px 0;opacity:.25;">
 
-<h2>Create User</h2>
-
-<label>Full Name</label>
-<input type="text" id="newFullName">
-
-<label>Username</label>
-<input type="text" id="newUsername">
-
-<label>Role</label>
-<select id="newRole">
-    <option value="">Loading...</option>
-</select>
-
-<button id="createUserBtn" class="primary-btn">
-    Create User
-</button>
-
-<div id="newUserPassword"></div>
-</div>
-
-</div>
+    </aside>
