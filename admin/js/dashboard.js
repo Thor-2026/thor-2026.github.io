@@ -43,12 +43,22 @@ const modules = {
     team: {
         file: "views/team.html",
         init: "initTeam"
+    },
+
+    permissions: {
+        file: "views/permissions.html",
+        init: "initPermissions"
+    },
+
+    activity: {
+        file: "views/activity.html",
+        init: "initActivity"
     }
 
 };
 
 // ======================================
-// Load Page
+// Load HTML
 // ======================================
 
 async function loadPage(page) {
@@ -73,14 +83,15 @@ async function loadPage(page) {
 
         const html = await response.text();
 
-        const pageContent = document.getElementById("pageContent");
+        const container =
+            document.getElementById("pageContent");
 
-        pageContent.innerHTML = html;
+        container.innerHTML = html;
 
-        // Small delay so new HTML exists before initialization
-
-        if (module.init &&
-            typeof window[module.init] === "function") {
+        if (
+            module.init &&
+            typeof window[module.init] === "function"
+        ) {
 
             setTimeout(() => {
 
@@ -90,7 +101,9 @@ async function loadPage(page) {
 
         }
 
-    } catch (err) {
+    }
+
+    catch (err) {
 
         console.error(err);
 
@@ -111,36 +124,47 @@ async function loadPage(page) {
 }
 
 // ======================================
-// Sidebar Navigation
+// Sidebar
 // ======================================
 
-document.querySelectorAll(".menu").forEach(button => {
+function bindSidebar() {
 
-    if (button.id === "logoutBtn") return;
+    document
+        .querySelectorAll(".menu")
+        .forEach(button => {
 
-    button.addEventListener("click", () => {
+            if (button.id === "logoutBtn") return;
 
-        document.querySelectorAll(".menu").forEach(menu => {
+            button.addEventListener("click", () => {
 
-            menu.classList.remove("active");
+                document
+                    .querySelectorAll(".menu")
+                    .forEach(item => {
+
+                        item.classList.remove("active");
+
+                    });
+
+                button.classList.add("active");
+
+                loadPage(button.dataset.page);
+
+            });
 
         });
 
-        button.classList.add("active");
-
-        loadPage(button.dataset.page);
-
-    });
-
-});
+}
 
 // ======================================
 // Logout
 // ======================================
 
-const logoutBtn = document.getElementById("logoutBtn");
+function bindLogout() {
 
-if (logoutBtn) {
+    const logoutBtn =
+        document.getElementById("logoutBtn");
+
+    if (!logoutBtn) return;
 
     logoutBtn.addEventListener("click", async () => {
 
@@ -153,10 +177,14 @@ if (logoutBtn) {
 }
 
 // ======================================
-// Start Dashboard
+// Dashboard Start
 // ======================================
 
 document.addEventListener("DOMContentLoaded", () => {
+
+    bindSidebar();
+
+    bindLogout();
 
     loadPage("dashboard");
 
