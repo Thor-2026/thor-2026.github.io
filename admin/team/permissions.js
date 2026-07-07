@@ -15,7 +15,7 @@ const MODULES = [
 ];
 
 let permissionUsers = [];
-let selectedUser = null;
+let selectedPermissionUser = null;
 let permissionRows = [];
 
 // ======================================
@@ -139,16 +139,16 @@ function handlePermissionClick(e) {
 
 async function openUserPermissions(userId) {
 
-    selectedUser =
+    selectedPermissionUser =
         permissionUsers.find(
             x => x.id === userId
         );
 
-    if (!selectedUser) return;
+    if (!selectedPermissionUser) return;
 
     document.getElementById(
-        "selectedUserName"
-    ).textContent = selectedUser.full_name;
+        "selectedPermissionUserName"
+    ).textContent = selectedPermissionUser.full_name;
 
     const { data, error } =
         await supabaseClient
@@ -248,7 +248,7 @@ function renderPermissionsTable() {
 
 async function savePermissions() {
 
-    if (!selectedUser) {
+    if (!selectedPermissionUser) {
 
         alert("Select a user first.");
 
@@ -268,7 +268,7 @@ async function savePermissions() {
 
         const payload = {
 
-            user_id: selectedUser.id,
+            user_id: selectedPermissionUser.id,
 
             module,
 
@@ -324,7 +324,7 @@ async function savePermissions() {
 
     alert("Permissions saved.");
 
-    await openUserPermissions(selectedUser.id);
+    await openUserPermissions(selectedPermissionUser.id);
 
 }
 
