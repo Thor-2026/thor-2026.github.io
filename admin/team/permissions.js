@@ -169,3 +169,181 @@ async function openUserPermissions(userId) {
     renderPermissionsTable();
 
 }
+
+// ======================================
+// RENDER PERMISSIONS TABLE
+// ======================================
+
+function renderPermissionsTable() {
+
+    const table =
+        document.getElementById("permissionsTable");
+
+    if (!table) return;
+
+    table.innerHTML = MODULES.map(module => {
+
+        const permission =
+            permissionRows.find(
+                p => p.module === module
+            );
+
+        return `
+
+            <tr data-module="${module}">
+
+                <td>
+
+                    ${capitalize(module)}
+
+                </td>
+
+                <td>
+
+                    <input
+                        type="checkbox"
+                        class="perm-view"
+                        ${permission?.can_view ? "checked" : ""}>
+
+                </td>
+
+                <td>
+
+                    <input
+                        type="checkbox"
+                        class="perm-create"
+                        ${permission?.can_create ? "checked" : ""}>
+
+                </td>
+
+                <td>
+
+                    <input
+                        type="checkbox"
+                        class="perm-edit"
+                        ${permission?.can_edit ? "checked" : ""}>
+
+                </td>
+
+                <td>
+
+                    <input
+                        type="checkbox"
+                        class="perm-delete"
+                        ${permission?.can_delete ? "checked" : ""}>
+
+                </td>
+
+            </tr>
+
+        `;
+
+    }).join("");
+
+}
+
+// ======================================
+// SAVE
+// ======================================
+
+async function savePermissions() {
+
+    if (!selectedUser) {
+
+        alert("Select a user first.");
+
+        return;
+
+    }
+
+    const rows =
+        document.querySelectorAll(
+            "#permissionsTable tr"
+        );
+
+    for (const row of rows) {
+
+        const module =
+            row.dataset.module;
+
+        const payload = {
+
+            user_id: selectedUser.id,
+
+            module,
+
+            can_view:
+                row.querySelector(".perm-view").checked,
+
+            can_create:
+                row.querySelector(".perm-create").checked,
+
+            can_edit:
+                row.querySelector(".perm-edit").checked,
+
+            can_delete:
+                row.querySelector(".perm-delete").checked
+
+        };
+
+        const existing =
+            permissionRows.find(
+                p => p.module === module
+            );
+
+        if (existing) {
+
+            const { error } =
+                await supabaseClient
+                    .from("permissions")
+                    .update(payload)
+                    .eq("id", existing.id);
+
+            if (error) {
+
+                console.error(error);
+
+            }
+
+        } else {
+
+            const { error } =
+                await supabaseClient
+                    .from("permissions")
+                    .insert(payload);
+
+            if (error) {
+
+                console.error(error);
+
+            }
+
+        }
+
+    }
+
+    alert("Permissions saved.");
+
+    await openUserPermissions(selectedUser.id);
+
+}
+
+// ======================================
+// HELPERS
+// ======================================
+
+function capitalize(text) {
+
+    return text
+        .charAt(0)
+        .toUpperCase() +
+        text.slice(1);
+
+}
+
+// ======================================
+// EXPORT
+// ======================================
+
+window.initPermissions =
+    initPermissions;
