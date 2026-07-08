@@ -201,6 +201,16 @@ function openUser(id) {
 
     selectedUser = user;
 
+    document.getElementById("editorTitle").textContent =
+        "Edit User";
+
+    document.getElementById("editUserSection")
+        .style.display = "block";
+
+    document.getElementById("createUserSection")
+        .style.display = "none";
+
+
     document.getElementById("editFullName").value =
         user.full_name || "";
 
@@ -212,6 +222,7 @@ function openUser(id) {
 
     document.getElementById("editStatus").value =
         String(user.active);
+
 
     document.getElementById("userEditor")
         ?.classList.add("open");
@@ -228,17 +239,27 @@ function openCreateUser() {
 
     selectedUser = null;
 
+    document.getElementById("editorTitle").textContent =
+        "Create New User";
+
+    document.getElementById("editUserSection")
+        .style.display = "none";
+
+    document.getElementById("createUserSection")
+        .style.display = "block";
+
+
     document.getElementById("newFullName").value = "";
     document.getElementById("newUsername").value = "";
     document.getElementById("newRole").value = "";
 
     document.getElementById("newUserPassword").textContent = "";
 
+
     document.getElementById("userEditor")
         ?.classList.add("open");
 
 }
-
 function closeUserEditor() {
 
     document.getElementById("userEditor")
