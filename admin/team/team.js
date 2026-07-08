@@ -1,11 +1,16 @@
+// admin/team/team.js
+// PART 1 OF 3
+// Wait for Parts 2 and 3 before replacing the file.
+
 // ======================================
 // THOR DISPLAY CMS
-// Team Management (Final Connected Version)
+// Team Management
 // ======================================
 
 let roles = [];
 let users = [];
 let selectedUser = null;
+let editorMode = "edit";
 
 // ======================================
 // INIT
@@ -17,7 +22,6 @@ async function initTeam() {
     await loadUsers();
 
     bindTeamEvents();
-    bindTabs();
 
 }
 
@@ -41,8 +45,8 @@ async function loadRoles() {
 
     roles = data || [];
 
-    populateRoleSelect(document.getElementById("newRole"));
     populateRoleSelect(document.getElementById("editRole"));
+    populateRoleSelect(document.getElementById("newRole"));
 
 }
 
@@ -54,12 +58,11 @@ function populateRoleSelect(select) {
 
     roles.forEach(role => {
 
-        const option = document.createElement("option");
-
-        option.value = role.id;
-        option.textContent = role.name;
-
-        select.appendChild(option);
+        select.innerHTML += `
+            <option value="${role.id}">
+                ${role.name}
+            </option>
+        `;
 
     });
 
@@ -81,7 +84,7 @@ async function loadUsers() {
 
     if (error) {
 
-        console.error("Users:", error);
+        console.error(error);
         return;
 
     }
@@ -102,7 +105,9 @@ function renderUsers() {
 
         table.innerHTML = `
             <tr>
-                <td colspan="5">No users found</td>
+                <td colspan="5">
+                    No users found.
+                </td>
             </tr>
         `;
 
@@ -110,18 +115,24 @@ function renderUsers() {
 
     }
 
-    table.innerHTML = users.map(u => `
+    table.innerHTML = users.map(user => `
 
-        <tr class="team-row" data-id="${u.id}">
+        <tr class="team-row" data-id="${user.id}">
 
-            <td>${u.full_name || ""}</td>
-            <td>${u.username || ""}</td>
-            <td>${u.roles?.name || "-"}</td>
+            <td>${user.full_name || ""}</td>
+
+            <td>${user.username || ""}</td>
+
+            <td>${user.roles?.name || "-"}</td>
 
             <td>
-                <span class="${u.active ? "status-active" : "status-disabled"}">
-                    ${u.active ? "Active" : "Disabled"}
+
+                <span class="${user.active ? "status-active" : "status-disabled"}">
+
+                    ${user.active ? "Active" : "Disabled"}
+
                 </span>
+
             </td>
 
             <td>➜</td>
@@ -143,6 +154,9 @@ function bindTeamEvents() {
     document.getElementById("closeEditor")
         ?.addEventListener("click", closeUserEditor);
 
+    document.getElementById("newUserBtn")
+        ?.addEventListener("click", openCreateUser);
+
     document.getElementById("saveUserBtn")
         ?.addEventListener("click", saveUser);
 
@@ -154,57 +168,11 @@ function bindTeamEvents() {
 
 }
 
-// ======================================
-// TAB SYSTEM
-// ======================================
-
-function bindTabs() {
-
-    document.querySelectorAll(".tab").forEach(tab => {
-
-        tab.addEventListener("click", () => {
-
-            document.querySelectorAll(".tab")
-                .forEach(t => t.classList.remove("active"));
-
-            tab.classList.add("active");
-
-            const target = tab.dataset.tab;
-
-            switchView(target);
-
-        });
-
-    });
-
-}
-
-function switchView(view) {
-
-    const views = {
-
-        users: "usersView",
-        permissions: "permissionsView",
-        activity: "activityView"
-
-    };
-
-    Object.values(views).forEach(id => {
-
-        const el = document.getElementById(id);
-
-        if (el) el.style.display = "none";
-
-    });
-
-    const active = document.getElementById(views[view]);
-
-    if (active) active.style.display = "block";
-
-}
+// admin/team/team.js
+// PART 2 OF 3
 
 // ======================================
-// CLICK HANDLER
+// GLOBAL CLICK
 // ======================================
 
 function handleGlobalClick(e) {
@@ -220,21 +188,51 @@ function handleGlobalClick(e) {
 }
 
 // ======================================
-// USER EDITOR
+// EDIT USER
 // ======================================
 
 function openUser(id) {
 
-    const user = users.find(u => u.id === id);
+    editorMode = "edit";
+
+    const user = users.find(x => x.id === id);
 
     if (!user) return;
 
     selectedUser = user;
 
-    document.getElementById("editFullName").value = user.full_name || "";
-    document.getElementById("editUsername").value = user.username || "";
-    document.getElementById("editRole").value = user.role_id || "";
-    document.getElementById("editStatus").value = String(user.active);
+    document.getElementById("editFullName").value =
+        user.full_name || "";
+
+    document.getElementById("editUsername").value =
+        user.username || "";
+
+    document.getElementById("editRole").value =
+        user.role_id || "";
+
+    document.getElementById("editStatus").value =
+        String(user.active);
+
+    document.getElementById("userEditor")
+        ?.classList.add("open");
+
+}
+
+// ======================================
+// CREATE USER DRAWER
+// ======================================
+
+function openCreateUser() {
+
+    editorMode = "create";
+
+    selectedUser = null;
+
+    document.getElementById("newFullName").value = "";
+    document.getElementById("newUsername").value = "";
+    document.getElementById("newRole").value = "";
+
+    document.getElementById("newUserPassword").textContent = "";
 
     document.getElementById("userEditor")
         ?.classList.add("open");
@@ -243,15 +241,13 @@ function openUser(id) {
 
 function closeUserEditor() {
 
-    selectedUser = null;
-
     document.getElementById("userEditor")
         ?.classList.remove("open");
 
 }
 
 // ======================================
-// SAVE USER (CONNECTED)
+// SAVE USER
 // ======================================
 
 async function saveUser() {
@@ -260,10 +256,17 @@ async function saveUser() {
 
     const payload = {
 
-        full_name: document.getElementById("editFullName").value.trim(),
-        username: document.getElementById("editUsername").value.trim(),
-        role_id: Number(document.getElementById("editRole").value),
-        active: document.getElementById("editStatus").value === "true"
+        full_name:
+            document.getElementById("editFullName").value.trim(),
+
+        username:
+            document.getElementById("editUsername").value.trim(),
+
+        role_id:
+            Number(document.getElementById("editRole").value),
+
+        active:
+            document.getElementById("editStatus").value === "true"
 
     };
 
@@ -274,13 +277,18 @@ async function saveUser() {
 
     if (error) {
 
-        console.error(error);
         alert(error.message);
+
+        console.error(error);
+
         return;
 
     }
 
+    alert("User updated.");
+
     closeUserEditor();
+
     await loadUsers();
 
 }
@@ -291,64 +299,140 @@ async function saveUser() {
 
 async function createUser() {
 
-    const full_name =
+    const fullName =
         document.getElementById("newFullName").value.trim();
 
     const username =
         document.getElementById("newUsername").value.trim();
 
-    const role_id =
+    const role =
         document.getElementById("newRole").value;
 
-    if (!full_name || !username) {
+    if (!fullName || !username || !role) {
 
-        alert("Fill required fields");
+        alert("Fill all fields.");
+
         return;
 
     }
 
-    // UI ONLY (no edge function yet)
-    const tempPassword = Math.random()
+    const password =
+        Math.random()
         .toString(36)
-        .slice(-10);
+        .substring(2, 10);
 
-    document.getElementById("newUserPassword").innerText =
-        `Temp password: ${tempPassword}`;
+    document.getElementById("newUserPassword").innerHTML =
 
-    // Simulate adding locally (not DB yet)
-    users.unshift({
+        `Temporary Password:<br><strong>${password}</strong>`;
 
-        id: Date.now().toString(),
-        full_name,
-        username,
-        role_id,
-        active: true,
-        roles: roles.find(r => r.id == role_id)
-
-    });
-
-    renderUsers();
-
-    document.getElementById("newFullName").value = "";
-    document.getElementById("newUsername").value = "";
-    document.getElementById("newRole").value = "";
+    alert("Edge Function will create this user later.");
 
 }
 
+// admin/team/team.js
+// PART 3 OF 3
+
 // ======================================
-// RESET PASSWORD (PLACEHOLDER)
+// RESET PASSWORD
 // ======================================
 
 function resetPassword() {
 
-    if (!selectedUser) return;
+    if (!selectedUser) {
 
-    alert("Reset password will be implemented via Edge Function later.");
+        alert("Select a user.");
+
+        return;
+
+    }
+
+    alert(
+        "Reset Password will be implemented with the Supabase Edge Function."
+    );
 
 }
 
 // ======================================
-// EXPORT INIT
+// REFRESH HELPERS
+// ======================================
+
+async function refreshPermissionsPage() {
+
+    if (typeof window.loadPermissionUsers === "function") {
+
+        await window.loadPermissionUsers();
+
+    }
+
+}
+
+async function refreshActivityPage() {
+
+    if (typeof window.loadActivity === "function") {
+
+        await window.loadActivity();
+
+    }
+
+}
+
+// ======================================
+// ACTIVITY LOGGER
+// ======================================
+
+async function logActivity(action, module) {
+
+    const {
+
+        data: {
+            user
+        }
+
+    } = await supabaseClient.auth.getUser();
+
+    if (!user) return;
+
+    await supabaseClient
+
+        .from("activity_log")
+
+        .insert({
+
+            user_id: user.id,
+
+            action,
+
+            module
+
+        });
+
+}
+
+// ======================================
+// REFRESH EVERYTHING
+// ======================================
+
+async function refreshAll() {
+
+    await loadUsers();
+
+    await refreshPermissionsPage();
+
+    await refreshActivityPage();
+
+}
+
+// ======================================
+// PUBLIC EXPORTS
 // ======================================
 
 window.initTeam = initTeam;
+window.loadUsers = loadUsers;
+window.refreshTeam = refreshAll;
+window.logActivity = logActivity;
+window.openUser = openUser;
+window.closeUserEditor = closeUserEditor;
+window.openCreateUser = openCreateUser;
+window.saveUser = saveUser;
+window.createUser = createUser;
+window.resetPassword = resetPassword;
