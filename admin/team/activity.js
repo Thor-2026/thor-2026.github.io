@@ -49,13 +49,20 @@ async function loadActivity() {
     const { data, error } =
         await supabaseClient
             .from("activity_log")
-            .select(`
+          /*  .select(`
                 *,
                 profiles(
                     full_name,
                     username
                 )
-            `)
+            `)*/
+        .select(`
+    *,
+    profiles!activity_log_user_id_fkey(
+        full_name,
+        username
+    )
+`)
             .order(
                 "created_at",
                 {
