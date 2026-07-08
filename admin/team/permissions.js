@@ -24,7 +24,7 @@ let permissionRows = [];
 
 async function initPermissions() {
 
-    await loadUsers();
+    await loadPermissionUsers();
 
     bindPermissionEvents();
 
@@ -34,7 +34,7 @@ async function initPermissions() {
 // LOAD USERS
 // ======================================
 
-async function loadUsers() {
+async function loadPermissionUsers() {
 
     const { data, error } = await supabaseClient
         .from("profiles")
@@ -194,7 +194,7 @@ function renderPermissionsTable() {
 
                 <td>
 
-                    ${capitalize(module)}
+                    ${permissionCapitalize(module)}
 
                 </td>
 
@@ -332,7 +332,7 @@ async function savePermissions() {
 // HELPERS
 // ======================================
 
-function capitalize(text) {
+function permissionCapitalize(text) {
 
     return text
         .charAt(0)
