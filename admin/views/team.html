@@ -13,217 +13,53 @@
 
 </div>
 
-<!-- ======================================
-Tabs
-====================================== -->
+<section class="team-view">
 
-<div class="team-tabs">
+    <table class="team-table">
 
-    <button
-        class="tab active"
-        data-tab="users"
-        type="button">
+        <thead>
 
-        Users
+            <tr>
 
-    </button>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th></th>
 
-    <button
-        class="tab"
-        data-tab="permissions"
-        type="button">
+            </tr>
 
-        Permissions
+        </thead>
 
-    </button>
+        <tbody id="usersTable">
 
-    <button
-        class="tab"
-        data-tab="activity"
-        type="button">
+            <tr>
 
-        Activity Log
+                <td colspan="5">
 
-    </button>
+                    Loading users...
 
-</div>
+                </td>
 
-<!-- ======================================
-Content
-====================================== -->
+            </tr>
 
-<div id="teamContent">
+        </tbody>
 
-    <!-- ======================================
-    USERS
-    ====================================== -->
+    </table>
 
-    <section
-        id="usersView"
-        class="team-view">
-
-        <table class="team-table">
-
-            <thead>
-
-                <tr>
-
-                    <th>Name</th>
-                    <th>Username</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th></th>
-
-                </tr>
-
-            </thead>
-
-            <tbody id="usersTable">
-
-                <tr>
-
-                    <td colspan="5">
-
-                        Loading users...
-
-                    </td>
-
-                </tr>
-
-            </tbody>
-
-        </table>
-
-    </section>
-
-    <!-- ======================================
-    PERMISSIONS
-    ====================================== -->
-
-    <section
-        id="permissionsView"
-        class="team-view"
-        style="display:none;">
-
-        <div class="glass-card">
-
-            <h2>User Permissions</h2>
-
-            <p class="section-description">
-
-                Select a user from the Users tab to edit permissions.
-
-            </p>
-
-        </div>
-
-        <div id="permissionsContainer">
-
-            <table class="team-table">
-
-                <thead>
-
-                    <tr>
-
-                        <th>Module</th>
-                        <th>View</th>
-                        <th>Create</th>
-                        <th>Edit</th>
-                        <th>Delete</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody id="permissionsTable">
-
-                    <tr>
-
-                        <td colspan="5">
-
-                            Select a user first.
-
-                        </td>
-
-                    </tr>
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </section>
-
-    <!-- ======================================
-    ACTIVITY LOG
-    ====================================== -->
-
-    <section
-        id="activityView"
-        class="team-view"
-        style="display:none;">
-
-        <div class="glass-card">
-
-            <h2>Activity Log</h2>
-
-            <p class="section-description">
-
-                Latest administrative actions.
-
-            </p>
-
-        </div>
-
-        <table class="team-table">
-
-            <thead>
-
-                <tr>
-
-                    <th>Date</th>
-                    <th>User</th>
-                    <th>Module</th>
-                    <th>Action</th>
-
-                </tr>
-
-            </thead>
-
-            <tbody id="activityTable">
-
-                <tr>
-
-                    <td colspan="4">
-
-                        Loading activity...
-
-                    </td>
-
-                </tr>
-
-            </tbody>
-
-        </table>
-
-    </section>
-
-</div>
-
-<!-- ======================================
-User Editor Drawer
-====================================== -->
+</section>
 
 <aside
     id="userEditor"
     class="user-editor">
 
-    <!-- Header -->
-
     <div class="editor-header">
 
-        <h2>Edit User</h2>
+        <h2 id="editorTitle">
+
+            Edit User
+
+        </h2>
 
         <button
             id="closeEditor"
@@ -235,139 +71,143 @@ User Editor Drawer
 
     </div>
 
-    <!-- Body -->
-
     <div class="editor-body">
 
-        <label for="editFullName">
+        <!-- EDIT MODE -->
 
-            Full Name
+        <div id="editUserSection">
 
-        </label>
+            <label for="editFullName">
 
-        <input
-            id="editFullName"
-            type="text">
+                Full Name
 
-        <label for="editUsername">
+            </label>
 
-            Username
+            <input
+                id="editFullName"
+                type="text">
 
-        </label>
+            <label for="editUsername">
 
-        <input
-            id="editUsername"
-            type="text">
+                Username
 
-        <label for="editRole">
+            </label>
 
-            Role
+            <input
+                id="editUsername"
+                type="text">
 
-        </label>
+            <label for="editRole">
 
-        <select id="editRole">
+                Role
 
-            <option>
+            </label>
 
-                Loading...
+            <select id="editRole">
 
-            </option>
+                <option>Loading...</option>
 
-        </select>
+            </select>
 
-        <label for="editStatus">
+            <label for="editStatus">
 
-            Status
+                Status
 
-        </label>
+            </label>
 
-        <select id="editStatus">
+            <select id="editStatus">
 
-            <option value="true">
+                <option value="true">
 
-                Active
+                    Active
 
-            </option>
+                </option>
 
-            <option value="false">
+                <option value="false">
 
-                Disabled
+                    Disabled
 
-            </option>
+                </option>
 
-        </select>
+            </select>
 
-        <div class="editor-buttons">
+            <div class="editor-buttons">
 
-            <button
-                id="saveUserBtn"
-                class="primary-btn"
-                type="button">
+                <button
+                    id="saveUserBtn"
+                    class="primary-btn"
+                    type="button">
 
-                Save User
+                    Save Changes
 
-            </button>
+                </button>
 
-            <button
-                id="resetPasswordBtn"
-                type="button">
+                <button
+                    id="resetPasswordBtn"
+                    type="button">
 
-                Reset Password
+                    Reset Password
 
-            </button>
+                </button>
+
+            </div>
 
         </div>
 
-        <hr>
+        <!-- CREATE MODE -->
 
-        <h2>Create User</h2>
+        <div
+            id="createUserSection"
+            style="display:none;">
 
-        <label for="newFullName">
+            <label for="newFullName">
 
-            Full Name
+                Full Name
 
-        </label>
+            </label>
 
-        <input
-            id="newFullName"
-            type="text">
+            <input
+                id="newFullName"
+                type="text">
 
-        <label for="newUsername">
+            <label for="newUsername">
 
-            Username
+                Username
 
-        </label>
+            </label>
 
-        <input
-            id="newUsername"
-            type="text">
+            <input
+                id="newUsername"
+                type="text">
 
-        <label for="newRole">
+            <label for="newRole">
 
-            Role
+                Role
 
-        </label>
+            </label>
 
-        <select id="newRole">
+            <select id="newRole">
 
-            <option>
+                <option>Loading...</option>
 
-                Loading...
+            </select>
 
-            </option>
+            <div class="editor-buttons">
 
-        </select>
+                <button
+                    id="createUserBtn"
+                    class="primary-btn"
+                    type="button">
 
-        <button
-            id="createUserBtn"
-            class="primary-btn"
-            type="button">
+                    Create User
 
-            Create User
+                </button>
 
-        </button>
+            </div>
 
-        <div id="newUserPassword"></div>
+            <div id="newUserPassword"></div>
+
+        </div>
 
     </div>
 
