@@ -3,6 +3,7 @@
    Team Management
 ====================================== */
 
+
 /* ======================================
    Header
 ====================================== */
@@ -16,6 +17,7 @@
 
 }
 
+
 .page-header h1 {
 
     margin: 0;
@@ -24,6 +26,7 @@
     font-weight: 700;
 
 }
+
 
 /* ======================================
    Buttons
@@ -43,12 +46,14 @@
 
 }
 
+
 .primary-btn:hover {
 
     background: #42A5F5;
     transform: translateY(-2px);
 
 }
+
 
 #resetPasswordBtn {
 
@@ -64,12 +69,14 @@
 
 }
 
+
 #resetPasswordBtn:hover {
 
     background: #FFB74D;
     transform: translateY(-2px);
 
 }
+
 
 /* ======================================
    Tabs
@@ -83,6 +90,7 @@
 
 }
 
+
 .tab {
 
     padding: 10px 22px;
@@ -95,17 +103,20 @@
 
 }
 
+
 .tab:hover {
 
     background: rgba(255,255,255,.12);
 
 }
 
+
 .tab.active {
 
     background: #2196F3;
 
 }
+
 
 /* ======================================
    Cards
@@ -122,6 +133,7 @@
 
 }
 
+
 .glass-card h2 {
 
     color: #ffffff;
@@ -129,12 +141,14 @@
 
 }
 
+
 .section-description {
 
     color: rgba(255,255,255,.75);
     margin: 0;
 
 }
+
 
 /* ======================================
    Tables
@@ -151,6 +165,7 @@
 
 }
 
+
 .team-table th {
 
     padding: 16px;
@@ -161,6 +176,7 @@
 
 }
 
+
 .team-table td {
 
     padding: 16px;
@@ -169,11 +185,13 @@
 
 }
 
-.team-table tr {
+
+.team-table tbody tr {
 
     transition: .2s;
 
 }
+
 
 .team-table tbody tr:hover {
 
@@ -181,6 +199,7 @@
     cursor: pointer;
 
 }
+
 
 /* ======================================
    Status
@@ -193,12 +212,14 @@
 
 }
 
+
 .status-disabled {
 
     color: #F44336;
     font-weight: 700;
 
 }
+
 
 /* ======================================
    Permission Table
@@ -212,6 +233,7 @@
 
 }
 
+
 /* ======================================
    Activity
 ====================================== */
@@ -222,6 +244,7 @@
 
 }
 
+
 /* ======================================
    User Editor Drawer
 ====================================== */
@@ -231,8 +254,10 @@
     position: fixed;
     top: 0;
     right: -460px;
+
     width: 460px;
     max-width: 95vw;
+
     height: 100vh;
 
     background: #152238;
@@ -248,11 +273,13 @@
 
 }
 
+
 .user-editor.open {
 
     right: 0;
 
 }
+
 
 /* ======================================
    Editor Header
@@ -270,12 +297,14 @@
 
 }
 
+
 .editor-header h2 {
 
     margin: 0;
     color: #ffffff;
 
 }
+
 
 .editor-header button {
 
@@ -295,6 +324,7 @@
 
 }
 
+
 /* ======================================
    Editor Body
 ====================================== */
@@ -302,6 +332,7 @@
 .editor-body {
 
     flex: 1;
+
     overflow-y: auto;
 
     padding: 24px;
@@ -313,13 +344,6 @@
 
 }
 
-.editor-body h2 {
-
-    margin-top: 12px;
-    margin-bottom: 0;
-    color: #ffffff;
-
-}
 
 .editor-body label {
 
@@ -328,6 +352,7 @@
 
 }
 
+
 .editor-body input,
 .editor-body select {
 
@@ -335,11 +360,11 @@
 
     padding: 12px;
 
-    border: 1px solid rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.15);
 
     border-radius: 10px;
 
-    background: rgba(255,255,255,.08);
+    background: #1f2937;
 
     color: #ffffff;
 
@@ -349,11 +374,33 @@
 
 }
 
+
+/* FIX DROPDOWN VISIBILITY */
+
+.editor-body select {
+
+    color-scheme: dark;
+
+    cursor: pointer;
+
+}
+
+
+.editor-body select option {
+
+    background: #1f2937;
+
+    color: #ffffff;
+
+}
+
+
 .editor-body input::placeholder {
 
     color: rgba(255,255,255,.45);
 
 }
+
 
 .editor-body input:focus,
 .editor-body select:focus {
@@ -362,6 +409,18 @@
 
 }
 
+
+/* ======================================
+   Hide Sections Properly
+====================================== */
+
+#createUserSection {
+
+    display: none;
+
+}
+
+
 /* ======================================
    Editor Buttons
 ====================================== */
@@ -369,18 +428,22 @@
 .editor-buttons {
 
     display: flex;
+
     flex-direction: column;
+
     gap: 12px;
 
     margin-top: 12px;
 
 }
 
+
 .editor-buttons button {
 
     width: 100%;
 
 }
+
 
 /* ======================================
    Divider
@@ -389,10 +452,13 @@
 .editor-body hr {
 
     border: none;
+
     border-top: 1px solid rgba(255,255,255,.12);
+
     margin: 18px 0;
 
 }
+
 
 /* ======================================
    Temporary Password
@@ -418,6 +484,27 @@
 
 }
 
+
+/* ======================================
+   Scrollbar
+====================================== */
+
+.user-editor::-webkit-scrollbar {
+
+    width: 8px;
+
+}
+
+
+.user-editor::-webkit-scrollbar-thumb {
+
+    background: rgba(255,255,255,.25);
+
+    border-radius: 10px;
+
+}
+
+
 /* ======================================
    Responsive
 ====================================== */
@@ -427,10 +514,13 @@
     .page-header {
 
         flex-direction: column;
+
         align-items: flex-start;
+
         gap: 16px;
 
     }
+
 
     .team-tabs {
 
@@ -438,16 +528,20 @@
 
     }
 
+
     .team-table {
 
         display: block;
+
         overflow-x: auto;
 
     }
 
+
     .user-editor {
 
         width: 100%;
+
         max-width: 100%;
 
     }
