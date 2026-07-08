@@ -1,3 +1,6 @@
+// admin/team/permissions.js
+// PART 1 OF 3
+
 // ======================================
 // THOR DISPLAY CMS
 // Permissions Management
@@ -41,53 +44,60 @@ async function loadPermissionUsers() {
         .select(`
             id,
             full_name,
-            username
+            username,
+            active
         `)
+        .eq("active", true)
         .order("full_name");
 
     if (error) {
 
         console.error(error);
+
         return;
 
     }
 
     permissionUsers = data || [];
 
-    renderUserList();
+    renderPermissionUsers();
 
 }
 
 // ======================================
-// USER LIST
+// RENDER USER LIST
 // ======================================
 
-function renderUserList() {
+function renderPermissionUsers() {
 
-    const list =
+    const container =
         document.getElementById("permissionsUserList");
 
-    if (!list) return;
+    if (!container) return;
 
-    list.innerHTML = permissionUsers.map(user => `
+    if (!permissionUsers.length) {
+
+        container.innerHTML = `
+            <div class="empty-state">
+                No users found.
+            </div>
+        `;
+
+        return;
+
+    }
+
+    container.innerHTML = permissionUsers.map(user => `
 
         <div
             class="permission-user"
             data-id="${user.id}">
 
-            <strong>
-
-                ${user.full_name || ""}
-
-            </strong>
+            <strong>${user.full_name || ""}</strong>
 
             <br>
 
-            <small>
-
-                ${user.username}
-
-            </small>
+            <small>${user.username || ""}</small>
 
         </div>
 
@@ -101,7 +111,10 @@ function renderUserList() {
 
 function bindPermissionEvents() {
 
-    document.addEventListener("click", handlePermissionClick);
+    document.addEventListener(
+        "click",
+        permissionClickHandler
+    );
 
     document
         .getElementById("savePermissionsBtn")
@@ -112,14 +125,16 @@ function bindPermissionEvents() {
 
 }
 
+// admin/team/permissions.js
+// PART 2 OF 3
+
 // ======================================
-// CLICK
+// CLICK HANDLER
 // ======================================
 
-function handlePermissionClick(e) {
+function permissionClickHandler(e) {
 
-    const card =
-        e.target.closest(".permission-user");
+    const card = e.target.closest(".permission-user");
 
     if (!card) return;
 
@@ -140,9 +155,7 @@ function handlePermissionClick(e) {
 async function openUserPermissions(userId) {
 
     selectedPermissionUser =
-        permissionUsers.find(
-            x => x.id === userId
-        );
+        permissionUsers.find(u => u.id === userId);
 
     if (!selectedPermissionUser) return;
 
@@ -171,7 +184,7 @@ async function openUserPermissions(userId) {
 }
 
 // ======================================
-// RENDER PERMISSIONS TABLE
+// TABLE
 // ======================================
 
 function renderPermissionsTable() {
@@ -183,58 +196,46 @@ function renderPermissionsTable() {
 
     table.innerHTML = MODULES.map(module => {
 
-        const permission =
+        const row =
             permissionRows.find(
                 p => p.module === module
             );
 
         return `
 
-            <tr data-module="${module}">
+        <tr data-module="${module}">
 
-                <td>
+            <td>${capitalizeModule(module)}</td>
 
-                    ${permissionCapitalize(module)}
+            <td>
+                <input
+                    class="perm-view"
+                    type="checkbox"
+                    ${row?.can_view ? "checked" : ""}>
+            </td>
 
-                </td>
+            <td>
+                <input
+                    class="perm-create"
+                    type="checkbox"
+                    ${row?.can_create ? "checked" : ""}>
+            </td>
 
-                <td>
+            <td>
+                <input
+                    class="perm-edit"
+                    type="checkbox"
+                    ${row?.can_edit ? "checked" : ""}>
+            </td>
 
-                    <input
-                        type="checkbox"
-                        class="perm-view"
-                        ${permission?.can_view ? "checked" : ""}>
+            <td>
+                <input
+                    class="perm-delete"
+                    type="checkbox"
+                    ${row?.can_delete ? "checked" : ""}>
+            </td>
 
-                </td>
-
-                <td>
-
-                    <input
-                        type="checkbox"
-                        class="perm-create"
-                        ${permission?.can_create ? "checked" : ""}>
-
-                </td>
-
-                <td>
-
-                    <input
-                        type="checkbox"
-                        class="perm-edit"
-                        ${permission?.can_edit ? "checked" : ""}>
-
-                </td>
-
-                <td>
-
-                    <input
-                        type="checkbox"
-                        class="perm-delete"
-                        ${permission?.can_delete ? "checked" : ""}>
-
-                </td>
-
-            </tr>
+        </tr>
 
         `;
 
@@ -242,8 +243,11 @@ function renderPermissionsTable() {
 
 }
 
+// admin/team/permissions.js
+// PART 3 OF 3
+
 // ======================================
-// SAVE
+// SAVE PERMISSIONS
 // ======================================
 
 async function savePermissions() {
@@ -256,15 +260,13 @@ async function savePermissions() {
 
     }
 
-    const rows =
-        document.querySelectorAll(
-            "#permissionsTable tr"
-        );
+    const rows = document.querySelectorAll(
+        "#permissionsTable tr"
+    );
 
     for (const row of rows) {
 
-        const module =
-            row.dataset.module;
+        const module = row.dataset.module;
 
         const payload = {
 
@@ -286,45 +288,41 @@ async function savePermissions() {
 
         };
 
-        const existing =
-            permissionRows.find(
-                p => p.module === module
-            );
+        const existing = permissionRows.find(
+            p => p.module === module
+        );
 
         if (existing) {
 
-            const { error } =
-                await supabaseClient
-                    .from("permissions")
-                    .update(payload)
-                    .eq("id", existing.id);
-
-            if (error) {
-
-                console.error(error);
-
-            }
+            await supabaseClient
+                .from("permissions")
+                .update(payload)
+                .eq("id", existing.id);
 
         } else {
 
-            const { error } =
-                await supabaseClient
-                    .from("permissions")
-                    .insert(payload);
-
-            if (error) {
-
-                console.error(error);
-
-            }
+            await supabaseClient
+                .from("permissions")
+                .insert(payload);
 
         }
 
     }
 
+    if (window.logActivity) {
+
+        await window.logActivity(
+            "Updated permissions",
+            "team"
+        );
+
+    }
+
     alert("Permissions saved.");
 
-    await openUserPermissions(selectedPermissionUser.id);
+    await openUserPermissions(
+        selectedPermissionUser.id
+    );
 
 }
 
@@ -332,18 +330,18 @@ async function savePermissions() {
 // HELPERS
 // ======================================
 
-function permissionCapitalize(text) {
+function capitalizeModule(text) {
 
-    return text
-        .charAt(0)
-        .toUpperCase() +
+    return text.charAt(0).toUpperCase() +
         text.slice(1);
 
 }
 
 // ======================================
-// EXPORT
+// EXPORTS
 // ======================================
 
-window.initPermissions =
-    initPermissions;
+window.initPermissions = initPermissions;
+window.loadPermissionUsers = loadPermissionUsers;
+window.openUserPermissions = openUserPermissions;
+window.savePermissions = savePermissions;
