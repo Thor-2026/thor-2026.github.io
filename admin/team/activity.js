@@ -1,10 +1,13 @@
+// admin/team/activity.js
+// PART 1 OF 3
+
 // ======================================
 // THOR DISPLAY CMS
 // Activity Log
 // ======================================
 
 let activityRows = [];
-let filteredRows = [];
+let filteredActivityRows = [];
 
 // ======================================
 // INIT
@@ -41,7 +44,7 @@ function bindActivityEvents() {
 }
 
 // ======================================
-// LOAD ACTIVITY
+// LOAD
 // ======================================
 
 async function loadActivity() {
@@ -49,20 +52,13 @@ async function loadActivity() {
     const { data, error } =
         await supabaseClient
             .from("activity_log")
-          /*  .select(`
+            .select(`
                 *,
-                profiles(
+                profiles!activity_log_user_id_fkey(
                     full_name,
                     username
                 )
-            `)*/
-        .select(`
-    *,
-    profiles!activity_log_user_id_fkey(
-        full_name,
-        username
-    )
-`)
+            `)
             .order(
                 "created_at",
                 {
@@ -80,11 +76,14 @@ async function loadActivity() {
 
     activityRows = data || [];
 
-    filteredRows = [...activityRows];
+    filteredActivityRows = [...activityRows];
 
     renderActivity();
 
 }
+
+// admin/team/activity.js
+// PART 2 OF 3
 
 // ======================================
 // FILTER
@@ -101,7 +100,7 @@ function filterActivity() {
 
     if (!search) {
 
-        filteredRows = [...activityRows];
+        filteredActivityRows = [...activityRows];
 
         renderActivity();
 
@@ -109,43 +108,37 @@ function filterActivity() {
 
     }
 
-    filteredRows =
-        activityRows.filter(row => {
+    filteredActivityRows = activityRows.filter(row => {
 
-            const user =
-                row.profiles?.full_name || "";
+        const user =
+            row.profiles?.full_name?.toLowerCase() || "";
 
-            const username =
-                row.profiles?.username || "";
+        const username =
+            row.profiles?.username?.toLowerCase() || "";
 
-            return (
+        const module =
+            (row.module || "").toLowerCase();
 
-                user.toLowerCase().includes(search)
+        const action =
+            (row.action || "").toLowerCase();
 
-                ||
+        return (
 
-                username.toLowerCase().includes(search)
+            user.includes(search) ||
 
-                ||
+            username.includes(search) ||
 
-                (row.module || "")
-                    .toLowerCase()
-                    .includes(search)
+            module.includes(search) ||
 
-                ||
+            action.includes(search)
 
-                (row.action || "")
-                    .toLowerCase()
-                    .includes(search)
+        );
 
-            );
-
-        });
+    });
 
     renderActivity();
 
 }
-
 
 // ======================================
 // RENDER
@@ -158,29 +151,31 @@ function renderActivity() {
 
     if (!table) return;
 
-    if (!filteredRows.length) {
+    if (!filteredActivityRows.length) {
 
         table.innerHTML = `
+
             <tr>
+
                 <td colspan="4">
+
                     No activity found.
+
                 </td>
+
             </tr>
+
         `;
 
         return;
 
     }
 
-    table.innerHTML = filteredRows.map(row => `
+    table.innerHTML = filteredActivityRows.map(row => `
 
         <tr>
 
-            <td>
-
-                ${formatDate(row.created_at)}
-
-            </td>
+            <td>${formatDate(row.created_at)}</td>
 
             <td>
 
@@ -196,23 +191,18 @@ function renderActivity() {
 
             </td>
 
-            <td>
+            <td>${capitalize(row.module)}</td>
 
-                ${capitalize(row.module || "-")}
-
-            </td>
-
-            <td>
-
-                ${row.action || "-"}
-
-            </td>
+            <td>${row.action}</td>
 
         </tr>
 
     `).join("");
 
 }
+
+// admin/team/activity.js
+// PART 3 OF 3
 
 // ======================================
 // HELPERS
@@ -228,14 +218,27 @@ function formatDate(value) {
 
 function capitalize(text) {
 
-    if (!text) return "";
+    if (!text) return "-";
 
-    return text.charAt(0).toUpperCase() + text.slice(1);
+    return text.charAt(0).toUpperCase() +
+        text.slice(1);
 
 }
 
 // ======================================
-// EXPORT
+// REFRESH
+// ======================================
+
+async function refreshActivity() {
+
+    await loadActivity();
+
+}
+
+// ======================================
+// EXPORTS
 // ======================================
 
 window.initActivity = initActivity;
+window.loadActivity = loadActivity;
+window.refreshActivity = refreshActivity;
