@@ -285,25 +285,39 @@ function handleTeamClick(e) {
 
 function openUser(id) {
 
-    selectedUser = users.find(user => user.id === id);
+    editorMode = "edit";
 
-    if (!selectedUser) return;
+    const user = users.find(x => x.id === id);
+
+    if (!user) return;
+
+    selectedUser = user;
+
+    document.getElementById("editorTitle").textContent =
+        "Edit User";
+
+    document.getElementById("editUserSection")
+        .style.display = "block";
+
+    document.getElementById("createUserSection")
+        .style.display = "none";
+
 
     document.getElementById("editFullName").value =
-        selectedUser.full_name || "";
+        user.full_name || "";
 
     document.getElementById("editUsername").value =
-        selectedUser.username || "";
+        user.username || "";
 
     document.getElementById("editRole").value =
-        selectedUser.role_id || "";
+        user.role_id || "";
 
     document.getElementById("editStatus").value =
-        String(selectedUser.active);
+        String(user.active);
 
-    document
-        .getElementById("userEditor")
-        .classList.add("open");
+
+    document.getElementById("userEditor")
+        ?.classList.add("open");
 
 }
 
@@ -317,16 +331,29 @@ function closeUserEditor() {
 
 function openCreateUser() {
 
-    document
-        .getElementById("userEditor")
-        .classList.add("open");
+    editorMode = "create";
+
+    selectedUser = null;
+
+    document.getElementById("editorTitle").textContent =
+        "Create New User";
+
+    document.getElementById("editUserSection")
+        .style.display = "none";
+
+    document.getElementById("createUserSection")
+        .style.display = "block";
+
 
     document.getElementById("newFullName").value = "";
     document.getElementById("newUsername").value = "";
-    document.getElementById("newEmail").value = "";
-    document.getElementById("newRole").selectedIndex = 0;
+    document.getElementById("newRole").value = "";
 
     document.getElementById("newUserPassword").textContent = "";
+
+
+    document.getElementById("userEditor")
+        ?.classList.add("open");
 
 }
 
