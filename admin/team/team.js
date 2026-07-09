@@ -2,7 +2,6 @@
 // THOR DISPLAY CMS
 // Team Management
 // team.js
-// PART 1 OF 3
 // ======================================
 
 let roles = [];
