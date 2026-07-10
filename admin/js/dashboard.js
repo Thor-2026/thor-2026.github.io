@@ -57,6 +57,125 @@ const modules = {
 
 };
 
+let currentUser = null;
+let userPermissions = {};
+
+// ======================================
+// LOAD CURRENT USER
+// ======================================
+
+async function loadCurrentUser() {
+
+    const {
+
+        data: {
+
+            user
+
+        }
+
+    } = await supabaseClient.auth.getUser();
+
+    if (!user) {
+
+        window.location.href = "login.html";
+
+        return false;
+
+    }
+
+    currentUser = user;
+
+    return true;
+
+}
+
+// ======================================
+// LOAD PERMISSIONS
+// ======================================
+
+async function loadPermissions() {
+
+    const {
+
+        data,
+
+        error
+
+    } = await supabaseClient
+
+        .from("permissions")
+
+        .select("*")
+
+        .eq("user_id", currentUser.id);
+
+    if (error) {
+
+        console.error(error);
+
+        return;
+
+    }
+
+    userPermissions = {};
+
+    (data || []).forEach(permission => {
+
+        userPermissions[permission.module] = permission;
+
+    });
+
+}
+
+// ======================================
+// CHECK ACCESS
+// ======================================
+
+function hasPermission(module) {
+
+    if (module === "dashboard") {
+
+        return true;
+
+    }
+
+    const permission = userPermissions[module];
+
+    return permission?.can_view === true;
+
+}
+
+// ======================================
+// UPDATE SIDEBAR
+// ======================================
+
+function updateSidebarPermissions() {
+
+    document
+
+        .querySelectorAll(".menu[data-page]")
+
+        .forEach(button => {
+
+            const module = button.dataset.page;
+
+            if (hasPermission(module)) {
+
+                button.style.display = "";
+
+            }
+
+            else {
+
+                button.style.display = "none";
+
+            }
+
+        });
+
+}
+
 // ======================================
 // Load HTML
 // ======================================
@@ -64,6 +183,28 @@ const modules = {
 async function loadPage(page) {
 
     try {
+
+        if (!hasPermission(page)) {
+
+            document.getElementById("pageContent").innerHTML = `
+
+                <div class="card">
+
+                    <h2>🚫 Access Denied</h2>
+
+                    <p>
+
+                        You do not have permission to view this module.
+
+                    </p>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
 
         const module = modules[page];
 
@@ -83,14 +224,13 @@ async function loadPage(page) {
 
         const html = await response.text();
 
-        const container =
-            document.getElementById("pageContent");
-
-        container.innerHTML = html;
+        document.getElementById("pageContent").innerHTML = html;
 
         if (
+
             module.init &&
             typeof window[module.init] === "function"
+
         ) {
 
             setTimeout(() => {
@@ -137,17 +277,23 @@ function bindSidebar() {
 
             button.addEventListener("click", () => {
 
+                const page = button.dataset.page;
+
+                if (!hasPermission(page)) {
+
+                    return;
+
+                }
+
                 document
                     .querySelectorAll(".menu")
-                    .forEach(item => {
-
-                        item.classList.remove("active");
-
-                    });
+                    .forEach(item =>
+                        item.classList.remove("active")
+                    );
 
                 button.classList.add("active");
 
-                loadPage(button.dataset.page);
+                loadPage(page);
 
             });
 
@@ -161,18 +307,15 @@ function bindSidebar() {
 
 function bindLogout() {
 
-    const logoutBtn =
-        document.getElementById("logoutBtn");
+    document
+        .getElementById("logoutBtn")
+        ?.addEventListener("click", async () => {
 
-    if (!logoutBtn) return;
+            await supabaseClient.auth.signOut();
 
-    logoutBtn.addEventListener("click", async () => {
+            window.location.href = "login.html";
 
-        await supabaseClient.auth.signOut();
-
-        window.location.href = "login.html";
-
-    });
+        });
 
 }
 
@@ -180,7 +323,15 @@ function bindLogout() {
 // Dashboard Start
 // ======================================
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+
+    const ok = await loadCurrentUser();
+
+    if (!ok) return;
+
+    await loadPermissions();
+
+    updateSidebarPermissions();
 
     bindSidebar();
 
