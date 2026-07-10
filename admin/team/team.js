@@ -209,6 +209,9 @@ function bindTeamEvents() {
             resetPassword
         );
 
+    document.getElementById("deleteUserBtn")
+    ?.addEventListener("click", deleteUser);
+
 }
 
 // ======================================
@@ -566,6 +569,70 @@ async function logActivity(action, module) {
             module
 
         });
+
+}
+
+async function deleteUser() {
+
+    if (!selectedUser) {
+
+        alert("Select a user first.");
+
+        return;
+
+    }
+
+    const confirmed = confirm(
+
+        `Delete ${selectedUser.full_name}?\n\nThis will permanently remove the user, permissions and login account.`
+
+    );
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+    const { error } = await supabaseClient.functions.invoke(
+
+        "delete-user",
+
+        {
+
+            body: {
+
+                user_id: selectedUser.id
+
+            }
+
+        }
+
+    );
+
+    if (error) {
+
+        console.error(error);
+
+        alert(error.message);
+
+        return;
+
+    }
+
+    await logActivity(
+
+        `Deleted user ${selectedUser.username}`,
+
+        "team"
+
+    );
+
+    closeUserEditor();
+
+    await loadUsers();
+
+    alert("User deleted successfully.");
 
 }
 
