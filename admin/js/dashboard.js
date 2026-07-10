@@ -84,7 +84,37 @@ async function loadCurrentUser() {
 
     }
 
-    currentUser = user;
+    const {
+
+        data: profile,
+
+        error
+
+    } = await supabaseClient
+
+        .from("profiles")
+
+        .select("*")
+
+        .eq("id", user.id)
+
+        .single();
+
+    if (error) {
+
+        console.error(error);
+
+        return false;
+
+    }
+
+    currentUser = {
+
+        ...user,
+
+        profile
+
+    };
 
     return true;
 
@@ -95,6 +125,27 @@ async function loadCurrentUser() {
 // ======================================
 
 async function loadPermissions() {
+
+    if (currentUser?.profile?.role_id === 1) {
+
+        userPermissions = {};
+
+        Object.keys(modules).forEach(module => {
+
+            userPermissions[module] = {
+
+                can_view: true,
+                can_create: true,
+                can_edit: true,
+                can_delete: true
+
+            };
+
+        });
+
+        return;
+
+    }
 
     const {
 
@@ -133,6 +184,12 @@ async function loadPermissions() {
 // ======================================
 
 function hasPermission(module) {
+
+    if (currentUser?.profile?.role_id === 1) {
+
+        return true;
+
+    }
 
     if (module === "dashboard") {
 
