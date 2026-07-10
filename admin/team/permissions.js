@@ -292,37 +292,46 @@ async function savePermissions() {
             p => p.module === module
         );
 
+        let error = null;
+
         if (existing) {
 
-            await supabaseClient
+            ({ error } = await supabaseClient
                 .from("permissions")
                 .update(payload)
-                .eq("id", existing.id);
+                .eq("id", existing.id));
 
         } else {
 
-            await supabaseClient
+            ({ error } = await supabaseClient
                 .from("permissions")
-                .insert(payload);
+                .insert(payload));
+
+        }
+
+        if (error) {
+
+            console.error(error);
+
+            alert(error.message);
+
+            return;
 
         }
 
     }
 
-    if (window.logActivity) {
+    await logActivity(
 
-        await window.logActivity(
-            "Updated permissions",
-            "team"
-        );
+        `Updated permissions for ${selectedPermissionUser.username}`,
 
-    }
+        "permissions"
+
+    );
 
     alert("Permissions saved.");
 
-    await openUserPermissions(
-        selectedPermissionUser.id
-    );
+    await openUserPermissions(selectedPermissionUser.id);
 
 }
 
