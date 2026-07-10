@@ -493,12 +493,58 @@ async function createUser() {
 // RESET PASSWORD
 // ======================================
 
-function resetPassword() {
+async function resetPassword() {
 
-    if (!selectedUser) return;
+    if (!selectedUser) {
+
+        alert("Select a user first.");
+
+        return;
+
+    }
+
+    if (!confirm(`Reset password for ${selectedUser.full_name}?`)) {
+
+        return;
+
+    }
+
+    const { data, error } =
+        await supabaseClient.functions.invoke(
+            "reset-password",
+            {
+                body: {
+                    user_id: selectedUser.id
+                }
+            }
+        );
+
+    if (error) {
+
+        console.error(error);
+
+        alert(error.message);
+
+        return;
+
+    }
+
+    await supabaseClient
+        .from("activity_log")
+        .insert({
+
+            user_id: selectedUser.id,
+
+            module: "team",
+
+            action: "Password reset"
+
+        });
 
     alert(
-        "Reset Password will be implemented after the Create User Edge Function."
+
+        `Temporary password:\n\n${data.password}\n\nGive this password to the user. They will be required to change it after logging in.`
+
     );
 
 }
