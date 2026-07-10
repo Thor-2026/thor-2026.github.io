@@ -361,23 +361,17 @@ function openCreateUser() {
 // SAVE USER
 // ======================================
 
+
 async function saveUser() {
 
     if (!selectedUser) return;
 
     const payload = {
 
-        full_name:
-            document.getElementById("editFullName").value.trim(),
-
-        username:
-            document.getElementById("editUsername").value.trim(),
-
-        role_id:
-            Number(document.getElementById("editRole").value),
-
-        active:
-            document.getElementById("editStatus").value === "true"
+        full_name: document.getElementById("editFullName").value.trim(),
+        username: document.getElementById("editUsername").value.trim(),
+        role_id: Number(document.getElementById("editRole").value),
+        active: document.getElementById("editStatus").value === "true"
 
     };
 
@@ -388,30 +382,32 @@ async function saveUser() {
 
     if (error) {
 
-        alert(error.message);
-
         console.error(error);
-
+        alert(error.message);
         return;
 
     }
 
     await logActivity(
-        "Updated user",
+
+        `Updated user ${payload.username}`,
+
         "team"
+
     );
 
     closeUserEditor();
 
     await loadUsers();
 
-    if (typeof loadPermissionUsers === "function") {
+}
+   /* if (typeof loadPermissionUsers === "function") {
 
         await loadPermissionUsers();
 
     }
 
-}
+}*/
 
 // ======================================
 // CREATE USER
