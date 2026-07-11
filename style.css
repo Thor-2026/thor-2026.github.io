@@ -67,6 +67,32 @@ header{
 
 }
 
+.company-name{
+
+    margin:0 0 4px 0;
+
+    font-size:18px;
+
+    font-weight:700;
+
+    color:#FFD54F;
+
+    text-transform:uppercase;
+
+    letter-spacing:1.5px;
+
+}
+
+.company p{
+
+    margin-top:6px;
+
+    font-size:18px;
+
+    color:var(--muted);
+
+}
+
 .datetime{
 
     text-align:right;
