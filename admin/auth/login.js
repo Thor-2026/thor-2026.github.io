@@ -122,8 +122,43 @@ async function login() {
 
     }
 
+    const {
+
+    data: profile,
+
+    error: profileError
+
+} = await supabaseClient
+
+    .from("profiles")
+
+    .select("must_change_password")
+
+    .eq("id", (await supabaseClient.auth.getUser()).data.user.id)
+
+    .single();
+
+if (profileError) {
+
+    errorBox.textContent = profileError.message;
+
+    return;
+
+}
+
+if (profile.must_change_password) {
+
     window.location.href =
-        "dashboard.html";
+
+        "change-password.html";
+
+    return;
+
+}
+
+window.location.href =
+
+    "dashboard.html";
 
 }
 
