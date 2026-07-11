@@ -151,3 +151,46 @@ font-size:15px;
 min-height:22px;
 
 }
+
+/* ======================================
+   Change Password Button
+====================================== */
+
+#changePasswordBtn{
+
+width:100%;
+
+padding:15px;
+
+border:none;
+
+border-radius:10px;
+
+background:#1E88E5;
+
+color:white;
+
+font-size:17px;
+
+font-weight:700;
+
+cursor:pointer;
+
+transition:.25s;
+
+margin-top:5px;
+
+}
+
+
+#changePasswordBtn:hover{
+
+background:#42A5F5;
+
+transform:translateY(-2px);
+
+}
+/* Change password page spacing */
+.login-card p{
+    line-height:1.5;
+}
