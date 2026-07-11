@@ -547,3 +547,38 @@
     }
 
 }
+
+/* ======================================
+   Delete User Button
+====================================== */
+
+.danger-btn {
+
+    padding: 12px 22px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    background: #E53935;
+
+    color: #ffffff;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: .25s;
+
+}
+
+
+.danger-btn:hover {
+
+    background: #EF5350;
+
+    transform: translateY(-2px);
+
+}
