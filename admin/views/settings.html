@@ -2,58 +2,119 @@
 
 <div class="card">
 
-<h2>Display Settings</h2>
+    <h2>Display Settings</h2>
 
-<label>Display Title</label>
-<input
-type="text"
-id="displayTitle"
-placeholder="SHIFT SCHEDULE">
+    <label>Display Title</label>
 
-<br><br>
+    <input
+        type="text"
+        id="displayTitle"
+        placeholder="SHIFT SCHEDULE">
 
-<label>Auto Refresh (minutes)</label>
-<input
-type="number"
-id="refreshMinutes">
+    <br><br>
 
-<br><br>
+    <label>Auto Refresh (minutes)</label>
 
-<label>Announcement Rotation (seconds)</label>
-<input
-type="number"
-id="announcementSeconds">
+    <input
+        type="number"
+        id="refreshMinutes">
 
-<br><br>
+    <br><br>
 
-<label>Clock Format</label>
+    <label>Announcement Rotation (seconds)</label>
 
-<select id="clockFormat">
+    <input
+        type="number"
+        id="announcementSeconds">
 
-<option value="12">12 Hour</option>
+    <br><br>
 
-<option value="24">24 Hour</option>
+    <label>Clock Format</label>
 
-</select>
+    <select id="clockFormat">
 
-<br><br>
+        <option value="12">
 
-<label>Temperature Unit</label>
+            12 Hour
 
-<select id="temperatureUnit">
+        </option>
 
-<option value="C">Celsius (°C)</option>
+        <option value="24">
 
-<option value="F">Fahrenheit (°F)</option>
+            24 Hour
 
-</select>
+        </option>
 
-<br><br>
+    </select>
 
-<button id="saveSettings">
+    <br><br>
 
-💾 Save Settings
+    <label>Temperature Unit</label>
 
-</button>
+    <select id="temperatureUnit">
+
+        <option value="C">
+
+            Celsius (°C)
+
+        </option>
+
+        <option value="F">
+
+            Fahrenheit (°F)
+
+        </option>
+
+    </select>
+
+    <br><br>
+
+    <button
+        id="saveSettings"
+        class="primary-btn">
+
+        💾 Save Settings
+
+    </button>
+
+</div>
+
+<br>
+
+<div class="card">
+
+    <h2>🔒 Change My Password</h2>
+
+    <p>
+
+        Change your own account password at any time.
+
+    </p>
+
+    <label>New Password</label>
+
+    <input
+        type="password"
+        id="newPassword"
+        autocomplete="new-password">
+
+    <br><br>
+
+    <label>Confirm Password</label>
+
+    <input
+        type="password"
+        id="confirmPassword"
+        autocomplete="new-password">
+
+    <br><br>
+
+    <button
+        id="changePasswordBtn"
+        class="primary-btn">
+
+        Change Password
+
+    </button>
 
 </div>
