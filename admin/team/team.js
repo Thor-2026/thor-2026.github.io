@@ -528,21 +528,25 @@ async function resetPassword() {
 
     }
 
-    await supabaseClient
-        .from("activity_log")
-        .insert({
+    await logActivity(
 
-            user_id: selectedUser.id,
+        `Reset password for ${selectedUser.username}`,
 
-            module: "team",
+        "team"
 
-            action: "Password reset"
-
-        });
+    );
 
     alert(
 
-        `Temporary password:\n\n${data.password}\n\nGive this password to the user. They will be required to change it after logging in.`
+`Password reset successfully.
+
+Temporary Password:
+
+${data.password}
+
+Give this temporary password to the user.
+
+The user will be forced to create a new password the next time they log in.`
 
     );
 
