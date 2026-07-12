@@ -1,3 +1,11 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Label Inventory Workspace</title>
+</head>
+<body>
+
 <style>
     /* High-Contrast Premium Studio Workspace Custom Theme Rules */
     .inv-container { 
@@ -68,31 +76,50 @@
     }
     .catalog-field:focus { border-color: #2563eb; }
     
-    /* Supplier Selection Matrix */
-    .supplier-checkbox-container {
+    /* Advanced Supplier Matrix Configuration Grid */
+    .supplier-config-grid {
         display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        padding: 8px 12px;
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px;
         background: #f1f5f9;
         border: 1px solid #cbd5e1;
         border-radius: 6px;
-        min-height: 40px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .supplier-config-row {
+        display: flex;
         align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        background: #ffffff;
+        padding: 8px 12px;
+        border-radius: 4px;
+        border: 1px solid #e2e8f0;
     }
     .supplier-label-item {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
         font-size: 14px;
-        font-weight: 600;
+        font-weight: 700;
         color: #0f172a;
         cursor: pointer;
     }
-    .supplier-label-item input {
+    .supplier-label-item input[type="checkbox"] {
         cursor: pointer;
         width: 16px;
         height: 16px;
+    }
+    .supplier-box-qty-input {
+        width: 110px;
+        padding: 6px 8px;
+        font-size: 13px;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        font-weight: 600;
+        text-align: right;
     }
     .add-supplier-link {
         font-size: 12px;
@@ -257,19 +284,17 @@
                 <input type="text" id="new-label-name" class="catalog-field" placeholder="e.g. Large Brown - Free Range Premium">
             </div>
 
-            <!-- NEW: Minimum Stock Limit Field -->
-            <div class="catalog-input-group" style="width: 130px;">
+            <div class="catalog-input-group" style="width: 120px;">
                 <label for="new-min-stock">Min Alert Limit</label>
-                <input type="number" id="new-min-stock" class="catalog-field" placeholder="e.g. 5000" value="5000" min="0" step="500">
+                <input type="number" id="new-min-stock" class="catalog-field" placeholder="5000" value="5000" min="0" step="500">
             </div>
 
-            <div class="catalog-input-group" style="flex: 2; min-width: 220px;">
-                <label>Assign to Supplier Line(s)</label>
-                <div id="catalog-supplier-checkboxes" class="supplier-checkbox-container">
-                    <!-- Loaded dynamically via js -->
+            <div class="catalog-input-group" style="flex: 3; min-width: 320px;">
+                <label>Supplier Line Matrix & Qty per Box Configuration</label>
+                <div id="catalog-supplier-checkboxes" class="supplier-config-grid">
                     <span style="font-size:12px; color:#64748b;">Loading active suppliers...</span>
                 </div>
-                <a href="#" class="add-supplier-link" onclick="promptCreateNewSupplier(); return false;">➕ Register New Supplier...</a>
+                <a href="#" class="add-supplier-link" onclick="promptCreateNewSupplier(); return false;">➕ Register New Supplier Option...</a>
             </div>
             
             <button type="button" class="btn-action-add" onclick="submitNewCatalogPartCode()">➕ Add Part Code</button>
@@ -334,7 +359,12 @@
                     <input type="hidden" id="modal-part-code">
                     <input type="hidden" id="modal-supplier-id">
                     <input type="hidden" id="modal-supplier-name">
+                    <input type="hidden" id="modal-qty-per-box">
                     
+                    <div style="background: #f8fafc; padding: 10px; border: 1px dashed #cbd5e1; border-radius: 6px; margin-bottom: 15px; font-size: 13px; font-weight: 600; color: #475569;">
+                        📋 Assigned Box Calibration Rule: <span id="modal-box-qty-badge" style="color:#0f172a; font-weight:800;">--</span> labels per full box.
+                    </div>
+
                     <label class="inv-label" style="font-size: 13px; text-transform: uppercase; color:#64748b; margin-bottom: 6px;">End of Run Instant Calculators:</label>
                     <div class="shortcut-row">
                         <button type="button" class="btn-shortcut" onclick="applyBoxLeftShortcut()">📦 Box Left Only (0 Full / 500 Loose)</button>
@@ -369,3 +399,5 @@
         document.getElementById('input-loose-labels').value = 0;
     }
 </script>
+</body>
+</html>
