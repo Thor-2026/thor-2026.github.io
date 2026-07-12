@@ -1,44 +1,44 @@
 <style>
-    /* Professional Layout Variables & Core Reset */
+    /* Premium Industrial Slate Dashboard Core Theme Reset */
     .inv-container { 
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
         padding: 30px; 
-        color: #1f2937; 
-        background: #f9fafb;
+        color: #f3f4f6; 
+        background: #111827; /* Deep Slate Industrial Dark Accent Background */
         min-height: 100vh;
         box-sizing: border-box;
     }
     
-    /* Header Presentation Grid */
+    /* Header Presentation Grid Elements */
     .inv-header-flex { 
         display: flex; 
         justify-content: space-between; 
         align-items: center; 
         margin-bottom: 25px; 
-        border-bottom: 1px solid #e5e7eb; 
+        border-bottom: 1px solid #374151; 
         padding-bottom: 20px; 
     }
     .inv-title-area h2 { 
         margin: 0 0 4px 0; 
         font-size: 26px; 
         font-weight: 700;
-        color: #111827; 
+        color: #ffffff; 
         letter-spacing: -0.02em;
     }
     .inv-title-area p { 
         margin: 0; 
-        color: #6b7280; 
+        color: #9ca3af; 
         font-size: 14px; 
     }
     
-    /* Session Context Badges */
+    /* Session Context Configuration Display Badges */
     .inv-badge { 
-        background: #ffffff; 
+        background: #1f2937; 
         padding: 10px 16px; 
         border-radius: 6px; 
         text-align: right; 
-        border: 1px solid #e5e7eb; 
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #374151; 
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
     }
     .inv-badge-btn { 
         display: inline-flex; 
@@ -52,62 +52,60 @@
         border: none; 
         cursor: pointer; 
         font-size: 14px; 
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         transition: background 0.15s ease;
     }
     .inv-badge-btn:hover { background: #1d4ed8; }
     
-    /* Clean Selector Layouts */
+    /* Clean Selector Layout Matrices */
     .inv-card { 
-        background: #ffffff; 
+        background: #1f2937; 
         border-radius: 8px; 
-        border: 1px solid #e5e7eb; 
+        border: 1px solid #374151; 
         padding: 24px; 
         margin-bottom: 25px; 
-        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
     }
     .inv-label { 
         display: block; 
         font-weight: 600; 
         margin-bottom: 8px; 
-        color: #374151; 
+        color: #d1d5db; 
         font-size: 14px; 
     }
     .inv-select { 
         width: 100%; 
         max-width: 480px; 
-        padding: 10px 14px; 
+        padding: 12px 14px; 
         font-size: 15px; 
         border-radius: 6px; 
-        border: 1px solid #d1d5db; 
+        border: 1px solid #4b5563; 
         outline: none; 
-        background-color: #fff; 
-        color: #1f2937;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        background-color: #374151; 
+        color: #ffffff;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        transition: border-color 0.15s ease;
     }
     .inv-select:focus { 
-        border-color: #2563eb; 
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        border-color: #3b82f6; 
     }
     
-    /* Clean Enterprise Data Tables */
+    /* Premium High-Contrast Enterprise Data Tables */
     .inv-table-card { 
-        background: #ffffff; 
+        background: #1f2937; 
         border-radius: 8px; 
-        border: 1px solid #e5e7eb; 
+        border: 1px solid #374151; 
         overflow: hidden; 
         margin-bottom: 25px; 
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
     }
     .inv-table-title { 
-        background: #1f2937; 
+        background: #2d3748; 
         color: #ffffff; 
         margin: 0; 
         padding: 18px 24px; 
         font-size: 18px; 
         font-weight: 600; 
-        letter-spacing: -0.01em;
+        border-bottom: 1px solid #4b5563;
     }
     .inv-table { 
         width: 100%; 
@@ -116,90 +114,108 @@
         font-size: 14px; 
     }
     .inv-table th { 
-        background: #f9fafb; 
-        color: #4b5563; 
+        background: #111827; 
+        color: #9ca3af; 
         font-weight: 600; 
         padding: 14px 24px; 
-        border-bottom: 1px solid #e5e7eb; 
+        border-bottom: 1px solid #374151; 
         text-transform: uppercase;
-        font-size: 12px;
+        font-size: 11px;
         letter-spacing: 0.05em;
     }
     .inv-table td { 
         padding: 16px 24px; 
-        border-bottom: 1px solid #e5e7eb; 
-        color: #374151;
+        border-bottom: 1px solid #374151; 
+        color: #e5e7eb;
     }
     .inv-table tr:hover td { 
-        background: #fcfdfe; 
+        background: #243042; 
     }
     .inv-tfoot { 
-        background: #fdfaf2; 
-        font-weight: 600; 
+        background: #111827; 
+        font-weight: 700; 
         font-size: 15px; 
-        border-top: 2px solid #fef3c7; 
+        border-top: 2px solid #4b5563; 
     }
     .inv-tfoot td { 
-        color: #111827; 
+        color: #ffffff; 
         padding: 20px 24px; 
     }
     
-    /* Action Controls UI Elements */
+    /* Action Control Buttons Elements */
     .inv-btn-edit { 
-        background: #ffffff; 
-        color: #2563eb; 
-        border: 1px solid #d1d5db; 
+        background: #2563eb; 
+        color: white; 
+        border: none; 
         padding: 8px 14px; 
         font-weight: 600; 
         border-radius: 6px; 
         cursor: pointer; 
         font-size: 13px; 
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        transition: all 0.15s ease;
+        transition: background 0.15s ease;
     }
     .inv-btn-edit:hover { 
-        background: #f9fafb; 
-        border-color: #2563eb;
+        background: #1d4ed8; 
     }
     
-    /* Status Banner System alerts */
+    /* Status Banner System Alerts */
     .inv-alert { 
-        background: #fef2f2; 
-        border-left: 4px solid #ef4444; 
-        color: #991b1b; 
+        background: #7f1d1d; 
+        border-left: 4px solid #f87171; 
+        color: #fca5a5; 
         padding: 16px 20px; 
         border-radius: 6px; 
         font-weight: 600; 
         margin-top: 25px; 
         font-size: 14px; 
+    }
+
+    /* Professional Button Shortcut Panel Grid */
+    .shortcut-row {
         display: flex;
-        align-items: center;
-        gap: 8px;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    .btn-shortcut {
+        flex: 1;
+        background: #4b5563;
+        color: white;
+        border: 1px solid #6b7280;
+        padding: 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.1s;
+    }
+    .btn-shortcut:hover {
+        background: #374151;
     }
     
-    /* Modal Popups Core Architecture */
+    /* Popups Structural Architecture Core Panels */
     .inv-modal-backdrop { 
         position: fixed; 
-        top: 0; left: 0; 
-        width: 100vw; height: 100vh; 
-        background: rgba(17, 24, 39, 0.6); 
-        backdrop-filter: blur(2px);
+        top:0; left:0; 
+        width:100vw; height:100vh; 
+        background: rgba(0, 0, 0, 0.75); 
+        backdrop-filter: blur(3px);
         display: flex; 
         justify-content: center; 
         align-items: center; 
         z-index: 999999; 
     }
     .inv-modal-content { 
-        background: #ffffff; 
+        background: #1f2937; 
+        border: 1px solid #374151;
         border-radius: 12px; 
         width: 100%; 
         max-width: 460px; 
         overflow: hidden; 
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); 
-        animation: invFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1); 
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
+        animation: invFadeIn 0.18s ease-out; 
     }
     .inv-modal-header { 
-        background: #1f2937; 
+        background: #111827; 
         color: #ffffff; 
         padding: 18px 24px; 
         font-size: 16px; 
@@ -207,6 +223,7 @@
         display: flex; 
         justify-content: space-between; 
         align-items: center; 
+        border-bottom: 1px solid #374151;
     }
     .inv-modal-close { 
         background: none; 
@@ -214,61 +231,56 @@
         color: #9ca3af; 
         font-size: 24px; 
         cursor: pointer; 
-        line-height: 1;
     }
-    .inv-modal-close:hover { color: #ffffff; }
-    .inv-modal-body { padding: 24px; background: #ffffff; }
+    .inv-modal-close:hover { color: white; }
+    .inv-modal-body { padding: 24px; background: #1f2937; }
     .inv-modal-footer { 
         padding: 16px 24px; 
-        background: #f9fafb; 
-        border-top: 1px solid #e5e7eb; 
+        background: #111827; 
+        border-top: 1px solid #374151; 
         display: flex; 
         justify-content: flex-end; 
         gap: 12px; 
     }
     .inv-form-control { 
         width: 100%; 
-        padding: 10px 14px; 
+        padding: 11px 14px; 
         font-size: 15px; 
         border-radius: 6px; 
-        border: 1px solid #d1d5db; 
+        border: 1px solid #4b5563; 
+        background: #374151;
+        color: white;
         box-sizing: border-box; 
         margin-top: 6px; 
         outline: none;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
     .inv-form-control:focus {
-        border-color: #2563eb;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        border-color: #3b82f6;
     }
     .inv-btn-sub { 
         background: #059669; 
         color: white; 
+        border: none; 
+        padding: 10px 22px; 
+        font-weight: 600; 
+        border-radius: 6px; 
+        cursor: pointer; 
+        font-size: 14px; 
+    }
+    .inv-btn-sub:hover { background: #047857; }
+    .inv-btn-can { 
+        background: #4b5563; 
+        color: #e5e7eb; 
         border: none; 
         padding: 10px 20px; 
         font-weight: 600; 
         border-radius: 6px; 
         cursor: pointer; 
         font-size: 14px; 
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
-    .inv-btn-sub:hover { background: #047857; }
-    .inv-btn-can { 
-        background: #ffffff; 
-        color: #4b5563; 
-        border: 1px solid #d1d5db; 
-        padding: 10px 20px; 
-        font-weight: 600; 
-        border-radius: 6px; 
-        cursor: pointer; 
-        font-size: 14px; 
-    }
-    .inv-btn-can:hover { background: #f9fafb; color: #1f2937; }
+    .inv-btn-can:hover { background: #374151; }
     
-    @keyframes invFadeIn { 
-        from { opacity: 0; transform: scale(0.95); } 
-        to { opacity: 1; transform: scale(1); } 
-    }
+    @keyframes invFadeIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
 </style>
 
 <div class="inv-container">
@@ -309,8 +321,8 @@
                         <td>GRAND TOTAL</td>
                         <td id="grand-boxes-cell" style="text-align: center;">0 Boxes</td>
                         <td id="grand-loose-cell" style="text-align: center;">0 Loose</td>
-                        <td style="text-align: center; color: #9ca3af;">—</td>
-                        <td id="grand-labels-cell" style="text-align: center; color: #2563eb; font-weight: 700;">0 Labels</td>
+                        <td style="text-align: center; color: #6b7280;">—</td>
+                        <td id="grand-labels-cell" style="text-align: center; color: #60a5fa;">0 Labels</td>
                         <td id="table-action-footer" style="display: none;"></td>
                     </tr>
                 </tfoot>
@@ -323,7 +335,7 @@
     </div>
 </div>
 
-<!-- Plain Vanilla Custom DOM Dialog Modal -->
+<!-- Plain Vanilla Custom DOM Dialog Modal (With Restored Calculation Shortcuts) -->
 <div id="customUpdateModalContainer" style="display: none;">
     <div class="inv-modal-backdrop">
         <div class="inv-modal-content">
@@ -337,6 +349,13 @@
                     <input type="hidden" id="modal-supplier-id">
                     <input type="hidden" id="modal-supplier-name">
                     
+                    <!-- Box Left / Shift End Quick Mathematical Actions Menu Wrapper -->
+                    <label class="inv-label">Quick Count Calculators:</label>
+                    <div class="shortcut-row">
+                        <button type="button" class="btn-shortcut" onclick="applyBoxLeftShortcut()">📦 Box Left (0 Full / 500 Loose)</button>
+                        <button type="button" class="btn-shortcut" onclick="applyShiftEndShortcut()">⏱️ Shift End Clear (0 / 0)</button>
+                    </div>
+
                     <div style="margin-bottom: 20px;">
                         <label for="input-full-boxes" class="inv-label">How many FULL, sealed boxes are left?</label>
                         <input type="number" class="inv-form-control" id="input-full-boxes" min="0" required placeholder="0">
@@ -354,3 +373,15 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Injected Quick-Action DOM Shortcut Math Script Evaluators
+    function applyBoxLeftShortcut() {
+        document.getElementById('input-full-boxes').value = 0;
+        document.getElementById('input-loose-labels').value = 500;
+    }
+    function applyShiftEndShortcut() {
+        document.getElementById('input-full-boxes').value = 0;
+        document.getElementById('input-loose-labels').value = 0;
+    }
+</script>
