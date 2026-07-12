@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Label Inventory Dashboard</title>
+    <!-- Include Supabase CDN to drive public data requests -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<style>
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background: #f8fafc;
+        color: #0f172a;
+        margin: 0;
+        padding: 30px;
+        box-sizing: border-box;
+    }
+    .dash-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    .dash-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 3px solid #e2e8f0;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+    .dash-title h1 {
+        margin: 0 0 6px 0;
+        font-size: 32px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+    }
+    .dash-title p {
+        margin: 0;
+        color: #475569;
+        font-size: 16px;
+        font-weight: 500;
+    }
+    .refresh-badge {
+        background: #ffffff;
+        border: 2px solid #cbd5e1;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #64748b;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    /* Live Status Filtering Metrics Row */
+    .metric-summary-bar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+        margin-bottom: 35px;
+    }
+    .metric-card {
+        background: #ffffff;
+        border: 2px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .metric-card .label {
+        font-size: 12px;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: #64748b;
+        letter-spacing: 0.05em;
+    }
+    .metric-card .val {
+        font-size: 26px;
+        font-weight: 800;
+        margin-top: 6px;
+    }
+
+    /* Master Dynamic Table Grid Styling */
+    .part-block-card {
+        background: #ffffff;
+        border: 2px solid #cbd5e1;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
+    }
+    .part-block-header {
+        background: #0f172a;
+        color: #ffffff;
+        padding: 16px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .part-block-title {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+    }
+    .part-block-alert-pill {
+        background: #dc2626;
+        color: white;
+        font-size: 11px;
+        font-weight: 800;
+        padding: 4px 10px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.6; }
+        100% { opacity: 1; }
+    }
+    
+    .dash-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 15px;
+    }
+    .dash-table th {
+        background: #f1f5f9;
+        color: #475569;
+        font-weight: 700;
+        padding: 14px 24px;
+        text-align: left;
+        border-bottom: 2px solid #cbd5e1;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.03em;
+    }
+    .dash-table td {
+        padding: 16px 24px;
+        border-bottom: 1px solid #e2e8f0;
+        font-weight: 500;
+    }
+    .dash-table tr:last-child td {
+        border-bottom: none;
+    }
+    .dash-table tr:hover td {
+        background: #f8fafc;
+    }
+    .total-row-highlight {
+        background: #fefce8;
+        font-weight: 700;
+        border-top: 2px solid #cbd5e1;
+    }
+    .total-row-highlight td {
+        color: #0f172a;
+        font-size: 16px;
+        padding: 18px 24px;
+    }
+    
+    .loading-spinner-box {
+        text-align: center;
+        padding: 60px;
+        font-size: 18px;
+        font-weight: 700;
+        color: #475569;
+    }
+</style>
+
+<div class="dash-container">
+    <div class="dash-header">
+        <div class="dash-title">
+            <h1>Plant Label Stock Balance Dashboard</h1>
+            <p>Live, read-only floor tracking overview for manufacturing production planning.</p>
+        </div>
+        <div class="refresh-badge" id="live-clock">Updated: Loading...</div>
+    </div>
+
+    <!-- Executive Stock KPIs -->
+    <div class="metric-summary-bar">
+        <div class="metric-card" style="border-left: 5px solid #2563eb;">
+            <div class="label">Monitored Item Profiles</div>
+            <div class="val" id="kpi-total-profiles">0</div>
+        </div>
+        <div class="metric-card" style="border-left: 5px solid #16a34a;">
+            <div class="val-label-container">
+                <div class="label">Total Bulk Storage Vault Boxes</div>
+                <div class="val" id="kpi-total-boxes">0 Boxes</div>
+            </div>
+        </div>
+        <div class="metric-card" style="border-left: 5px solid #dc2626;">
+            <div class="label">Critical Low Supply Warnings</div>
+            <div class="val" id="kpi-critical-alerts" style="color: #0f172a;">0 Items</div>
+        </div>
+    </div>
+
+    <!-- Active Root Target Insertion Node Container -->
+    <div id="dashboard-catalog-root">
+        <div class="loading-spinner-box">🔄 Fetching manufacturing inventory layout allocations...</div>
+    </div>
+</div>
+
+<script>
+    // Initialize standard connection context parameters (auto-replaced securely via app configuration mapping)
+    const supabaseUrl = window.location.origin.includes('localhost') ? "YOUR_SUPABASE_URL" : window.env?.SUPABASE_URL || "";
+    const supabaseKey = window.location.origin.includes('localhost') ? "YOUR_SUPABASE_KEY" : window.env?.SUPABASE_ANON_KEY || "";
+    
+    let dbClient = null;
+    if (typeof supabase !== 'undefined' && supabaseUrl && supabaseKey) {
+        dbClient = supabase.createClient(supabaseUrl, supabaseKey);
+    } else if (window.supabaseClient) {
+        dbClient = window.supabaseClient; // Leverage global fallback context wrapper
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        updateLiveClock();
+        loadPublicDashboardData();
+        // Keep plant display constantly current 
+        setInterval(loadPublicDashboardData, 60000);
+    });
+
+    function updateLiveClock() {
+        const el = document.getElementById("live-clock");
+        if (el) {
+            const now = new Date();
+            el.textContent = `Live Floor Update: ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}`;
+        }
+    }
+
+    async function loadPublicDashboardData() {
+        if (!dbClient) {
+            document.getElementById("dashboard-catalog-root").innerHTML = `
+                <div style="padding:30px; background:#fee2e2; border-radius:6px; color:#991b1b; font-weight:700;">
+                    Database Access Connection Offline. Verify integration tokens.
+                </div>`;
+            return;
+        }
+
+        try {
+            // Simultaneous lookup queries
+            const [partCodesRes, inventoryRes, suppliersRes] = await Promise.all([
+                dbClient.from("part_codes").select("*").order("part_code", { ascending: true }),
+                dbClient.from("labels_inventory").select("*"),
+                dbClient.from("suppliers").select("*").order("supplier_name", { ascending: true })
+            ]);
+
+            if (partCodesRes.error) throw partCodesRes.error;
+            if (inventoryRes.error) throw inventoryRes.error;
+            if (suppliersRes.error) throw suppliersRes.error;
+
+            renderDashboardDom(partCodesRes.data, inventoryRes.data, suppliersRes.data);
+            updateLiveClock();
+        } catch (err) {
+            console.error("Dashboard engine fault:", err);
+            document.getElementById("dashboard-catalog-root").innerHTML = `<div class="loading-spinner-box" style="color:#dc2626;">❌ Error mapping data records: ${err.message}</div>`;
+        }
+    }
+
+    function renderDashboardDom(partCodes, inventory, suppliers) {
+        const container = document.getElementById("dashboard-catalog-root");
+        if (!container) return;
+
+        if (partCodes.length === 0) {
+            container.innerHTML = `<div class="loading-spinner-box">No label components populated in system.</div>`;
+            return;
+        }
+
+        container.innerHTML = "";
+        
+        let operationalBoxesCount = 0;
+        let criticalAlertsCount = 0;
+
+        partCodes.forEach(codeObj => {
+            const codeRecords = inventory.filter(r => r.part_code === codeObj.part_code);
+            
+            let partTotalLabels = 0;
+            let partTotalBoxes = 0;
+            let partMinSetpoint = 5000;
+
+            const targetSuppliers = suppliers.filter(s => codeRecords.some(r => r.supplier_id === s.id));
+            const displayList = targetSuppliers.length > 0 ? targetSuppliers : suppliers;
+
+            let rowHtmlAccumulator = "";
+
+            displayList.forEach(supp => {
+                const record = codeRecords.find(r => r.supplier_id === supp.id) || {
+                    current_full_boxes: 0,
+                    current_loose_labels: 0,
+                    min_setpoint: 5000,
+                    qty_per_box: supp.qty_per_box
+                };
+
+                const effectiveQtyPerBox = record.qty_per_box ? record.qty_per_box : supp.qty_per_box;
+                partMinSetpoint = record.min_setpoint;
+
+                const rowSubtotal = (record.current_full_boxes * effectiveQtyPerBox) + record.current_loose_labels;
+                partTotalLabels += rowSubtotal;
+                partTotalBoxes += record.current_full_boxes;
+                operationalBoxesCount += record.current_full_boxes;
+
+                rowHtmlAccumulator += `
+                    <tr>
+                        <td style="font-weight: 700; color:#1e293b;">${supp.supplier_name}</td>
+                        <td style="color:#0f172a;">${record.current_full_boxes.toLocaleString()} Boxes</td>
+                        <td style="color:#475569;">${record.current_loose_labels.toLocaleString()} Labels</td>
+                        <td style="color:#64748b; font-size:14px;">${effectiveQtyPerBox.toLocaleString()} per box</td>
+                        <td style="font-weight:700; text-align:right; color:#0f172a;">${rowSubtotal.toLocaleString()}</td>
+                    </tr>
+                `;
+            });
+
+            const isLowStock = partTotalLabels <= partMinSetpoint;
+            if (isLowStock) criticalAlertsCount++;
+
+            const blockCard = document.createElement("div");
+            blockCard.className = "part-block-card";
+            
+            blockCard.innerHTML = `
+                <div class="part-block-header" style="${isLowStock ? 'background:#7f1d1d; border-bottom:1px solid #f87171;' : ''}">
+                    <h3 class="part-block-title">📦 ${codeObj.part_code} — ${codeObj.label_name}</h3>
+                    ${isLowStock ? `<span class="part-block-alert-pill">⚠️ Low Stock Floor Warning</span>` : `<span style="font-size:12px; font-weight:700; color:#94a3b8;">Status Safe</span>`}
+                </div>
+                <table class="dash-table">
+                    <thead>
+                        <tr>
+                            <th>Supplier Line</th>
+                            <th>Full Sealed Storage</th>
+                            <th>Loose Quantities</th>
+                            <th>Package Standard Sizing</th>
+                            <th style="text-align: right;">On Hand Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowHtmlAccumulator}
+                        <tr class="total-row-highlight" style="${isLowStock ? 'background:#fef2f2;' : ''}">
+                            <td colspan="1">COMBINED PLANT VALUE</td>
+                            <td>${partTotalBoxes.toLocaleString()} Boxes</td>
+                            <td colspan="2" style="color:#64748b; font-size:13px; font-weight:500;">(Alert Setpoint Threshold: ${partMinSetpoint.toLocaleString()})</td>
+                            <td style="text-align:right; font-size:18px; font-weight:800; color:${isLowStock ? '#dc2626' : '#2563eb'};">${partTotalLabels.toLocaleString()} Labels</td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+            container.appendChild(blockCard);
+        });
+
+        // Set KPIs metrics summary values
+        document.getElementById("kpi-total-profiles").textContent = partCodes.length;
+        document.getElementById("kpi-total-boxes").textContent = `${operationalBoxesCount.toLocaleString()} Boxes`;
+        
+        const alertKpi = document.getElementById("kpi-critical-alerts");
+        alertKpi.textContent = `${criticalAlertsCount} Part Codes`;
+        alertKpi.style.color = criticalAlertsCount > 0 ? "#dc2626" : "#16a34a";
+        alertKpi.parentElement.style.borderColor = criticalAlertsCount > 0 ? "#ef4444" : "#cbd5e1";
+    }
+</script>
+</body>
+</html>
