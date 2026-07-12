@@ -1,99 +1,121 @@
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="mb-1 text-dark">Egg Label Inventory</h2>
-            <p class="text-muted mb-0">Select a part code below to view total stock counts across suppliers.</p>
+<style>
+    .inv-container { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 20px; color: #333; }
+    .inv-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
+    .inv-title-area h2 { margin: 0 0 5px 0; font-size: 28px; color: #111; }
+    .inv-title-area p { margin: 0; color: #666; font-size: 14px; }
+    .inv-badge { background: #f0f4f8; padding: 8px 15px; border-radius: 6px; text-align: right; border: 1px solid #dcdfe6; }
+    .inv-badge-btn { display: inline-block; background: #ff9800; color: white; text-decoration: none; font-weight: bold; padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer; font-size: 14px; }
+    .inv-badge-btn:hover { background: #e68a00; }
+    .inv-card { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 25px; border: 1px solid #e4e7ed; }
+    .inv-label { display: block; font-weight: bold; margin-bottom: 10px; color: #4a5568; font-size: 15px; }
+    .inv-select { width: 100%; max-width: 450px; padding: 12px; font-size: 16px; border-radius: 6px; border: 2px solid #cbd5e1; outline: none; transition: border 0.2s; background-color: #fff; }
+    .inv-select:focus { border-color: #3182ce; }
+    .inv-table-card { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #e4e7ed; overflow: hidden; margin-bottom: 20px; }
+    .inv-table-title { background: #2d3748; color: white; margin: 0; padding: 15px 20px; font-size: 18px; font-weight: bold; }
+    .inv-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 15px; }
+    .inv-table th { background: #f7fafc; color: #4a5568; font-weight: bold; padding: 12px 20px; border-bottom: 2px solid #edf2f7; }
+    .inv-table td { padding: 15px 20px; border-bottom: 1px solid #edf2f7; }
+    .inv-table tr:hover td { background: #f8fafc; }
+    .inv-tfoot { background: #fffaf0; font-weight: bold; font-size: 16px; border-top: 2px solid #feebc8; }
+    .inv-tfoot td { color: #2d3748; padding: 18px 20px; }
+    .inv-btn-edit { background: #3182ce; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 13px; transition: background 0.1s; }
+    .inv-btn-edit:hover { background: #2b6cb0; }
+    .inv-alert { background: #fff5f5; border-left: 5px solid #e53e3e; color: #c53030; padding: 15px 20px; border-radius: 4px; font-weight: bold; margin-top: 20px; font-size: 15px; }
+    
+    /* Plain Custom Dialog Popup Layout Rules */
+    .inv-modal-backdrop { position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 99999; }
+    .inv-modal-content { background: white; border-radius: 8px; width: 100%; max-width: 450px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: invFadeIn 0.2s ease-out; }
+    .inv-modal-header { background: #3182ce; color: white; padding: 15px 20px; font-size: 18px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+    .inv-modal-close { background: none; border: none; color: white; font-size: 22px; cursor: pointer; font-weight: bold; }
+    .inv-modal-body { padding: 20px; background: #f8fafc; }
+    .inv-modal-footer { padding: 15px 20px; background: white; border-top: 1px solid #e2e8f0; text-align: right; display: flex; justify-content: flex-end; gap: 10px; }
+    .inv-form-control { width: 100%; padding: 10px; font-size: 16px; border-radius: 4px; border: 1px solid #cbd5e1; box-sizing: border-box; margin-top: 5px; }
+    .inv-btn-sub { background: #38a169; color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 14px; }
+    .inv-btn-sub:hover { background: #2f855a; }
+    .inv-btn-sub:disabled { background: #a0aec0; cursor: not-allowed; }
+    .inv-btn-can { background: #718096; color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 14px; }
+    .inv-btn-can:hover { background: #4a5568; }
+    @keyframes invFadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<div class="inv-container">
+    <div class="inv-header-flex">
+        <div class="inv-title-area">
+            <h2>Egg Label Inventory</h2>
+            <p>Select a part code below to view total stock counts across suppliers.</p>
         </div>
-        <div id="auth-status-area">
-            <!-- Populated dynamically via JavaScript -->
-        </div>
+        <div id="auth-status-area"></div>
     </div>
 
-    <hr class="mb-4">
-
-    <!-- Part Code Dropdown Selector -->
-    <div class="card shadow-sm mb-4 border-0 bg-white">
-        <div class="card-body p-4">
-            <label for="part-code-selector" class="form-label fw-bold text-secondary">Select 4-Digit Part Code:</label>
-            <select id="part-code-selector" class="form-select form-select-lg border-2">
-                <option value="">-- Choose a Label Part Code --</option>
-                <!-- Part codes from database will load here dynamically -->
-            </select>
-        </div>
+    <!-- Dropdown Selector Card -->
+    <div class="inv-card">
+        <label for="part-code-selector" class="inv-label">Select 4-Digit Part Code:</label>
+        <select id="part-code-selector" class="inv-select">
+            <option value="">-- Choose a Label Part Code --</option>
+        </select>
     </div>
 
-    <!-- Main Dynamic Display Area -->
+    <!-- Inventory Stock Balance Output Grid -->
     <div id="inventory-display-root" style="display: none;">
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header bg-dark text-white py-3">
-                <h4 id="display-label-name" class="mb-0 fw-bold">--</h4>
-            </div>
-            <div class="card-body p-0 bg-white">
-                <div class="table-responsive">
-                    <table class="table table-hover table-striped mb-0 align-middle">
-                        <thead class="table-light text-secondary">
-                            <tr>
-                                <th class="ps-4">Supplier</th>
-                                <th class="text-center">Sealed Boxes</th>
-                                <th class="text-center">Loose Labels</th>
-                                <th class="text-center">Labels / Box</th>
-                                <th class="text-center">Supplier Subtotal</th>
-                                <th id="table-action-header" class="text-end pe-4" style="display: none;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inventory-table-body">
-                            <!-- Supplier rows dynamically injected here -->
-                        </tbody>
-                        <tfoot>
-                            <tr class="table-warning fw-bold fs-5">
-                                <td class="ps-4">GRAND TOTAL</td>
-                                <td id="grand-boxes-cell" class="text-center">0 Boxes</td>
-                                <td id="grand-loose-cell" class="text-center">0 Loose</td>
-                                <td class="text-center text-muted">—</td>
-                                <td id="grand-labels-cell" class="text-center text-primary">0 Labels</td>
-                                <td id="table-action-footer" class="pe-4" style="display: none;"></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
+        <div class="inv-table-card">
+            <h4 id="display-label-name" class="inv-table-title">--</h4>
+            <table class="inv-table">
+                <thead>
+                    <tr>
+                        <th>Supplier</th>
+                        <th style="text-align: center;">Sealed Boxes</th>
+                        <th style="text-align: center;">Loose Labels</th>
+                        <th style="text-align: center;">Labels / Box</th>
+                        <th style="text-align: center;">Supplier Subtotal</th>
+                        <th id="table-action-header" style="text-align: right; display: none;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-table-body"></tbody>
+                <tfoot>
+                    <tr class="inv-tfoot">
+                        <td>GRAND TOTAL</td>
+                        <td id="grand-boxes-cell" style="text-align: center;">0 Boxes</td>
+                        <td id="grand-loose-cell" style="text-align: center;">0 Loose</td>
+                        <td style="text-align: center; color: #a0aec0;">—</td>
+                        <td id="grand-labels-cell" style="text-align: center; color: #3182ce;">0 Labels</td>
+                        <td id="table-action-footer" style="display: none;"></td>
+                    </tr>
+                </tfoot>
+            </table>
         </div>
         
-        <!-- Minimum Setpoint Alert Banner -->
-        <div id="low-stock-alert-banner" class="alert alert-danger d-flex align-items-center d-none" role="alert">
-            <div class="fw-bold">
-                ⚠ Low Stock Warning! This label's grand total is at or below the minimum alert threshold setpoint.
-            </div>
+        <div id="low-stock-alert-banner" class="inv-alert d-none">
+            ⚠ Low Stock Warning! This label's grand total is at or below the minimum alert threshold setpoint.
         </div>
     </div>
 </div>
 
-<!-- Bootstrap Update stock Overlay Dialog Modal -->
-<div class="modal fade" id="updateStockModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-primary text-white py-3">
-                <h5 class="modal-title fw-bold" id="modal-title-text">Update Count</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- Plain Vanilla Custom DOM Dialog Modal (Ditches external modal code layers) -->
+<div id="customUpdateModalContainer" style="display: none;">
+    <div class="inv-modal-backdrop">
+        <div class="inv-modal-content">
+            <div class="inv-modal-header">
+                <span id="modal-title-text">Update Count</span>
+                <button type="button" class="inv-modal-close" onclick="closeCustomModal()">&times;</button>
             </div>
             <form id="stock-update-form">
-                <div class="modal-body p-4 bg-light">
+                <div class="inv-modal-body">
                     <input type="hidden" id="modal-part-code">
                     <input type="hidden" id="modal-supplier-id">
                     <input type="hidden" id="modal-supplier-name">
                     
-                    <div class="mb-4">
-                        <label for="input-full-boxes" class="form-label fw-bold text-secondary">How many FULL, sealed boxes are left?</label>
-                        <input type="number" class="form-control form-control-lg border-2" id="input-full-boxes" min="0" required placeholder="0">
+                    <div style="margin-bottom: 20px;">
+                        <label for="input-full-boxes" style="font-weight: bold; color: #4a5568; display: block;">How many FULL, sealed boxes are left?</label>
+                        <input type="number" class="inv-form-control" id="input-full-boxes" min="0" required placeholder="0">
                     </div>
-                    <div class="mb-3">
-                        <label for="input-loose-labels" class="form-label fw-bold text-secondary">How many LOOSE labels are left in the open box?</label>
-                        <input type="number" class="form-control form-control-lg border-2" id="input-loose-labels" min="0" required placeholder="0">
+                    <div>
+                        <label for="input-loose-labels" style="font-weight: bold; color: #4a5568; display: block;">How many LOOSE labels are left in the open box?</label>
+                        <input type="number" class="inv-form-control" id="input-loose-labels" min="0" required placeholder="0">
                     </div>
                 </div>
-                <div class="modal-footer bg-white border-top-0 py-3">
-                    <button type="button" class="btn btn-secondary px-4 fw-semibold" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success px-4 fw-bold" id="submit-count-btn">Submit End of Run Count</button>
+                <div class="inv-modal-footer">
+                    <button type="button" class="inv-btn-can" onclick="closeCustomModal()">Cancel</button>
+                    <button type="submit" class="inv-btn-sub" id="submit-count-btn">Submit End of Run Count</button>
                 </div>
             </form>
         </div>
