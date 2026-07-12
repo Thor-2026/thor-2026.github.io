@@ -1,41 +1,274 @@
 <style>
-    .inv-container { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 20px; color: #333; }
-    .inv-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
-    .inv-title-area h2 { margin: 0 0 5px 0; font-size: 28px; color: #111; }
-    .inv-title-area p { margin: 0; color: #666; font-size: 14px; }
-    .inv-badge { background: #f0f4f8; padding: 8px 15px; border-radius: 6px; text-align: right; border: 1px solid #dcdfe6; }
-    .inv-badge-btn { display: inline-block; background: #ff9800; color: white; text-decoration: none; font-weight: bold; padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer; font-size: 14px; }
-    .inv-badge-btn:hover { background: #e68a00; }
-    .inv-card { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 25px; border: 1px solid #e4e7ed; }
-    .inv-label { display: block; font-weight: bold; margin-bottom: 10px; color: #4a5568; font-size: 15px; }
-    .inv-select { width: 100%; max-width: 450px; padding: 12px; font-size: 16px; border-radius: 6px; border: 2px solid #cbd5e1; outline: none; transition: border 0.2s; background-color: #fff; }
-    .inv-select:focus { border-color: #3182ce; }
-    .inv-table-card { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #e4e7ed; overflow: hidden; margin-bottom: 20px; }
-    .inv-table-title { background: #2d3748; color: white; margin: 0; padding: 15px 20px; font-size: 18px; font-weight: bold; }
-    .inv-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 15px; }
-    .inv-table th { background: #f7fafc; color: #4a5568; font-weight: bold; padding: 12px 20px; border-bottom: 2px solid #edf2f7; }
-    .inv-table td { padding: 15px 20px; border-bottom: 1px solid #edf2f7; }
-    .inv-table tr:hover td { background: #f8fafc; }
-    .inv-tfoot { background: #fffaf0; font-weight: bold; font-size: 16px; border-top: 2px solid #feebc8; }
-    .inv-tfoot td { color: #2d3748; padding: 18px 20px; }
-    .inv-btn-edit { background: #3182ce; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 13px; transition: background 0.1s; }
-    .inv-btn-edit:hover { background: #2b6cb0; }
-    .inv-alert { background: #fff5f5; border-left: 5px solid #e53e3e; color: #c53030; padding: 15px 20px; border-radius: 4px; font-weight: bold; margin-top: 20px; font-size: 15px; }
+    /* Professional Layout Variables & Core Reset */
+    .inv-container { 
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+        padding: 30px; 
+        color: #1f2937; 
+        background: #f9fafb;
+        min-height: 100vh;
+        box-sizing: border-box;
+    }
     
-    /* Plain Custom Dialog Popup Layout Rules */
-    .inv-modal-backdrop { position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 99999; }
-    .inv-modal-content { background: white; border-radius: 8px; width: 100%; max-width: 450px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: invFadeIn 0.2s ease-out; }
-    .inv-modal-header { background: #3182ce; color: white; padding: 15px 20px; font-size: 18px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-    .inv-modal-close { background: none; border: none; color: white; font-size: 22px; cursor: pointer; font-weight: bold; }
-    .inv-modal-body { padding: 20px; background: #f8fafc; }
-    .inv-modal-footer { padding: 15px 20px; background: white; border-top: 1px solid #e2e8f0; text-align: right; display: flex; justify-content: flex-end; gap: 10px; }
-    .inv-form-control { width: 100%; padding: 10px; font-size: 16px; border-radius: 4px; border: 1px solid #cbd5e1; box-sizing: border-box; margin-top: 5px; }
-    .inv-btn-sub { background: #38a169; color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 14px; }
-    .inv-btn-sub:hover { background: #2f855a; }
-    .inv-btn-sub:disabled { background: #a0aec0; cursor: not-allowed; }
-    .inv-btn-can { background: #718096; color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 14px; }
-    .inv-btn-can:hover { background: #4a5568; }
-    @keyframes invFadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    /* Header Presentation Grid */
+    .inv-header-flex { 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        margin-bottom: 25px; 
+        border-bottom: 1px solid #e5e7eb; 
+        padding-bottom: 20px; 
+    }
+    .inv-title-area h2 { 
+        margin: 0 0 4px 0; 
+        font-size: 26px; 
+        font-weight: 700;
+        color: #111827; 
+        letter-spacing: -0.02em;
+    }
+    .inv-title-area p { 
+        margin: 0; 
+        color: #6b7280; 
+        font-size: 14px; 
+    }
+    
+    /* Session Context Badges */
+    .inv-badge { 
+        background: #ffffff; 
+        padding: 10px 16px; 
+        border-radius: 6px; 
+        text-align: right; 
+        border: 1px solid #e5e7eb; 
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .inv-badge-btn { 
+        display: inline-flex; 
+        align-items: center;
+        background: #2563eb; 
+        color: white !important; 
+        text-decoration: none !important; 
+        font-weight: 600; 
+        padding: 10px 18px; 
+        border-radius: 6px; 
+        border: none; 
+        cursor: pointer; 
+        font-size: 14px; 
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        transition: background 0.15s ease;
+    }
+    .inv-badge-btn:hover { background: #1d4ed8; }
+    
+    /* Clean Selector Layouts */
+    .inv-card { 
+        background: #ffffff; 
+        border-radius: 8px; 
+        border: 1px solid #e5e7eb; 
+        padding: 24px; 
+        margin-bottom: 25px; 
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .inv-label { 
+        display: block; 
+        font-weight: 600; 
+        margin-bottom: 8px; 
+        color: #374151; 
+        font-size: 14px; 
+    }
+    .inv-select { 
+        width: 100%; 
+        max-width: 480px; 
+        padding: 10px 14px; 
+        font-size: 15px; 
+        border-radius: 6px; 
+        border: 1px solid #d1d5db; 
+        outline: none; 
+        background-color: #fff; 
+        color: #1f2937;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .inv-select:focus { 
+        border-color: #2563eb; 
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    
+    /* Clean Enterprise Data Tables */
+    .inv-table-card { 
+        background: #ffffff; 
+        border-radius: 8px; 
+        border: 1px solid #e5e7eb; 
+        overflow: hidden; 
+        margin-bottom: 25px; 
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+    .inv-table-title { 
+        background: #1f2937; 
+        color: #ffffff; 
+        margin: 0; 
+        padding: 18px 24px; 
+        font-size: 18px; 
+        font-weight: 600; 
+        letter-spacing: -0.01em;
+    }
+    .inv-table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        text-align: left; 
+        font-size: 14px; 
+    }
+    .inv-table th { 
+        background: #f9fafb; 
+        color: #4b5563; 
+        font-weight: 600; 
+        padding: 14px 24px; 
+        border-bottom: 1px solid #e5e7eb; 
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.05em;
+    }
+    .inv-table td { 
+        padding: 16px 24px; 
+        border-bottom: 1px solid #e5e7eb; 
+        color: #374151;
+    }
+    .inv-table tr:hover td { 
+        background: #fcfdfe; 
+    }
+    .inv-tfoot { 
+        background: #fdfaf2; 
+        font-weight: 600; 
+        font-size: 15px; 
+        border-top: 2px solid #fef3c7; 
+    }
+    .inv-tfoot td { 
+        color: #111827; 
+        padding: 20px 24px; 
+    }
+    
+    /* Action Controls UI Elements */
+    .inv-btn-edit { 
+        background: #ffffff; 
+        color: #2563eb; 
+        border: 1px solid #d1d5db; 
+        padding: 8px 14px; 
+        font-weight: 600; 
+        border-radius: 6px; 
+        cursor: pointer; 
+        font-size: 13px; 
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        transition: all 0.15s ease;
+    }
+    .inv-btn-edit:hover { 
+        background: #f9fafb; 
+        border-color: #2563eb;
+    }
+    
+    /* Status Banner System alerts */
+    .inv-alert { 
+        background: #fef2f2; 
+        border-left: 4px solid #ef4444; 
+        color: #991b1b; 
+        padding: 16px 20px; 
+        border-radius: 6px; 
+        font-weight: 600; 
+        margin-top: 25px; 
+        font-size: 14px; 
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    /* Modal Popups Core Architecture */
+    .inv-modal-backdrop { 
+        position: fixed; 
+        top: 0; left: 0; 
+        width: 100vw; height: 100vh; 
+        background: rgba(17, 24, 39, 0.6); 
+        backdrop-filter: blur(2px);
+        display: flex; 
+        justify-content: center; 
+        align-items: center; 
+        z-index: 999999; 
+    }
+    .inv-modal-content { 
+        background: #ffffff; 
+        border-radius: 12px; 
+        width: 100%; 
+        max-width: 460px; 
+        overflow: hidden; 
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); 
+        animation: invFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1); 
+    }
+    .inv-modal-header { 
+        background: #1f2937; 
+        color: #ffffff; 
+        padding: 18px 24px; 
+        font-size: 16px; 
+        font-weight: 600; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+    }
+    .inv-modal-close { 
+        background: none; 
+        border: none; 
+        color: #9ca3af; 
+        font-size: 24px; 
+        cursor: pointer; 
+        line-height: 1;
+    }
+    .inv-modal-close:hover { color: #ffffff; }
+    .inv-modal-body { padding: 24px; background: #ffffff; }
+    .inv-modal-footer { 
+        padding: 16px 24px; 
+        background: #f9fafb; 
+        border-top: 1px solid #e5e7eb; 
+        display: flex; 
+        justify-content: flex-end; 
+        gap: 12px; 
+    }
+    .inv-form-control { 
+        width: 100%; 
+        padding: 10px 14px; 
+        font-size: 15px; 
+        border-radius: 6px; 
+        border: 1px solid #d1d5db; 
+        box-sizing: border-box; 
+        margin-top: 6px; 
+        outline: none;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .inv-form-control:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    .inv-btn-sub { 
+        background: #059669; 
+        color: white; 
+        border: none; 
+        padding: 10px 20px; 
+        font-weight: 600; 
+        border-radius: 6px; 
+        cursor: pointer; 
+        font-size: 14px; 
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .inv-btn-sub:hover { background: #047857; }
+    .inv-btn-can { 
+        background: #ffffff; 
+        color: #4b5563; 
+        border: 1px solid #d1d5db; 
+        padding: 10px 20px; 
+        font-weight: 600; 
+        border-radius: 6px; 
+        cursor: pointer; 
+        font-size: 14px; 
+    }
+    .inv-btn-can:hover { background: #f9fafb; color: #1f2937; }
+    
+    @keyframes invFadeIn { 
+        from { opacity: 0; transform: scale(0.95); } 
+        to { opacity: 1; transform: scale(1); } 
+    }
 </style>
 
 <div class="inv-container">
@@ -76,21 +309,21 @@
                         <td>GRAND TOTAL</td>
                         <td id="grand-boxes-cell" style="text-align: center;">0 Boxes</td>
                         <td id="grand-loose-cell" style="text-align: center;">0 Loose</td>
-                        <td style="text-align: center; color: #a0aec0;">—</td>
-                        <td id="grand-labels-cell" style="text-align: center; color: #3182ce;">0 Labels</td>
+                        <td style="text-align: center; color: #9ca3af;">—</td>
+                        <td id="grand-labels-cell" style="text-align: center; color: #2563eb; font-weight: 700;">0 Labels</td>
                         <td id="table-action-footer" style="display: none;"></td>
                     </tr>
                 </tfoot>
             </table>
         </div>
         
-        <div id="low-stock-alert-banner" class="inv-alert d-none">
-            ⚠ Low Stock Warning! This label's grand total is at or below the minimum alert threshold setpoint.
+        <div id="low-stock-alert-banner" class="inv-alert" style="display: none;">
+            ⚠️ <strong>Low Stock Alert:</strong> This product configuration is running at or below its required structural minimum threshold.
         </div>
     </div>
 </div>
 
-<!-- Plain Vanilla Custom DOM Dialog Modal (Ditches external modal code layers) -->
+<!-- Plain Vanilla Custom DOM Dialog Modal -->
 <div id="customUpdateModalContainer" style="display: none;">
     <div class="inv-modal-backdrop">
         <div class="inv-modal-content">
@@ -105,11 +338,11 @@
                     <input type="hidden" id="modal-supplier-name">
                     
                     <div style="margin-bottom: 20px;">
-                        <label for="input-full-boxes" style="font-weight: bold; color: #4a5568; display: block;">How many FULL, sealed boxes are left?</label>
+                        <label for="input-full-boxes" class="inv-label">How many FULL, sealed boxes are left?</label>
                         <input type="number" class="inv-form-control" id="input-full-boxes" min="0" required placeholder="0">
                     </div>
                     <div>
-                        <label for="input-loose-labels" style="font-weight: bold; color: #4a5568; display: block;">How many LOOSE labels are left in the open box?</label>
+                        <label for="input-loose-labels" class="inv-label">How many LOOSE labels are left in the open box?</label>
                         <input type="number" class="inv-form-control" id="input-loose-labels" min="0" required placeholder="0">
                     </div>
                 </div>
