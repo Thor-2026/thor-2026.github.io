@@ -98,11 +98,6 @@ window.promptCreateNewSupplier = async function() {
     const qtyPerBox = parseInt(qtyText) || 15000;
 
     try {
-        const { error } = await supabaseClient
-            .from("suppliers")
-            .select("*")
-            .eq("supplier_name", supplierName.trim());
-            
         const { error: insertError } = await supabaseClient
             .from("suppliers")
             .insert({ supplier_name: supplierName.trim(), qty_per_box: qtyPerBox });
@@ -122,7 +117,6 @@ window.promptCreateNewSupplier = async function() {
         alert(`Database Error: ${err.message}`);
     }
 };
-
 /**
  * Pulls and Refreshes Core Dropdown Indexes directly from the Supabase tables
  */
