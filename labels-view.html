@@ -6,11 +6,10 @@
     <title>Global Label Inventory Dashboard</title>
     <!-- Include Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-   
-    <!-- LINK TO YOUR EXISTING GLOBAL CONFIG SCRIPT -->
-    <!-- Adjust this path if your main database setup file is named config.js or init.js -->
-     <script src="js/supabase.js"></script>
+    
+    <!-- LINK TO YOUR ROOT JS CONFIG FILE -->
+    <script src="js/supabase.js" defer></script>
+</head>
 <body>
 
 <style>
@@ -218,12 +217,12 @@
 
 <div class="dash-container">
     
-    <!-- FIXED: Top Control Row containing both Navigation Options -->
+    <!-- Top Control Row containing Navigation -->
     <div class="top-nav-bar">
         <a href="index.html" class="btn-nav-back">
             ⬅️ Return to Main Display
         </a>
-        <a href="admin/login.html" class="btn-nav-secure">
+        <a href="admin/views/labels.html" class="btn-nav-secure">
             🔐 Operator Log In / Update Stock
         </a>
     </div>
@@ -261,7 +260,6 @@
 <script>
     let dbClient = null;
 
-    // Wait until DOM and any referenced config files are fully processed
     window.addEventListener("DOMContentLoaded", () => {
         initializeDatabaseConnection();
         updateLiveClock();
@@ -272,17 +270,18 @@
     });
 
     function initializeDatabaseConnection() {
-        // 1. Attempt to grab global instances setup by admin/js/config.js or fallback script
-        if (window.supabaseClient) {
+        // 1. Direct connection check matching your file setup
+        if (typeof supabaseClient !== 'undefined') {
+            dbClient = supabaseClient;
+        } 
+        else if (window.supabaseClient) {
             dbClient = window.supabaseClient;
-        } else if (typeof supabase !== 'undefined') {
-            // 2. If global instance doesn't exist but CDN script is loaded, verify explicit fallback variables
-            const supabaseUrl = window.env?.SUPABASE_URL || "YOUR_SUPABASE_URL_FALLBACK";
-            const supabaseKey = window.env?.SUPABASE_KEY || "YOUR_SUPABASE_KEY_FALLBACK";
-            
-            if (supabaseUrl !== "YOUR_SUPABASE_URL_FALLBACK") {
-                dbClient = supabase.createClient(supabaseUrl, supabaseKey);
-            }
+        }
+        // 2. Ironclad hardcoded connection fallback using your exact tokens
+        else if (typeof supabase !== 'undefined') {
+            const SUPABASE_URL = "https://ggohaurqbsyamznzuuaf.supabase.co";
+            const SUPABASE_KEY = "sb_publishable_ZpHvrV-a_BmznhfbVupvxQ_b5NKYPYk";
+            dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         }
     }
 
@@ -295,9 +294,8 @@
     }
 
     async function loadPublicDashboardData() {
-        // Re-verify client connection instance
-        if (!dbClient && window.supabaseClient) {
-            dbClient = window.supabaseClient;
+        if (!dbClient) {
+            initializeDatabaseConnection();
         }
 
         if (!dbClient) {
@@ -305,7 +303,7 @@
                 <div style="padding:30px; background:#fee2e2; border-radius:6px; color:#991b1b; font-weight:700; border: 2px solid #ef4444; line-height:1.6;">
                     ⚠️ Database Access Connection Offline. Verify integration tokens.<br>
                     <span style="font-size:13px; font-weight:500; color:#b91c1c;">
-                        Reason: This root page can't access your API configuration. Ensure your local Supabase credentials path is linked correctly at the top of this file.
+                        Reason: Could not initialize database client connection loop. Verify root js/supabase.js script availability.
                     </span>
                 </div>`;
             return;
