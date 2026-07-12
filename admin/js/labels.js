@@ -16,9 +16,7 @@ async function initLabelsPage() {
     renderAuthStatusArea();
 
     // 2. Fetch Base Structural Lookup Tables from Supabase
-    const loadedSuppliers = await fetchAllSuppliers();
-    if (!loadedSuppliers) return;
-    masterSuppliersList = loadedSuppliers;
+    await refreshSuppliersList();
 
     // 3. Refresh Catalog Matrix and Dropdown Layouts
     await refreshPartCodesCatalogDropdown();
@@ -52,10 +50,78 @@ function renderAuthStatusArea() {
             </div>
         `;
         
-        // Expose Catalog Creator System Controls for verified active logged in sessions
         if (adminPanel) adminPanel.style.display = "block";
     }
 }
+
+/**
+ * Loads and displays the available suppliers as high-contrast checkboxes
+ */
+async function refreshSuppliersList() {
+    const data = await fetchAllSuppliers();
+    if (data) {
+        masterSuppliersList = data;
+        renderSupplierCheckboxes();
+    }
+}
+
+function renderSupplierCheckboxes() {
+    const container = document.getElementById("catalog-supplier-checkboxes");
+    if (!container) return;
+
+    if (masterSuppliersList.length === 0) {
+        container.innerHTML = `<span style="font-size:12px; color:#dc2626;">No suppliers in database</span>`;
+        return;
+    }
+
+    container.innerHTML = "";
+    masterSuppliersList.forEach(supplier => {
+        const label = document.createElement("label");
+        label.className = "supplier-label-item";
+        label.innerHTML = `
+            <input type="checkbox" name="catalog-suppliers" value="${supplier.id}" checked>
+            <span>${supplier.supplier_name}</span>
+        `;
+        container.appendChild(label);
+    });
+}
+
+/**
+ * Administrative Feature: Adds a new supplier straight into the operational database
+ */
+window.promptCreateNewSupplier = async function() {
+    const supplierName = prompt("Enter the name of the new label supplier line:\n(e.g., Prodigy, Northern, Apex Packaging)");
+    if (!supplierName || !supplierName.trim()) return;
+
+    const qtyText = prompt(`Enter standard label quantity packed inside one full box for ${supplierName.trim()}:`, "15000");
+    if (qtyText === null) return;
+    const qtyPerBox = parseInt(qtyText) || 15000;
+
+    try {
+        const { error } = await supabaseClient
+            .from("suppliers")
+            .select("*")
+            .eq("supplier_name", supplierName.trim());
+            
+        const { error: insertError } = await supabaseClient
+            .from("suppliers")
+            .insert({ supplier_name: supplierName.trim(), qty_per_box: qtyPerBox });
+
+        if (insertError) throw insertError;
+
+        alert(`Supplier "${supplierName.trim()}" successfully recorded!`);
+        await refreshSuppliersList();
+        
+        // If a code is currently active on screen, reload it to draw the new column row
+        const currentCode = document.getElementById("part-code-selector").value;
+        if (currentCode) {
+            await loadInventoryForPartCode(currentCode);
+        }
+    } catch (err) {
+        console.error("Failed to add supplier:", err);
+        alert(`Database Error: ${err.message}`);
+    }
+};
 
 /**
  * Pulls and Refreshes Core Dropdown Indexes directly from the Supabase tables
@@ -168,7 +234,15 @@ async function loadInventoryForPartCode(partCode) {
     let grandTotalLabels = 0;
     let minSetpointAlert = 5000; 
 
-    masterSuppliersList.forEach(supplier => {
+    // Find all suppliers attached to this specific part code
+    const applicableSuppliers = masterSuppliersList.filter(s => 
+        selectedPartCodeData.some(r => r.supplier_id === s.id)
+    );
+
+    // If no records are explicitly linked yet, display all known suppliers as fallback alternatives
+    const linesToRender = applicableSuppliers.length > 0 ? applicableSuppliers : masterSuppliersList;
+
+    linesToRender.forEach(supplier => {
         const record = selectedPartCodeData.find(r => r.supplier_id === supplier.id) || {
             current_full_boxes: 0,
             current_loose_labels: 0,
@@ -215,21 +289,33 @@ async function loadInventoryForPartCode(partCode) {
 }
 
 /**
- * ENGINEERING TOOL: Adds a Brand New 4-Digit Part Code inside Master Catalog and Initializes its row allocations
+ * ENGINEERING TOOL: Adds a Brand New 4-Digit Part Code inside Master Catalog and maps it to selected suppliers
  */
 window.submitNewCatalogPartCode = async function() {
     const codeInput = document.getElementById("new-part-code");
     const nameInput = document.getElementById("new-label-name");
+    const minStockInput = document.getElementById("new-min-stock"); // NEW
     
     const partCode = codeInput.value.trim();
     const labelName = nameInput.value.trim();
+    
+    // Parse the minimum stock value, fallback to 5000 if someone leaves it blank
+    const parsedMinStock = parseInt(minStockInput.value);
+    const minSetpoint = isNaN(parsedMinStock) ? 5000 : parsedMinStock;
 
     if (partCode.length !== 4 || isNaN(partCode)) {
         alert("Verification Error: Part Code must be exactly a 4-digit number.");
         return;
     }
     if (!labelName) {
-        alert("Verification Error: Please provide a description title name for the label configuration.");
+        alert("Verification Error: Please provide a description title name.");
+        return;
+    }
+
+    // Capture selected checkboxes
+    const checkedBoxes = document.querySelectorAll('input[name="catalog-suppliers"]:checked');
+    if (checkedBoxes.length === 0) {
+        alert("Selection Error: Please assign this Part Code to at least one Supplier Line (e.g., check Prodigy or Northern).");
         return;
     }
 
@@ -241,22 +327,20 @@ window.submitNewCatalogPartCode = async function() {
 
         if (partError) throw partError;
 
-        // 2. Cross-join link matching rows inside inventory tables across known supplier records
-        if (masterSuppliersList.length > 0) {
-            const initialRows = masterSuppliersList.map(s => ({
-                part_code: partCode,
-                supplier_id: s.id,
-                current_full_boxes: 0,
-                current_loose_labels: 0,
-                min_setpoint: 5000
-            }));
+        // 2. Map inventory records only to selected suppliers WITH the custom minimum limit
+        const initialRows = Array.from(checkedBoxes).map(box => ({
+            part_code: partCode,
+            supplier_id: parseInt(box.value),
+            current_full_boxes: 0,
+            current_loose_labels: 0,
+            min_setpoint: minSetpoint // Replaced the hardcoded 5000 here
+        }));
 
-            const { error: invError } = await supabaseClient
-                .from("labels_inventory")
-                .insert(initialRows);
+        const { error: invError } = await supabaseClient
+            .from("labels_inventory")
+            .insert(initialRows);
 
-            if (invError) throw invError;
-        }
+        if (invError) throw invError;
 
         // 3. Log Action Trace
         await supabaseClient.from("activity_log").insert({
@@ -264,10 +348,64 @@ window.submitNewCatalogPartCode = async function() {
             username: currentUser.profile?.username || "admin",
             module: "labels",
             action: "create_part_code",
-            details: { part_code: partCode, label_name: labelName }
+            details: { part_code: partCode, label_name: labelName, supplier_count: initialRows.length, min_alert_limit: minSetpoint }
         });
 
-        alert(`Success: Part code ${partCode} successfully initialized into active production tables.`);
+        alert(`Success: Part code ${partCode} initialized with an alert threshold of ${minSetpoint.toLocaleString()} labels.`);
+        codeInput.value = "";
+        nameInput.value = "";
+        minStockInput.value = "5000"; // Reset back to default
+        
+        await refreshPartCodesCatalogDropdown();
+        document.getElementById("part-code-selector").value = partCode;
+        await loadInventoryForPartCode(partCode);
+
+    } catch (err) {
+        console.error("Critical failure during catalog insert:", err);
+        alert(`Failed to save code. Custom Details: ${err.message}`);
+    }
+};
+
+    // Capture selected checkboxes
+    const checkedBoxes = document.querySelectorAll('input[name="catalog-suppliers"]:checked');
+    if (checkedBoxes.length === 0) {
+        alert("Selection Error: Please assign this Part Code to at least one Supplier Line (e.g., check Prodigy or Northern).");
+        return;
+    }
+
+    try {
+        // 1. Insert Base Definition inside Main catalog
+        const { error: partError } = await supabaseClient
+            .from("part_codes")
+            .insert({ part_code: partCode, label_name: labelName });
+
+        if (partError) throw partError;
+
+        // 2. Map inventory records only to selected suppliers
+        const initialRows = Array.from(checkedBoxes).map(box => ({
+            part_code: partCode,
+            supplier_id: parseInt(box.value),
+            current_full_boxes: 0,
+            current_loose_labels: 0,
+            min_setpoint: 5000
+        }));
+
+        const { error: invError } = await supabaseClient
+            .from("labels_inventory")
+            .insert(initialRows);
+
+        if (invError) throw invError;
+
+        // 3. Log Action Trace
+        await supabaseClient.from("activity_log").insert({
+            user_id: currentUser.id,
+            username: currentUser.profile?.username || "admin",
+            module: "labels",
+            action: "create_part_code",
+            details: { part_code: partCode, label_name: labelName, supplier_count: initialRows.length }
+        });
+
+        alert(`Success: Part code ${partCode} initialized for selected suppliers.`);
         codeInput.value = "";
         nameInput.value = "";
         
@@ -276,7 +414,7 @@ window.submitNewCatalogPartCode = async function() {
         await loadInventoryForPartCode(partCode);
 
     } catch (err) {
-        console.error("Critical failure during catalog insert layout logic:", err);
+        console.error("Critical failure during catalog insert:", err);
         alert(`Failed to save code. Custom Details: ${err.message}`);
     }
 };
@@ -289,15 +427,14 @@ window.deleteCurrentSelectedPartCode = async function() {
     const selectedCode = selector.value;
 
     if (!selectedCode) {
-        alert("Selection Request: Please pick a part code from the selector dropdown menu first that you want to delete.");
+        alert("Selection Request: Please pick a part code from the selector dropdown menu first.");
         return;
     }
 
-    const confirmPurge = confirm(`🛑 WARNING: Are you completely certain you wish to delete part code "${selectedCode}"? This will permanently wipe out all associated multi-supplier stock balances and historical values from your active sheets.`);
+    const confirmPurge = confirm(`🛑 WARNING: Are you completely certain you wish to delete part code "${selectedCode}"? This will permanently wipe out all associated multi-supplier stock balances.`);
     if (!confirmPurge) return;
 
     try {
-        // Cascading foreign keys will handle clearing dependencies, but we manually target structural keys for security
         const { error: catalogPurgeError } = await supabaseClient
             .from("part_codes")
             .delete()
@@ -313,7 +450,7 @@ window.deleteCurrentSelectedPartCode = async function() {
             details: { part_code: selectedCode }
         });
 
-        alert(`Catalog Success: Part code ${selectedCode} successfully removed from the system layout.`);
+        alert(`Catalog Success: Part code ${selectedCode} successfully removed.`);
         document.getElementById("inventory-display-root").style.display = "none";
         await refreshPartCodesCatalogDropdown();
 
