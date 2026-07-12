@@ -168,11 +168,18 @@
 
 <div class="dash-container">
     <div class="dash-header">
-        <div class="dash-title">
-            <h1>Plant Label Stock Balance Dashboard</h1>
-            <p>Live, read-only floor tracking overview for manufacturing production planning.</p>
-        </div>
+    <div class="dash-title">
+        <h1>Plant Label Stock Balance Dashboard</h1>
+        <p>Live, read-only floor tracking overview for manufacturing production planning.</p>
+    </div>
+    <!-- ADD THIS FLEX WRAPPER GAP REGION -->
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <a href="admin/views/labels.html" style="font-size: 13px; font-weight: 700; color: #2563eb; text-decoration: none; padding: 10px 14px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px;">
+            🔐 Operator Log In / Update Stock
+        </a>
         <div class="refresh-badge" id="live-clock">Updated: Loading...</div>
+    </div>
+</div>
     </div>
 
     <!-- Executive Stock KPIs -->
