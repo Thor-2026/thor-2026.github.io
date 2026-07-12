@@ -10,8 +10,21 @@ let selectedPartCodeData = [];
  * Main Initialization Lifecycle Module Router Hook
  */
 async function initLabelsPage() {
-    console.log("Initializing Egg Labels Inventory System...");
+    console.log("Initializing Gated Labels Inventory Controller System...");
     
+    // Evaluate if the logged-in personnel holds access permissions
+    const userHasAccess = evaluateLabelUpdatePermissions();
+    
+    if (!userHasAccess) {
+        document.getElementById("authorized-view-wrapper").style.display = "none";
+        document.getElementById("unauthorized-barrier-wrapper").style.display = "block";
+        return;
+    }
+
+    // Is clear, show form layout management fields
+    document.getElementById("unauthorized-barrier-wrapper").style.display = "none";
+    document.getElementById("authorized-view-wrapper").style.display = "block";
+
     // 1. Establish Authentication View Modes Layout Elements
     renderAuthStatusArea();
 
@@ -26,6 +39,28 @@ async function initLabelsPage() {
 }
 
 /**
+ * Validates active session metadata credentials against required permission scopes
+ */
+function evaluateLabelUpdatePermissions() {
+    // Fallback security check: if entirely logged out, bar modification completely
+    if (!currentUser) return false;
+
+    // 1. Check if user schema maps an explicit permission flag
+    if (currentUser.permissions && typeof currentUser.permissions.can_manage_labels !== 'undefined') {
+        return currentUser.permissions.can_manage_labels === true;
+    }
+
+    // 2. Fallback check by Role IDs (e.g., Role 1 = Super Admin, Role 3 = Operator)
+    // If your operators are authorized to count and save balances at run completion, allow 1 and 3.
+    const userRoleId = currentUser.profile?.role_id;
+    if (userRoleId === 1 || userRoleId === 3) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * Renders Contextual Authentication Headers and Toggles Administration Panel visibility
  */
 function renderAuthStatusArea() {
@@ -33,24 +68,26 @@ function renderAuthStatusArea() {
     const adminPanel = document.getElementById("catalog-management-row");
     if (!container) return;
 
-    if (!currentUser) {
-        container.innerHTML = `<a href="login.html" class="inv-badge-btn">🔑 Log In to Update Stock</a>`;
-        if (adminPanel) adminPanel.style.display = "none";
-    } else {
-        const currentShift = currentUser.profile?.shift || "Unassigned Shift";
-        const displayName = currentUser.profile?.full_name || currentUser.profile?.username || "Staff";
-        let roleText = "Staff";
-        if (currentUser.profile?.role_id === 1) roleText = "Super Admin";
-        if (currentUser.profile?.role_id === 3) roleText = "Operator";
-        
-        container.innerHTML = `
-            <div class="inv-badge">
-                <div style="font-weight: 700; color: #0f172a; font-size: 15px;">👤 ${displayName}</div>
-                <div style="font-size: 12px; font-weight:600; color: #475569; margin-top: 2px;">${roleText.toUpperCase()} • ${currentShift}</div>
-            </div>
-        `;
-        
+    const currentShift = currentUser.profile?.shift || "Unassigned Shift";
+    const displayName = currentUser.profile?.full_name || currentUser.profile?.username || "Staff";
+    
+    let roleText = "Staff";
+    const userRoleId = currentUser.profile?.role_id;
+    if (userRoleId === 1) roleText = "Super Admin";
+    if (userRoleId === 3) roleText = "Operator";
+    
+    container.innerHTML = `
+        <div class="inv-badge" style="background:#ffffff; border:2px solid #cbd5e1; padding:8px 14px; border-radius:6px; text-align:right;">
+            <div style="font-weight: 700; color: #0f172a; font-size: 14px;">👤 ${displayName}</div>
+            <div style="font-size: 11px; font-weight:600; color: #64748b; margin-top: 1px;">${roleText.toUpperCase()} • ${currentShift}</div>
+        </div>
+    `;
+    
+    // Only reveal core part code creation/deletion catalog metrics if profile is high-clearance Admin (Role 1)
+    if (userRoleId === 1) {
         if (adminPanel) adminPanel.style.display = "block";
+    } else {
+        if (adminPanel) adminPanel.style.display = "none";
     }
 }
 
@@ -96,6 +133,11 @@ function renderSupplierCheckboxes() {
  * Administrative Feature: Adds a new supplier straight into the operational database
  */
 window.promptCreateNewSupplier = async function() {
+    if (currentUser.profile?.role_id !== 1) {
+        alert("Action Revoked: Only System Administrators possess catalog design rights.");
+        return;
+    }
+
     const supplierName = prompt("Enter the name of the new label supplier line:\n(e.g., Prodigy, Northern, Apex Packaging)");
     if (!supplierName || !supplierName.trim()) return;
 
@@ -113,7 +155,6 @@ window.promptCreateNewSupplier = async function() {
         alert(`Supplier "${supplierName.trim()}" successfully recorded!`);
         await refreshSuppliersList();
         
-        // Auto-refresh layout focus
         const currentCode = document.getElementById("part-code-selector").value;
         if (currentCode) {
             await loadInventoryForPartCode(currentCode);
@@ -208,7 +249,7 @@ async function loadInventoryForPartCode(partCode) {
     
     if (!rootContainer || !labelTitle || !tableBody) return;
     
-    const canModify = currentUser !== null;
+    const canModify = evaluateLabelUpdatePermissions();
 
     document.getElementById("table-action-header").style.display = canModify ? "" : "none";
     document.getElementById("table-action-footer").style.display = canModify ? "" : "none";
@@ -248,10 +289,9 @@ async function loadInventoryForPartCode(partCode) {
             current_full_boxes: 0,
             current_loose_labels: 0,
             min_setpoint: 5000,
-            qty_per_box: supplier.qty_per_box // Fallback if record row column lacks spec
+            qty_per_box: supplier.qty_per_box
         };
 
-        // If the database has a specific custom qty override, use it; otherwise use supplier fallback
         const effectiveQtyPerBox = record.qty_per_box ? record.qty_per_box : supplier.qty_per_box;
 
         minSetpointAlert = record.min_setpoint; 
@@ -299,6 +339,11 @@ async function loadInventoryForPartCode(partCode) {
  * ENGINEERING TOOL: Adds a Brand New 4-Digit Part Code and maps specific custom Qty / Box counts
  */
 window.submitNewCatalogPartCode = async function() {
+    if (currentUser.profile?.role_id !== 1) {
+        alert("Unauthorized action execution barred.");
+        return;
+    }
+
     const codeInput = document.getElementById("new-part-code");
     const nameInput = document.getElementById("new-label-name");
     const minStockInput = document.getElementById("new-min-stock");
@@ -307,7 +352,6 @@ window.submitNewCatalogPartCode = async function() {
 
     const partCode = codeInput.value.trim();
     const labelName = nameInput.value.trim();
-    
     const parsedMinStock = parseInt(minStockInput.value);
     const minSetpoint = isNaN(parsedMinStock) ? 5000 : parsedMinStock;
 
@@ -327,19 +371,16 @@ window.submitNewCatalogPartCode = async function() {
     }
 
     try {
-        // 1. Insert Master catalog definition row
         const { error: partError } = await supabaseClient
             .from("part_codes")
             .insert({ part_code: partCode, label_name: labelName });
 
         if (partError) throw partError;
 
-        // 2. Loop through and fetch exact box counts entered for checked suppliers
         const initialRows = Array.from(checkedBoxes).map(box => {
             const suppId = parseInt(box.value);
             const qtyBoxInput = document.querySelector(`.supplier-box-qty-input[data-supplier-id="${suppId}"]`);
             
-            // Get value from specific input box, drop back to lookup default if left clear
             let customQty = qtyBoxInput ? parseInt(qtyBoxInput.value) : 0;
             if (!customQty || isNaN(customQty)) {
                 const matchedSupp = masterSuppliersList.find(s => s.id === suppId);
@@ -352,7 +393,7 @@ window.submitNewCatalogPartCode = async function() {
                 current_full_boxes: 0,
                 current_loose_labels: 0,
                 min_setpoint: minSetpoint,
-                qty_per_box: customQty // Saved dynamically per label config!
+                qty_per_box: customQty 
             };
         });
 
@@ -362,7 +403,6 @@ window.submitNewCatalogPartCode = async function() {
 
         if (invError) throw invError;
 
-        // 3. Log Audit Activity Trace
         await supabaseClient.from("activity_log").insert({
             user_id: currentUser?.id || null,
             username: currentUser?.profile?.username || "admin",
@@ -390,6 +430,11 @@ window.submitNewCatalogPartCode = async function() {
  * ENGINEERING TOOL: Purges Selected Part Code records
  */
 window.deleteCurrentSelectedPartCode = async function() {
+    if (currentUser.profile?.role_id !== 1) {
+        alert("Action Denied.");
+        return;
+    }
+
     const selector = document.getElementById("part-code-selector");
     if (!selector) return;
     
@@ -465,7 +510,7 @@ async function handleStockSubmit(event) {
                 supplier_id: supplierId,
                 current_full_boxes: inputBoxes,
                 current_loose_labels: inputLoose,
-                qty_per_box: qtyPerBox // Preserves specific configuration sizing rule
+                qty_per_box: qtyPerBox 
             }, { onConflict: 'part_code, supplier_id' });
 
         if (upsertError) throw upsertError;
