@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Label Inventory Workspace</title>
+    <title>Label Inventory Controller Panel</title>
 </head>
 <body>
 
@@ -259,13 +259,23 @@
     .inv-btn-sub:hover { background: #047857; }
     .inv-btn-can { background: #64748b; color: white !important; border: none; padding: 12px 20px; font-weight: 700; border-radius: 6px; cursor: pointer; font-size: 15px; }
     .inv-btn-can:hover { background: #475569; }
+
+    .permission-denied-block {
+        background: #ffffff;
+        border: 2px dashed #ef4444;
+        border-radius: 8px;
+        padding: 40px;
+        text-align: center;
+        max-width: 600px;
+        margin: 80px auto;
+    }
 </style>
 
-<div class="inv-container">
+<div class="inv-container" id="authorized-view-wrapper" style="display: none;">
     <div class="inv-header-flex">
         <div class="inv-title-area">
-            <h2>Label Inventory Workspace</h2>
-            <p>Update warehouse counts, manage master catalog formulas, and track inventory limits.</p>
+            <h2>Label Inventory Management Control</h2>
+            <p>Authorized Console: Adjust floor balances, alter limits, and configure supply codes.</p>
         </div>
         <div id="auth-status-area"></div>
     </div>
@@ -343,6 +353,15 @@
         <div id="low-stock-alert-banner" class="inv-alert" style="display: none;">
             ⚠️ <strong>Low Stock Threshold Setpoint Warning:</strong> This packaging material configuration has dropped below required processing minimums.
         </div>
+    </div>
+</div>
+
+<!-- Lock Screen Error Placeholder -->
+<div id="unauthorized-barrier-wrapper" class="permission-denied-block" style="display: none;">
+    <h2 style="color: #dc2626; margin-top: 0;">🔒 Access Restrained</h2>
+    <p style="color: #475569; font-size: 16px; line-height: 1.5;">Your profile does not hold modification rights for label stock balances. If you are trying to view balances, please use the public floor monitor dashboard link below.</p>
+    <div style="margin-top: 25px;">
+        <a href="../labels-view.html" style="background:#2563eb; color:white; text-decoration:none; padding:12px 24px; font-weight:700; border-radius:6px; display:inline-block;">🌐 Open Public Read-Only Dashboard</a>
     </div>
 </div>
 
