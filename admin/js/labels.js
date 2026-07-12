@@ -55,7 +55,7 @@ function renderAuthStatusArea() {
 }
 
 /**
- * Loads and displays the available suppliers as high-contrast checkboxes
+ * Loads and displays the available suppliers as structured config rows with explicit Qty settings
  */
 async function refreshSuppliersList() {
     const data = await fetchAllSuppliers();
@@ -76,13 +76,19 @@ function renderSupplierCheckboxes() {
 
     container.innerHTML = "";
     masterSuppliersList.forEach(supplier => {
-        const label = document.createElement("label");
-        label.className = "supplier-label-item";
-        label.innerHTML = `
-            <input type="checkbox" name="catalog-suppliers" value="${supplier.id}" checked>
-            <span>${supplier.supplier_name}</span>
+        const row = document.createElement("div");
+        row.className = "supplier-config-row";
+        row.innerHTML = `
+            <label class="supplier-label-item">
+                <input type="checkbox" name="catalog-suppliers" value="${supplier.id}" checked>
+                <span>${supplier.supplier_name}</span>
+            </label>
+            <div>
+                <span style="font-size:11px; font-weight:700; color:#64748b; margin-right:4px;">QTY / BOX:</span>
+                <input type="number" class="supplier-box-qty-input" data-supplier-id="${supplier.id}" value="${supplier.qty_per_box}" placeholder="${supplier.qty_per_box}" min="0">
+            </div>
         `;
-        container.appendChild(label);
+        container.appendChild(row);
     });
 }
 
@@ -93,7 +99,7 @@ window.promptCreateNewSupplier = async function() {
     const supplierName = prompt("Enter the name of the new label supplier line:\n(e.g., Prodigy, Northern, Apex Packaging)");
     if (!supplierName || !supplierName.trim()) return;
 
-    const qtyText = prompt(`Enter standard label quantity packed inside one full box for ${supplierName.trim()}:`, "15000");
+    const qtyText = prompt(`Enter standard fallback label quantity packed inside one full box for ${supplierName.trim()}:`, "15000");
     if (qtyText === null) return;
     const qtyPerBox = parseInt(qtyText) || 15000;
 
@@ -107,7 +113,7 @@ window.promptCreateNewSupplier = async function() {
         alert(`Supplier "${supplierName.trim()}" successfully recorded!`);
         await refreshSuppliersList();
         
-        // If a code is currently active on screen, reload it to draw the new column row
+        // Auto-refresh layout focus
         const currentCode = document.getElementById("part-code-selector").value;
         if (currentCode) {
             await loadInventoryForPartCode(currentCode);
@@ -231,23 +237,25 @@ async function loadInventoryForPartCode(partCode) {
     let grandTotalLabels = 0;
     let minSetpointAlert = 5000; 
 
-    // Find all suppliers attached to this specific part code
     const applicableSuppliers = masterSuppliersList.filter(s => 
         selectedPartCodeData.some(r => r.supplier_id === s.id)
     );
 
-    // If no records are explicitly linked yet, display all known suppliers as fallback alternatives
     const linesToRender = applicableSuppliers.length > 0 ? applicableSuppliers : masterSuppliersList;
 
     linesToRender.forEach(supplier => {
         const record = selectedPartCodeData.find(r => r.supplier_id === supplier.id) || {
             current_full_boxes: 0,
             current_loose_labels: 0,
-            min_setpoint: 5000
+            min_setpoint: 5000,
+            qty_per_box: supplier.qty_per_box // Fallback if record row column lacks spec
         };
 
+        // If the database has a specific custom qty override, use it; otherwise use supplier fallback
+        const effectiveQtyPerBox = record.qty_per_box ? record.qty_per_box : supplier.qty_per_box;
+
         minSetpointAlert = record.min_setpoint; 
-        const supplierSubtotal = (record.current_full_boxes * supplier.qty_per_box) + record.current_loose_labels;
+        const supplierSubtotal = (record.current_full_boxes * effectiveQtyPerBox) + record.current_loose_labels;
 
         grandTotalBoxes += record.current_full_boxes;
         grandTotalLoose += record.current_loose_labels;
@@ -258,11 +266,11 @@ async function loadInventoryForPartCode(partCode) {
             <td style="font-weight: 700; color: #0f172a;">${supplier.supplier_name}</td>
             <td style="text-align: center; font-weight: 600;">${record.current_full_boxes.toLocaleString()} Boxes</td>
             <td style="text-align: center; font-weight: 600;">${record.current_loose_labels.toLocaleString()} Labels</td>
-            <td style="text-align: center; color: #475569; font-weight: 600;">${supplier.qty_per_box.toLocaleString()} / box</td>
+            <td style="text-align: center; color: #475569; font-weight: 600;">${effectiveQtyPerBox.toLocaleString()} / box</td>
             <td style="text-align: center; font-weight: 800; color: #0f172a;">${supplierSubtotal.toLocaleString()}</td>
             ${canModify ? `
                 <td style="text-align: right;">
-                    <button type="button" class="inv-btn-edit" onclick="openUpdateModal('${partCode}', ${supplier.id}, '${supplier.supplier_name}', ${record.current_full_boxes}, ${record.current_loose_labels})">
+                    <button type="button" class="inv-btn-edit" onclick="openUpdateModal('${partCode}', ${supplier.id}, '${supplier.supplier_name}', ${record.current_full_boxes}, ${record.current_loose_labels}, ${effectiveQtyPerBox})">
                         ✏️ Update Count
                     </button>
                 </td>
@@ -288,7 +296,7 @@ async function loadInventoryForPartCode(partCode) {
 }
 
 /**
- * ENGINEERING TOOL: Adds a Brand New 4-Digit Part Code inside Master Catalog and maps it to selected suppliers
+ * ENGINEERING TOOL: Adds a Brand New 4-Digit Part Code and maps specific custom Qty / Box counts
  */
 window.submitNewCatalogPartCode = async function() {
     const codeInput = document.getElementById("new-part-code");
@@ -312,29 +320,41 @@ window.submitNewCatalogPartCode = async function() {
         return;
     }
 
-    // Capture selected checkboxes
     const checkedBoxes = document.querySelectorAll('input[name="catalog-suppliers"]:checked');
     if (checkedBoxes.length === 0) {
-        alert("Selection Error: Please assign this Part Code to at least one Supplier Line (e.g., check Prodigy or Northern).");
+        alert("Selection Error: Please assign this Part Code to at least one Supplier Line.");
         return;
     }
 
     try {
-        // 1. Insert Base Definition inside Main catalog
+        // 1. Insert Master catalog definition row
         const { error: partError } = await supabaseClient
             .from("part_codes")
             .insert({ part_code: partCode, label_name: labelName });
 
         if (partError) throw partError;
 
-        // 2. Map inventory records only to selected suppliers WITH the custom minimum limit
-        const initialRows = Array.from(checkedBoxes).map(box => ({
-            part_code: partCode,
-            supplier_id: parseInt(box.value),
-            current_full_boxes: 0,
-            current_loose_labels: 0,
-            min_setpoint: minSetpoint
-        }));
+        // 2. Loop through and fetch exact box counts entered for checked suppliers
+        const initialRows = Array.from(checkedBoxes).map(box => {
+            const suppId = parseInt(box.value);
+            const qtyBoxInput = document.querySelector(`.supplier-box-qty-input[data-supplier-id="${suppId}"]`);
+            
+            // Get value from specific input box, drop back to lookup default if left clear
+            let customQty = qtyBoxInput ? parseInt(qtyBoxInput.value) : 0;
+            if (!customQty || isNaN(customQty)) {
+                const matchedSupp = masterSuppliersList.find(s => s.id === suppId);
+                customQty = matchedSupp ? matchedSupp.qty_per_box : 15000;
+            }
+
+            return {
+                part_code: partCode,
+                supplier_id: suppId,
+                current_full_boxes: 0,
+                current_loose_labels: 0,
+                min_setpoint: minSetpoint,
+                qty_per_box: customQty // Saved dynamically per label config!
+            };
+        });
 
         const { error: invError } = await supabaseClient
             .from("labels_inventory")
@@ -342,16 +362,16 @@ window.submitNewCatalogPartCode = async function() {
 
         if (invError) throw invError;
 
-        // 3. Log Action Trace
+        // 3. Log Audit Activity Trace
         await supabaseClient.from("activity_log").insert({
             user_id: currentUser?.id || null,
             username: currentUser?.profile?.username || "admin",
             module: "labels",
             action: "create_part_code",
-            details: { part_code: partCode, label_name: labelName, supplier_count: initialRows.length, min_alert_limit: minSetpoint }
+            details: { part_code: partCode, label_name: labelName, suppliers: initialRows }
         });
 
-        alert(`Success: Part code ${partCode} initialized with an alert threshold of ${minSetpoint.toLocaleString()} labels.`);
+        alert(`Success: Part code ${partCode} initialized perfectly.`);
         codeInput.value = "";
         nameInput.value = "";
         minStockInput.value = "5000"; 
@@ -367,20 +387,19 @@ window.submitNewCatalogPartCode = async function() {
 };
 
 /**
- * ENGINEERING TOOL: Purges the Selected Part Code cleanly from database
+ * ENGINEERING TOOL: Purges Selected Part Code records
  */
 window.deleteCurrentSelectedPartCode = async function() {
     const selector = document.getElementById("part-code-selector");
     if (!selector) return;
     
     const selectedCode = selector.value;
-
     if (!selectedCode) {
         alert("Selection Request: Please pick a part code from the selector dropdown menu first.");
         return;
     }
 
-    const confirmPurge = confirm(`🛑 WARNING: Are you completely certain you wish to delete part code "${selectedCode}"? This will permanently wipe out all associated multi-supplier stock balances.`);
+    const confirmPurge = confirm(`🛑 WARNING: Are you completely certain you wish to delete part code "${selectedCode}"?`);
     if (!confirmPurge) return;
 
     try {
@@ -391,29 +410,23 @@ window.deleteCurrentSelectedPartCode = async function() {
 
         if (catalogPurgeError) throw catalogPurgeError;
 
-        await supabaseClient.from("activity_log").insert({
-            user_id: currentUser?.id || null,
-            username: currentUser?.profile?.username || "admin",
-            module: "labels",
-            action: "delete_part_code",
-            details: { part_code: selectedCode }
-        });
-
         alert(`Catalog Success: Part code ${selectedCode} successfully removed.`);
         document.getElementById("inventory-display-root").style.display = "none";
         await refreshPartCodesCatalogDropdown();
 
     } catch (err) {
         console.error("Critical cascade purge failure:", err);
-        alert(`Failed to execute clear commands. Info: ${err.message}`);
+        alert(`Failed to execute clear commands: ${err.message}`);
     }
 };
 
-window.openUpdateModal = function(partCode, supplierId, supplierName, currentBoxes, currentLoose) {
+window.openUpdateModal = function(partCode, supplierId, supplierName, currentBoxes, currentLoose, effectiveQtyPerBox) {
     document.getElementById("modal-part-code").value = partCode;
     document.getElementById("modal-supplier-id").value = supplierId;
     document.getElementById("modal-supplier-name").value = supplierName;
+    document.getElementById("modal-qty-per-box").value = effectiveQtyPerBox;
     
+    document.getElementById("modal-box-qty-badge").textContent = effectiveQtyPerBox.toLocaleString();
     document.getElementById("modal-title-text").textContent = `Update Run ${partCode} (${supplierName})`;
     
     document.getElementById("input-full-boxes").value = currentBoxes;
@@ -438,15 +451,11 @@ async function handleStockSubmit(event) {
     const partCode = document.getElementById("modal-part-code").value;
     const supplierId = parseInt(document.getElementById("modal-supplier-id").value);
     const supplierName = document.getElementById("modal-supplier-name").value;
+    const qtyPerBox = parseInt(document.getElementById("modal-qty-per-box").value) || 15000;
     
     const inputBoxes = parseInt(document.getElementById("input-full-boxes").value) || 0;
     const inputLoose = parseInt(document.getElementById("input-loose-labels").value) || 0;
-
-    const supplierMeta = masterSuppliersList.find(s => s.id === supplierId);
-    const qtyPerBox = supplierMeta ? supplierMeta.qty_per_box : 0;
     const calculatedTotal = (inputBoxes * qtyPerBox) + inputLoose;
-
-    const usernameLogValue = currentUser?.profile?.username || "unknown_user";
 
     try {
         const { error: upsertError } = await supabaseClient
@@ -455,29 +464,25 @@ async function handleStockSubmit(event) {
                 part_code: partCode,
                 supplier_id: supplierId,
                 current_full_boxes: inputBoxes,
-                current_loose_labels: inputLoose
+                current_loose_labels: inputLoose,
+                qty_per_box: qtyPerBox // Preserves specific configuration sizing rule
             }, { onConflict: 'part_code, supplier_id' });
 
         if (upsertError) throw upsertError;
 
-        const { error: logError } = await supabaseClient
-            .from("activity_log")
-            .insert({
-                user_id: currentUser?.id || null,
-                username: usernameLogValue,
-                module: "labels",
-                action: "update_stock",
-                details: {
-                    part_code: partCode,
-                    supplier: supplierName,
-                    full_boxes: inputBoxes,
-                    loose_labels: inputLoose,
-                    calculated_total: calculatedTotal,
-                    shift: currentUser?.profile?.shift || "Not Declared"
-                }
-            });
-
-        if (logError) throw logError;
+        await supabaseClient.from("activity_log").insert({
+            user_id: currentUser?.id || null,
+            username: currentUser?.profile?.username || "unknown_user",
+            module: "labels",
+            action: "update_stock",
+            details: {
+                part_code: partCode,
+                supplier: supplierName,
+                full_boxes: inputBoxes,
+                loose_labels: inputLoose,
+                calculated_total: calculatedTotal
+            }
+        });
 
         closeCustomModal();
         await loadInventoryForPartCode(partCode);
