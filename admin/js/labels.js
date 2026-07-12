@@ -117,6 +117,7 @@ window.promptCreateNewSupplier = async function() {
         alert(`Database Error: ${err.message}`);
     }
 };
+
 /**
  * Pulls and Refreshes Core Dropdown Indexes directly from the Supabase tables
  */
@@ -199,6 +200,8 @@ async function loadInventoryForPartCode(partCode) {
     const labelTitle = document.getElementById("display-label-name");
     const tableBody = document.getElementById("inventory-table-body");
     
+    if (!rootContainer || !labelTitle || !tableBody) return;
+    
     const canModify = currentUser !== null;
 
     document.getElementById("table-action-header").style.display = canModify ? "" : "none";
@@ -273,10 +276,12 @@ async function loadInventoryForPartCode(partCode) {
     document.getElementById("grand-labels-cell").textContent = `${grandTotalLabels.toLocaleString()} Labels`;
 
     const alertBanner = document.getElementById("low-stock-alert-banner");
-    if (grandTotalLabels <= minSetpointAlert) {
-        alertBanner.style.display = "block";
-    } else {
-        alertBanner.style.display = "none";
+    if (alertBanner) {
+        if (grandTotalLabels <= minSetpointAlert) {
+            alertBanner.style.display = "block";
+        } else {
+            alertBanner.style.display = "none";
+        }
     }
 
     rootContainer.style.display = "block";
@@ -288,12 +293,13 @@ async function loadInventoryForPartCode(partCode) {
 window.submitNewCatalogPartCode = async function() {
     const codeInput = document.getElementById("new-part-code");
     const nameInput = document.getElementById("new-label-name");
-    const minStockInput = document.getElementById("new-min-stock"); // NEW
+    const minStockInput = document.getElementById("new-min-stock");
     
+    if (!codeInput || !nameInput || !minStockInput) return;
+
     const partCode = codeInput.value.trim();
     const labelName = nameInput.value.trim();
     
-    // Parse the minimum stock value, fallback to 5000 if someone leaves it blank
     const parsedMinStock = parseInt(minStockInput.value);
     const minSetpoint = isNaN(parsedMinStock) ? 5000 : parsedMinStock;
 
@@ -327,7 +333,7 @@ window.submitNewCatalogPartCode = async function() {
             supplier_id: parseInt(box.value),
             current_full_boxes: 0,
             current_loose_labels: 0,
-            min_setpoint: minSetpoint // Replaced the hardcoded 5000 here
+            min_setpoint: minSetpoint
         }));
 
         const { error: invError } = await supabaseClient
@@ -338,8 +344,8 @@ window.submitNewCatalogPartCode = async function() {
 
         // 3. Log Action Trace
         await supabaseClient.from("activity_log").insert({
-            user_id: currentUser.id,
-            username: currentUser.profile?.username || "admin",
+            user_id: currentUser?.id || null,
+            username: currentUser?.profile?.username || "admin",
             module: "labels",
             action: "create_part_code",
             details: { part_code: partCode, label_name: labelName, supplier_count: initialRows.length, min_alert_limit: minSetpoint }
@@ -348,60 +354,7 @@ window.submitNewCatalogPartCode = async function() {
         alert(`Success: Part code ${partCode} initialized with an alert threshold of ${minSetpoint.toLocaleString()} labels.`);
         codeInput.value = "";
         nameInput.value = "";
-        minStockInput.value = "5000"; // Reset back to default
-        
-        await refreshPartCodesCatalogDropdown();
-        document.getElementById("part-code-selector").value = partCode;
-        await loadInventoryForPartCode(partCode);
-
-    } catch (err) {
-        console.error("Critical failure during catalog insert:", err);
-        alert(`Failed to save code. Custom Details: ${err.message}`);
-    }
-};
-
-    // Capture selected checkboxes
-    const checkedBoxes = document.querySelectorAll('input[name="catalog-suppliers"]:checked');
-    if (checkedBoxes.length === 0) {
-        alert("Selection Error: Please assign this Part Code to at least one Supplier Line (e.g., check Prodigy or Northern).");
-        return;
-    }
-
-    try {
-        // 1. Insert Base Definition inside Main catalog
-        const { error: partError } = await supabaseClient
-            .from("part_codes")
-            .insert({ part_code: partCode, label_name: labelName });
-
-        if (partError) throw partError;
-
-        // 2. Map inventory records only to selected suppliers
-        const initialRows = Array.from(checkedBoxes).map(box => ({
-            part_code: partCode,
-            supplier_id: parseInt(box.value),
-            current_full_boxes: 0,
-            current_loose_labels: 0,
-            min_setpoint: 5000
-        }));
-
-        const { error: invError } = await supabaseClient
-            .from("labels_inventory")
-            .insert(initialRows);
-
-        if (invError) throw invError;
-
-        // 3. Log Action Trace
-        await supabaseClient.from("activity_log").insert({
-            user_id: currentUser.id,
-            username: currentUser.profile?.username || "admin",
-            module: "labels",
-            action: "create_part_code",
-            details: { part_code: partCode, label_name: labelName, supplier_count: initialRows.length }
-        });
-
-        alert(`Success: Part code ${partCode} initialized for selected suppliers.`);
-        codeInput.value = "";
-        nameInput.value = "";
+        minStockInput.value = "5000"; 
         
         await refreshPartCodesCatalogDropdown();
         document.getElementById("part-code-selector").value = partCode;
@@ -418,6 +371,8 @@ window.submitNewCatalogPartCode = async function() {
  */
 window.deleteCurrentSelectedPartCode = async function() {
     const selector = document.getElementById("part-code-selector");
+    if (!selector) return;
+    
     const selectedCode = selector.value;
 
     if (!selectedCode) {
@@ -437,8 +392,8 @@ window.deleteCurrentSelectedPartCode = async function() {
         if (catalogPurgeError) throw catalogPurgeError;
 
         await supabaseClient.from("activity_log").insert({
-            user_id: currentUser.id,
-            username: currentUser.profile?.username || "admin",
+            user_id: currentUser?.id || null,
+            username: currentUser?.profile?.username || "admin",
             module: "labels",
             action: "delete_part_code",
             details: { part_code: selectedCode }
@@ -475,6 +430,8 @@ async function handleStockSubmit(event) {
     event.preventDefault();
 
     const submitBtn = document.getElementById("submit-count-btn");
+    if (!submitBtn) return; 
+
     submitBtn.disabled = true;
     submitBtn.textContent = "Processing...";
 
@@ -489,7 +446,7 @@ async function handleStockSubmit(event) {
     const qtyPerBox = supplierMeta ? supplierMeta.qty_per_box : 0;
     const calculatedTotal = (inputBoxes * qtyPerBox) + inputLoose;
 
-    const usernameLogValue = currentUser.profile?.username || "unknown_user";
+    const usernameLogValue = currentUser?.profile?.username || "unknown_user";
 
     try {
         const { error: upsertError } = await supabaseClient
@@ -506,7 +463,7 @@ async function handleStockSubmit(event) {
         const { error: logError } = await supabaseClient
             .from("activity_log")
             .insert({
-                user_id: currentUser.id,
+                user_id: currentUser?.id || null,
                 username: usernameLogValue,
                 module: "labels",
                 action: "update_stock",
@@ -516,7 +473,7 @@ async function handleStockSubmit(event) {
                     full_boxes: inputBoxes,
                     loose_labels: inputLoose,
                     calculated_total: calculatedTotal,
-                    shift: currentUser.profile?.shift || "Not Declared"
+                    shift: currentUser?.profile?.shift || "Not Declared"
                 }
             });
 
