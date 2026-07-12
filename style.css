@@ -133,14 +133,22 @@ main{
 
 }
 
-#scheduleImage{
+/*#scheduleImage{
 
     width:100%;
     height:100%;
     object-fit:contain;
     background:white;
 
+}*/
+/* Fix #1: Eradicate the white image container background leak */
+#scheduleImage {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: transparent !important; /* Forces the image to inherit the dark panel color */
 }
+
 
 aside{
 
@@ -342,7 +350,7 @@ font-size:18px;
    Admin Button
 =========================== */
 
-#adminButton{
+/*#adminButton{
 
 position:fixed;
 
@@ -384,4 +392,54 @@ background:#2196F3;
 
 transform:translateY(-2px);
 
+}*/
+
+
+/* Fix #2: Layout Architecture for the Floating Action Control Dock */
+.main-nav-dock {
+    position: fixed; 
+    bottom: 25px; 
+    right: 25px; 
+    display: inline-flex; 
+    flex-direction: row; 
+    align-items: center; 
+    gap: 12px; 
+    z-index: 999999; 
+    white-space: nowrap;
+}
+
+/* Fix #3: Reset rules for both buttons to ensure smooth flex layout without overlapping stack states */
+.main-nav-dock #labelsButton,
+.main-nav-dock #adminButton {
+    position: static !important; /* Destroys any lingering legacy position: fixed overrides */
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+    transition: all 0.2s ease;
+    opacity: 0.85;
+}
+
+.main-nav-dock #labelsButton {
+    background: #10b981;
+    color: white;
+}
+
+.main-nav-dock #adminButton {
+    background: #1f2937;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.main-nav-dock #labelsButton:hover,
+.main-nav-dock #adminButton:hover {
+    opacity: 1;
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
 }
