@@ -3,7 +3,6 @@
 // Label Inventory Management Controller
 // ======================================
 
-let bootstrapModalInstance = null;
 let masterSuppliersList = [];
 let selectedPartCodeData = [];
 
@@ -40,8 +39,8 @@ function renderAuthStatusArea() {
 
     if (!currentUser) {
         container.innerHTML = `
-            <a href="login.html" class="btn btn-warning fw-bold shadow-sm">
-                <i class="fas fa-sign-in-alt me-2"></i> Log In to Update Stock
+            <a href="login.html" class="inv-badge-btn">
+                🔑 Log In to Update Stock
             </a>
         `;
     } else {
@@ -52,9 +51,9 @@ function renderAuthStatusArea() {
         if (currentUser.profile?.role_id === 3) roleText = "Operator";
         
         container.innerHTML = `
-            <div class="card bg-light border-0 px-3 py-2 shadow-sm text-end">
-                <span class="fw-bold text-dark"><i class="fas fa-user-circle me-1 text-primary"></i> ${displayName}</span>
-                <small class="text-muted fw-semibold">${roleText.toUpperCase()} • ${currentShift}</small>
+            <div class="inv-badge">
+                <div style="font-weight: bold; color: #2d3748;">👤 ${displayName}</div>
+                <div style="font-size: 11px; color: #718096; margin-top: 2px;">${roleText.toUpperCase()} • ${currentShift}</div>
             </div>
         `;
     }
@@ -140,7 +139,6 @@ async function loadInventoryForPartCode(partCode) {
     const labelTitle = document.getElementById("display-label-name");
     const tableBody = document.getElementById("inventory-table-body");
     
-    // Check if the user is authorized to edit
     const canModify = currentUser !== null;
 
     document.getElementById("table-action-header").style.display = canModify ? "" : "none";
@@ -185,15 +183,15 @@ async function loadInventoryForPartCode(partCode) {
 
         const row = document.createElement("tr");
         row.innerHTML = `
-            <td class="fw-bold">${supplier.supplier_name}</td>
-            <td class="text-center">${record.current_full_boxes.toLocaleString()} Boxes</td>
-            <td class="text-center">${record.current_loose_labels.toLocaleString()} Labels</td>
-            <td class="text-center text-muted">${supplier.qty_per_box.toLocaleString()} / box</td>
-            <td class="text-center fw-bold text-dark">${supplierSubtotal.toLocaleString()}</td>
+            <td style="font-weight: bold; color: #1a202c;">${supplier.supplier_name}</td>
+            <td style="text-align: center;">${record.current_full_boxes.toLocaleString()} Boxes</td>
+            <td style="text-align: center;">${record.current_loose_labels.toLocaleString()} Labels</td>
+            <td style="text-align: center; color: #718096;">${supplier.qty_per_box.toLocaleString()} / box</td>
+            <td style="text-align: center; font-weight: bold; color: #2d3748;">${supplierSubtotal.toLocaleString()}</td>
             ${canModify ? `
-                <td class="text-end">
-                    <button class="btn btn-sm btn-outline-primary fw-bold px-3" onclick="openUpdateModal('${partCode}', ${supplier.id}, '${supplier.supplier_name}', ${record.current_full_boxes}, ${record.current_loose_labels})">
-                        <i class="fas fa-edit me-1"></i> Update Count
+                <td style="text-align: right;">
+                    <button type="button" class="inv-btn-edit" onclick="openUpdateModal('${partCode}', ${supplier.id}, '${supplier.supplier_name}', ${record.current_full_boxes}, ${record.current_loose_labels})">
+                        ✏ Update Count
                     </button>
                 </td>
             ` : '<td style="display:none;"></td>'}
@@ -207,16 +205,16 @@ async function loadInventoryForPartCode(partCode) {
 
     const alertBanner = document.getElementById("low-stock-alert-banner");
     if (grandTotalLabels <= minSetpointAlert) {
-        alertBanner.classList.remove("d-none");
+        alertBanner.style.display = "block";
     } else {
-        alertBanner.classList.add("d-none");
+        alertBanner.style.display = "none";
     }
 
     rootContainer.style.display = "block";
 }
 
 /**
- * Prepares and Opens Overlay Input Dialog Interface Component
+ * Custom Modal Open Toggle
  */
 window.openUpdateModal = function(partCode, supplierId, supplierName, currentBoxes, currentLoose) {
     document.getElementById("modal-part-code").value = partCode;
@@ -228,22 +226,25 @@ window.openUpdateModal = function(partCode, supplierId, supplierName, currentBox
     document.getElementById("input-full-boxes").value = currentBoxes;
     document.getElementById("input-loose-labels").value = currentLoose;
 
-    const modalTargetElement = document.getElementById("updateStockModal");
-    if (modalTargetElement) {
-        bootstrapModalInstance = new bootstrap.Modal(modalTargetElement);
-        bootstrapModalInstance.show();
-    }
+    document.getElementById("customUpdateModalContainer").style.display = "block";
 };
 
 /**
- * Handles Form Submissions, Computes State Deltas, and Saves to Supabase Database Engine
+ * Custom Modal Close Toggle
+ */
+window.closeCustomModal = function() {
+    document.getElementById("customUpdateModalContainer").style.display = "none";
+};
+
+/**
+ * Form Submit Processor
  */
 async function handleStockSubmit(event) {
     event.preventDefault();
 
     const submitBtn = document.getElementById("submit-count-btn");
     submitBtn.disabled = true;
-    submitBtn.textContent = "Processing & Broadcasting...";
+    submitBtn.textContent = "Processing...";
 
     const partCode = document.getElementById("modal-part-code").value;
     const supplierId = parseInt(document.getElementById("modal-supplier-id").value);
@@ -256,11 +257,9 @@ async function handleStockSubmit(event) {
     const qtyPerBox = supplierMeta ? supplierMeta.qty_per_box : 0;
     const calculatedTotal = (inputBoxes * qtyPerBox) + inputLoose;
 
-    // Resolve system user data keys to fit activity_log criteria precisely
     const usernameLogValue = currentUser.profile?.username || "unknown_user";
 
     try {
-        // 1. Transaction upsert operation across active production ledger rows
         const { error: upsertError } = await supabaseClient
             .from("labels_inventory")
             .upsert({
@@ -272,7 +271,6 @@ async function handleStockSubmit(event) {
 
         if (upsertError) throw upsertError;
 
-        // 2. Route historical metrics structured to your native activity_log scheme
         const { error: logError } = await supabaseClient
             .from("activity_log")
             .insert({
@@ -292,15 +290,12 @@ async function handleStockSubmit(event) {
 
         if (logError) throw logError;
 
-        if (bootstrapModalInstance) {
-            bootstrapModalInstance.hide();
-        }
-
+        closeCustomModal();
         await loadInventoryForPartCode(partCode);
 
     } catch (err) {
         console.error("Critical Failure processing packaging data sync records:", err);
-        alert(`Failed to log execution update trace. Technical details: ${err.message}`);
+        alert(`Failed to save update. Details: ${err.message}`);
     } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = "Submit End of Run Count";
