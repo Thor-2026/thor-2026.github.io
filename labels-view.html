@@ -4,8 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Global Label Inventory Dashboard</title>
-    <!-- Include Supabase CDN to drive public data requests -->
+    <!-- Include Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- LINK TO YOUR EXISTING GLOBAL CONFIG SCRIPT -->
+    <!-- Adjust this path if your main database setup file is named config.js or init.js -->
+    <script src="admin/js/config.js" defer></script>
 </head>
 <body>
 
@@ -22,10 +26,55 @@
         max-width: 1400px;
         margin: 0 auto;
     }
-    .dash-header {
+    
+    /* Top Utility Bar for Navigation Switches */
+    .top-nav-bar {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        margin-bottom: 20px;
+    }
+    .btn-nav-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #ffffff;
+        color: #1e293b;
+        text-decoration: none;
+        padding: 10px 16px;
+        border: 2px solid #cbd5e1;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 14px;
+        transition: background 0.15s ease;
+    }
+    .btn-nav-back:hover {
+        background: #f1f5f9;
+        border-color: #94a3b8;
+    }
+    .btn-nav-secure {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #2563eb;
+        text-decoration: none;
+        padding: 10px 16px;
+        background: #eff6ff;
+        border: 2px solid #bfdbfe;
+        border-radius: 6px;
+        transition: all 0.15s ease;
+    }
+    .btn-nav-secure:hover {
+        background: #dbeafe;
+        border-color: #3b82f6;
+    }
+
+    .dash-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
         border-bottom: 3px solid #e2e8f0;
         padding-bottom: 20px;
         margin-bottom: 30px;
@@ -51,6 +100,7 @@
         font-weight: 700;
         color: #64748b;
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        align-self: flex-end;
     }
     
     /* Live Status Filtering Metrics Row */
@@ -167,19 +217,23 @@
 </style>
 
 <div class="dash-container">
-    <div class="dash-header">
-    <div class="dash-title">
-        <h1>Plant Label Stock Balance Dashboard</h1>
-        <p>Live, read-only floor tracking overview for manufacturing production planning.</p>
-    </div>
-    <!-- ADD THIS FLEX WRAPPER GAP REGION -->
-    <div style="display: flex; align-items: center; gap: 15px;">
-        <a href="admin/views/labels.html" style="font-size: 13px; font-weight: 700; color: #2563eb; text-decoration: none; padding: 10px 14px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px;">
+    
+    <!-- FIXED: Top Control Row containing both Navigation Options -->
+    <div class="top-nav-bar">
+        <a href="index.html" class="btn-nav-back">
+            ⬅️ Return to Main Display
+        </a>
+        <a href="admin/views/labels.html" class="btn-nav-secure">
             🔐 Operator Log In / Update Stock
         </a>
-        <div class="refresh-badge" id="live-clock">Updated: Loading...</div>
     </div>
-</div>
+
+    <div class="dash-header">
+        <div class="dash-title">
+            <h1>Plant Label Stock Balance Dashboard</h1>
+            <p>Live, read-only floor tracking overview for manufacturing production planning.</p>
+        </div>
+        <div class="refresh-badge" id="live-clock">Updated: Loading...</div>
     </div>
 
     <!-- Executive Stock KPIs -->
@@ -189,10 +243,8 @@
             <div class="val" id="kpi-total-profiles">0</div>
         </div>
         <div class="metric-card" style="border-left: 5px solid #16a34a;">
-            <div class="val-label-container">
-                <div class="label">Total Bulk Storage Vault Boxes</div>
-                <div class="val" id="kpi-total-boxes">0 Boxes</div>
-            </div>
+            <div class="label">Total Bulk Storage Vault Boxes</div>
+            <div class="val" id="kpi-total-boxes">0 Boxes</div>
         </div>
         <div class="metric-card" style="border-left: 5px solid #dc2626;">
             <div class="label">Critical Low Supply Warnings</div>
@@ -207,23 +259,32 @@
 </div>
 
 <script>
-    // Initialize standard connection context parameters (auto-replaced securely via app configuration mapping)
-    const supabaseUrl = window.location.origin.includes('localhost') ? "YOUR_SUPABASE_URL" : window.env?.SUPABASE_URL || "";
-    const supabaseKey = window.location.origin.includes('localhost') ? "YOUR_SUPABASE_KEY" : window.env?.SUPABASE_ANON_KEY || "";
-    
     let dbClient = null;
-    if (typeof supabase !== 'undefined' && supabaseUrl && supabaseKey) {
-        dbClient = supabase.createClient(supabaseUrl, supabaseKey);
-    } else if (window.supabaseClient) {
-        dbClient = window.supabaseClient; // Leverage global fallback context wrapper
-    }
 
-    document.addEventListener("DOMContentLoaded", () => {
+    // Wait until DOM and any referenced config files are fully processed
+    window.addEventListener("DOMContentLoaded", () => {
+        initializeDatabaseConnection();
         updateLiveClock();
         loadPublicDashboardData();
-        // Keep plant display constantly current 
+        
+        // Auto-refresh data every 60 seconds
         setInterval(loadPublicDashboardData, 60000);
     });
+
+    function initializeDatabaseConnection() {
+        // 1. Attempt to grab global instances setup by admin/js/config.js or fallback script
+        if (window.supabaseClient) {
+            dbClient = window.supabaseClient;
+        } else if (typeof supabase !== 'undefined') {
+            // 2. If global instance doesn't exist but CDN script is loaded, verify explicit fallback variables
+            const supabaseUrl = window.env?.SUPABASE_URL || "YOUR_SUPABASE_URL_FALLBACK";
+            const supabaseKey = window.env?.SUPABASE_ANON_KEY || "YOUR_SUPABASE_KEY_FALLBACK";
+            
+            if (supabaseUrl !== "YOUR_SUPABASE_URL_FALLBACK") {
+                dbClient = supabase.createClient(supabaseUrl, supabaseKey);
+            }
+        }
+    }
 
     function updateLiveClock() {
         const el = document.getElementById("live-clock");
@@ -234,16 +295,23 @@
     }
 
     async function loadPublicDashboardData() {
+        // Re-verify client connection instance
+        if (!dbClient && window.supabaseClient) {
+            dbClient = window.supabaseClient;
+        }
+
         if (!dbClient) {
             document.getElementById("dashboard-catalog-root").innerHTML = `
-                <div style="padding:30px; background:#fee2e2; border-radius:6px; color:#991b1b; font-weight:700;">
-                    Database Access Connection Offline. Verify integration tokens.
+                <div style="padding:30px; background:#fee2e2; border-radius:6px; color:#991b1b; font-weight:700; border: 2px solid #ef4444; line-height:1.6;">
+                    ⚠️ Database Access Connection Offline. Verify integration tokens.<br>
+                    <span style="font-size:13px; font-weight:500; color:#b91c1c;">
+                        Reason: This root page can't access your API configuration. Ensure your local Supabase credentials path is linked correctly at the top of this file.
+                    </span>
                 </div>`;
             return;
         }
 
         try {
-            // Simultaneous lookup queries
             const [partCodesRes, inventoryRes, suppliersRes] = await Promise.all([
                 dbClient.from("part_codes").select("*").order("part_code", { ascending: true }),
                 dbClient.from("labels_inventory").select("*"),
@@ -258,7 +326,10 @@
             updateLiveClock();
         } catch (err) {
             console.error("Dashboard engine fault:", err);
-            document.getElementById("dashboard-catalog-root").innerHTML = `<div class="loading-spinner-box" style="color:#dc2626;">❌ Error mapping data records: ${err.message}</div>`;
+            document.getElementById("dashboard-catalog-root").innerHTML = `
+                <div class="loading-spinner-box" style="color:#dc2626;">
+                    ❌ Error mapping data records: ${err.message}
+                </div>`;
         }
     }
 
@@ -350,7 +421,7 @@
             container.appendChild(blockCard);
         });
 
-        // Set KPIs metrics summary values
+        // Update KPIs
         document.getElementById("kpi-total-profiles").textContent = partCodes.length;
         document.getElementById("kpi-total-boxes").textContent = `${operationalBoxesCount.toLocaleString()} Boxes`;
         
