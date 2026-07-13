@@ -1,15 +1,21 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    // SECURITY GUARD: If we are inside the admin backend area, freeze immediately.
+    // This stops the presentation screen from hijacking the admin dashboard grid layout.
+    if (window.location.pathname.includes('/admin')) {
+        console.log("Schedule presentation layer disabled while inside the Admin Panel.");
+        return;
+    }
+
     const containerId = 'scheduleDisplayView';
     let container = document.getElementById(containerId);
 
-    // If the frontend container element is missing, initialize it cleanly
     if (!container) {
         container = document.createElement('div');
         container.id = containerId;
         document.body.appendChild(container);
     }
 
-    // Build decoupled, safe style bindings to prevent leaking into your admin panels
+    // Completely isolated CSS injection
     const styleBlock = document.createElement('style');
     styleBlock.innerHTML = `
         #scheduleDisplayView {
@@ -20,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             height: 100vh !important;
             overflow: hidden !important;
             background: #000 !important;
-            z-index: 1 !important;
+            z-index: 99999 !important;
         }
         .kb-slideshow-frame {
             position: absolute;
@@ -49,7 +55,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const client = typeof supabaseClient !== 'undefined' ? supabaseClient : null;
         if (!client) return;
 
-        // 1. Fetch Rotation Configuration settings
+        // 1. Fetch Rotation Configuration
         const { data: settingsData } = await client.from('settings').select('schedule_seconds').limit(1).single();
         const intervalMs = (settingsData && settingsData.schedule_seconds ? parseInt(settingsData.schedule_seconds, 10) : 5) * 1000;
 
@@ -66,7 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        // Build runtime structures inside isolated canvas block
+        // Build runtime structures inside isolated display wrapper
         container.innerHTML = activeSlides.map((slide, idx) => `
             <div class="kb-slideshow-frame ${idx === 0 ? 'active-slide' : ''}" style="background-image: url('${slide.url}'); --kb-duration: ${intervalMs + 1500}ms;"></div>
         `).join('');
