@@ -14,7 +14,8 @@ const MODULES = [
     "weather",
     "ticker",
     "settings",
-    "team"
+    "team",
+    "labels"
 ];
 
 let permissionUsers = [];
