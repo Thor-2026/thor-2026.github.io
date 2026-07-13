@@ -1,66 +1,26 @@
-document.addEventListener('DOMContentLoaded', async () => {
-    // SECURITY GUARD: If we are inside the admin backend area, freeze immediately.
-    // This stops the presentation screen from hijacking the admin dashboard grid layout.
-    if (window.location.pathname.includes('/admin')) {
-        console.log("Schedule presentation layer disabled while inside the Admin Panel.");
-        return;
-    }
+// ======================================
+// THOR DISPLAY CMS
+// Schedule Module (Ken Burns Slideshow)
+// ======================================
 
-    const containerId = 'scheduleDisplayView';
-    let container = document.getElementById(containerId);
+let scheduleTimer = null;
+let currentSlideIndex = 0;
 
-    if (!container) {
-        container = document.createElement('div');
-        container.id = containerId;
-        document.body.appendChild(container);
-    }
+async function loadSchedule() {
+    // If the element doesn't exist, stop execution immediately.
+    // This safely keeps this script out of the admin dashboard.
+    const container = document.getElementById("scheduleImage");
+    if (!container) return;
 
-    // Completely isolated CSS injection
-    const styleBlock = document.createElement('style');
-    styleBlock.innerHTML = `
-        #scheduleDisplayView {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            overflow: hidden !important;
-            background: #000 !important;
-            z-index: 99999 !important;
-        }
-        .kb-slideshow-frame {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            transition: opacity 1500ms ease-in-out;
-            background-size: cover;
-            background-position: center;
-            transform: scale(1);
-        }
-        .kb-slideshow-frame.active-slide {
-            opacity: 1;
-            animation: safeKenBurnsEffect var(--kb-duration, 6000ms) ease-in-out forwards;
-        }
-        @keyframes safeKenBurnsEffect {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.08); }
-        }
-    `;
-    document.head.appendChild(styleBlock);
+    if (typeof supabaseClient === 'undefined') return;
 
     try {
-        const client = typeof supabaseClient !== 'undefined' ? supabaseClient : null;
-        if (!client) return;
-
-        // 1. Fetch Rotation Configuration
-        const { data: settingsData } = await client.from('settings').select('schedule_seconds').limit(1).single();
+        // 1. Fetch Rotation Configuration settings row
+        const { data: settingsData } = await supabaseClient.from('settings').select('schedule_seconds').limit(1).single();
         const intervalMs = (settingsData && settingsData.schedule_seconds ? parseInt(settingsData.schedule_seconds, 10) : 5) * 1000;
 
-        // 2. Fetch active layout rows 
-        const { data: activeSlides, error } = await client
+        // 2. Fetch all active rows dynamically from table layers
+        const { data: activeSlides, error } = await supabaseClient
             .from('schedule_slots')
             .select('url')
             .eq('enabled', true)
@@ -68,26 +28,98 @@ document.addEventListener('DOMContentLoaded', async () => {
             .order('slot', { ascending: true });
 
         if (error || !activeSlides || activeSlides.length === 0) {
-            container.innerHTML = '<div style="color:#555; display:flex; justify-content:center; align-items:center; height:100%; font-family:sans-serif;">No active schedules loaded.</div>';
+            container.parentNode.style.background = "transparent";
+            container.style.display = "none";
             return;
         }
 
-        // Build runtime structures inside isolated display wrapper
-        container.innerHTML = activeSlides.map((slide, idx) => `
-            <div class="kb-slideshow-frame ${idx === 0 ? 'active-slide' : ''}" style="background-image: url('${slide.url}'); --kb-duration: ${intervalMs + 1500}ms;"></div>
-        `).join('');
-
-        if (activeSlides.length > 1) {
-            let currentIndex = 0;
-            const slidesElements = container.querySelectorAll('.kb-slideshow-frame');
-
-            setInterval(() => {
-                slidesElements[currentIndex].classList.remove('active-slide');
-                currentIndex = (currentIndex + 1) % slidesElements.length;
-                slidesElements[currentIndex].classList.add('active-slide');
-            }, intervalMs);
+        // Clean up or append CSS styles safely inside head layers once
+        if (!document.getElementById('kb-slideshow-core-styles')) {
+            const styleBlock = document.createElement('style');
+            styleBlock.id = 'kb-slideshow-core-styles';
+            styleBlock.innerHTML = `
+                .kb-wrapper-frame {
+                    position: relative;
+                    width: 100%;
+                    height: 100%;
+                    overflow: hidden;
+                    background: #000;
+                }
+                .kb-slide-layer {
+                    position: absolute;
+                    top:0; left:0; width:100%; height:100%;
+                    opacity: 0;
+                    transition: opacity 1500ms ease-in-out;
+                    background-size: cover;
+                    background-position: center;
+                    transform: scale(1);
+                }
+                .kb-slide-layer.active {
+                    opacity: 1;
+                    animation: runKenBurnsAnimation var(--kb-speed, 6000ms) ease-in-out forwards;
+                }
+                @keyframes runKenBurnsAnimation {
+                    0% { transform: scale(1); }
+                    100% { transform: scale(1.06); }
+                }
+            `;
+            document.head.appendChild(styleBlock);
         }
+
+        // Setup rendering views blueprint loops mapping paths
+        const parent = container.parentNode;
+        let slideshowBox = document.getElementById('slideshowRenderContainer');
+        
+        if (!slideshowBox) {
+            slideshowBox = document.createElement('div');
+            slideshowBox.id = 'slideshowRenderContainer';
+            slideshowBox.className = 'kb-wrapper-frame';
+            // Match dimensions of original image target element bounding frames
+            slideshowBox.style.width = "100%";
+            slideshowBox.style.height = "100%";
+            parent.insertBefore(slideshowBox, container);
+            container.style.display = "none"; // Hide original img element placeholder safely
+        }
+
+        // Build HTML strings markup inside container layers maps
+        const htmlContent = activeSlides.map((slide, idx) => `
+            <div class="kb-slide-layer" style="background-image: url('${slide.url}?t=${Date.now()}'); --kb-speed: ${intervalMs + 1500}ms;"></div>
+        `).join('');
+        
+        slideshowBox.innerHTML = htmlContent;
+
+        // Process slide rotation loop sequence executions logic maps 
+        const layers = slideshowBox.querySelectorAll('.kb-slide-layer');
+        if (layers.length > 0) {
+            if (currentSlideIndex >= layers.length) currentSlideIndex = 0;
+            layers[currentSlideIndex].classList.add('active');
+
+            // clear previous automation timers and map up new loops context timings dynamically
+            if (scheduleTimer) clearInterval(scheduleTimer);
+            
+            if (layers.length > 1) {
+                scheduleTimer = setInterval(() => {
+                    layers[currentSlideIndex].classList.remove('active');
+                    currentSlideIndex = (currentSlideIndex + 1) % layers.length;
+                    layers[currentSlideIndex].classList.add('active');
+                }, intervalMs);
+            }
+        }
+
     } catch (err) {
-        console.error('Failed processing display scheduler sequence: ', err);
+        console.error("Schedule Engine Loop Error:", err);
     }
-});
+}
+
+function startSchedule() {
+    loadSchedule();
+    // Re-check for database updates or changes every 60 seconds
+    setInterval(loadSchedule, 60000);
+}
+
+function stopSchedule() {
+    if (scheduleTimer) {
+        clearInterval(scheduleTimer);
+        scheduleTimer = null;
+    }
+}
