@@ -17,7 +17,7 @@ const TEAM_MODULES = [
     "ticker",
     "settings",
     "team",
-    "labels"
+    "labels" //new permission for labels
 ];
 
 // ======================================
