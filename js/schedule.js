@@ -1,11 +1,12 @@
 // ======================================
 // THOR DISPLAY CMS
-// Schedule Module
+// Schedule Module (Dynamic Seconds Loop)
 // ======================================
 
 let scheduleTimer = null;
 let currentSlideIndex = 0;
 let activeSlidesCached = [];
+let currentIntervalMs = 5000; // Fallback default (5 seconds)
 
 async function loadSchedule() {
     const scheduleImage = document.getElementById("scheduleImage");
@@ -14,7 +15,22 @@ async function loadSchedule() {
     if (typeof supabaseClient === 'undefined') return;
 
     try {
-        // 1. Fetch active slots from your new database setup
+        // 1. Fetch Dynamic Timing settings configuration row from database
+        const { data: settingsData } = await supabaseClient.from('settings').select('schedule_seconds').limit(1).single();
+        if (settingsData && settingsData.schedule_seconds) {
+            const dbSeconds = parseInt(settingsData.schedule_seconds, 10);
+            const targetMs = (dbSeconds >= 2 ? dbSeconds : 5) * 1000;
+            
+            // If the admin changed the timing setting on the fly, restart the loop cleanly
+            if (targetMs !== currentIntervalMs && scheduleTimer) {
+                currentIntervalMs = targetMs;
+                resetAutomationTimer();
+            } else {
+                currentIntervalMs = targetMs;
+            }
+        }
+
+        // 2. Fetch active slots from your layout rows mapping table
         const { data: activeSlides, error } = await supabaseClient
             .from('schedule_slots')
             .select('url')
@@ -27,18 +43,16 @@ async function loadSchedule() {
             return;
         }
 
-        // Store the list globally so we can loop through them
         activeSlidesCached = activeSlides;
 
-        // Ensure our index is safe
         if (currentSlideIndex >= activeSlidesCached.length) {
             currentSlideIndex = 0;
         }
 
-        // 2. Get the current image URL to display
+        // 3. Extract target URL path string index map
         const imageUrl = activeSlidesCached[currentSlideIndex].url;
 
-        // 3. Preload and swap exactly like your original logic did
+        // 4. Preload and swap exactly like your original logic did
         const newImage = new Image();
         newImage.onload = () => {
             scheduleImage.src = imageUrl + "?t=" + Date.now();
@@ -47,26 +61,30 @@ async function loadSchedule() {
         newImage.src = imageUrl + "?t=" + Date.now();
 
     } catch (err) {
-        console.error("Schedule Engine Error:", err);
+        console.error("Schedule Engine Loop Sync Error:", err);
     }
 }
 
-function startSchedule() {
-    if (scheduleTimer) {
-        clearInterval(scheduleTimer);
-    }
-
-    // Load the first image instantly
-    loadSchedule();
-
-    // Set an interval to advance to the next image every 60 seconds
-    // exactly like your original 60000ms loop timer.
+function resetAutomationTimer() {
+    if (scheduleTimer) clearInterval(scheduleTimer);
+    
     scheduleTimer = setInterval(() => {
         if (activeSlidesCached.length > 1) {
             currentSlideIndex = (currentSlideIndex + 1) % activeSlidesCached.length;
+            loadSchedule(); // Advances to the next slide image directly
+        } else {
+            // If there's only 1 slide, just check the database for updates/timing changes
+            loadSchedule();
         }
-        loadSchedule();
-    }, 60000);
+    }, currentIntervalMs);
+}
+
+function startSchedule() {
+    // 1. Perform immediate bootstrap load invocation sequence mapping execution
+    loadSchedule().then(() => {
+        // 2. Initialize the automated interval execution rotation pipeline using live seconds
+        resetAutomationTimer();
+    });
 }
 
 function stopSchedule() {
