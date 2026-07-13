@@ -2,29 +2,22 @@
 // THOR DISPLAY CMS
 // Schedule Manager
 // =======================================
+
 (function() {
     const initScheduleManager = async () => {
         const BUCKET_NAME = 'display'; 
         const FOLDER_PREFIX = 'schedule/';
 
-        const saveIntervalBtn = document.getElementById('saveIntervalBtn');
-        if (!saveIntervalBtn) {
-            // Context layout template framework isn't loaded into view DOM hierarchy yet
-            return;
-        }
+        // 1. Initial State Initialization and Database Query Fetch
+        try {
+            const { data: settingsData } = await supabase.from('settings').select('schedule_seconds').limit(1).single();
+            const intervalInput = document.getElementById('rotationInterval');
+            if (settingsData && settingsData.schedule_seconds && intervalInput) {
+                intervalInput.value = settingsData.schedule_seconds;
+            }
 
-        async function loadScheduleSettings() {
-            try {
-                // 1. Fetch Global Rotation Interval from settings row
-                const { data: settingsData } = await supabase.from('settings').select('schedule_seconds').limit(1).single();
-                if (settingsData && settingsData.schedule_seconds) {
-                    document.getElementById('rotationInterval').value = settingsData.schedule_seconds;
-                }
-
-                // 2. Fetch all 5 rows from schedule_slots table
-                const { data: slots, error } = await supabase.from('schedule_slots').select('*').order('slot', { ascending: true });
-                if (error) throw error;
-
+            const { data: slots, error } = await supabase.from('schedule_slots').select('*').order('slot', { ascending: true });
+            if (!error && slots) {
                 slots.forEach(slotData => {
                     const i = slotData.slot;
                     const toggle = document.getElementById(`toggle-slot-${i}`);
@@ -32,100 +25,105 @@
                     const placeholder = document.getElementById(`placeholder-${i}`);
 
                     if (toggle) toggle.checked = slotData.enabled;
-                    if (slotData.url && previewImg) {
+                    if (slotData.url && previewImg && placeholder) {
                         previewImg.src = `${slotData.url}?t=${new Date().getTime()}`;
                         previewImg.classList.remove('d-none');
                         placeholder.classList.add('d-none');
                     }
                 });
-            } catch (err) {
-                console.error('Error fetching relational schedule properties:', err);
             }
+        } catch (err) {
+            console.error('Failed fetching data records from backend runtime:', err);
         }
 
-        // Handle File Processing and Storage uploading
-        document.querySelectorAll('.file-input').forEach(input => {
-            input.addEventListener('change', async (e) => {
-                const card = e.target.closest('.slot-card');
-                const slotId = parseInt(card.dataset.slot, 10);
-                const file = e.target.files[0];
-                if (!file) return;
+        // 2. Global Interval Save Control Button
+        const saveIntervalBtn = document.getElementById('saveIntervalBtn');
+        if (saveIntervalBtn) {
+            saveIntervalBtn.onclick = async () => {
+                const value = parseInt(document.getElementById('rotationInterval').value, 10);
+                const finalValue = value >= 2 ? value : 5;
 
-                const previewImg = document.getElementById(`preview-img-${slotId}`);
-                const placeholder = document.getElementById(`placeholder-${slotId}`);
+                const { data: currentSettings } = await supabase.from('settings').select('id').limit(1).single();
+                if (currentSettings) {
+                    const { error } = await supabase.from('settings').update({ schedule_seconds: finalValue }).eq('id', currentSettings.id);
+                    if (!error) alert('Rotation interval updated successfully!');
+                }
+            };
+        }
+    };
 
-                try {
-                    const fileExt = file.name.split('.').pop();
-                    const filePath = `${FOLDER_PREFIX}slot_${slotId}.${fileExt}`;
+    // 3. Dynamic DOM Event Handling for Uploads & Toggles (Fixes UI Framework Sync Errors)
+    document.addEventListener('change', async (e) => {
+        const BUCKET_NAME = 'display';
+        const FOLDER_PREFIX = 'schedule/';
 
-                    const { error: uploadError } = await supabase.storage
-                        .from(BUCKET_NAME)
-                        .upload(filePath, file, { upsert: true, cacheControl: '0' });
+        // Handle Active Image File Upload Selector
+        if (e.target.classList.contains('file-input')) {
+            const card = e.target.closest('.slot-card');
+            const slotId = parseInt(card.dataset.slot, 10);
+            const file = e.target.files[0];
+            if (!file) return;
 
-                    if (uploadError) throw uploadError;
+            const previewImg = document.getElementById(`preview-img-${slotId}`);
+            const placeholder = document.getElementById(`placeholder-${slotId}`);
 
-                    const { data: publicUrlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(filePath);
-                    const assetUrl = publicUrlData.publicUrl;
+            try {
+                const fileExt = file.name.split('.').pop();
+                const filePath = `${FOLDER_PREFIX}slot_${slotId}.${fileExt}`;
 
-                    const { error: dbError } = await supabase
-                        .from('schedule_slots')
-                        .update({ url: assetUrl })
-                        .eq('slot', slotId);
+                // Instantly upload image straight to storage folder destination
+                const { error: uploadError } = await supabase.storage
+                    .from(BUCKET_NAME)
+                    .upload(filePath, file, { upsert: true, cacheControl: '0' });
 
-                    if (dbError) throw dbError;
-                    
+                if (uploadError) throw uploadError;
+
+                const { data: publicUrlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(filePath);
+                const assetUrl = publicUrlData.publicUrl;
+
+                // Instantly sync layout configuration mapping to schedule_slots row
+                const { error: dbError } = await supabase
+                    .from('schedule_slots')
+                    .update({ url: assetUrl })
+                    .eq('slot', slotId);
+
+                if (dbError) throw dbError;
+
+                if (previewImg && placeholder) {
                     previewImg.src = `${assetUrl}?t=${new Date().getTime()}`;
                     previewImg.classList.remove('d-none');
                     placeholder.classList.add('d-none');
-
-                } catch (err) {
-                    alert(`Upload operation failed: ${err.message || err}`);
                 }
-            });
-        });
-
-        // Save Enable/Disable State changes straight to rows
-        document.querySelectorAll('.slot-toggle').forEach(toggle => {
-            toggle.addEventListener('change', async (e) => {
-                const slotId = parseInt(e.target.id.replace('toggle-slot-', ''), 10);
-                await supabase.from('schedule_slots').update({ enabled: e.target.checked }).eq('slot', slotId);
-            });
-        });
-
-        // Handle Rotation Timer updates
-        saveIntervalBtn.addEventListener('click', async () => {
-            const value = parseInt(document.getElementById('rotationInterval').value, 10);
-            const finalValue = value >= 2 ? value : 5;
-
-            const { data: currentSettings } = await supabase.from('settings').select('id').limit(1).single();
-            if (currentSettings) {
-                await supabase.from('settings').update({ schedule_seconds: finalValue }).eq('id', currentSettings.id);
-                alert('Rotation frequency update complete!');
+                alert(`Slot ${slotId} image updated instantly!`);
+            } catch (err) {
+                alert(`Upload failed: ${err.message || err}`);
             }
-        });
-
-        // Wire Up Lightbox Dynamic Previews Safely checking bootstrap bounds
-        const modalEl = document.getElementById('schedulePreviewModal');
-        if (modalEl && window.bootstrap) {
-            const previewModal = new bootstrap.Modal(modalEl);
-            document.querySelectorAll('.btn-preview-modal').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const slotId = e.currentTarget.dataset.slot;
-                    const activeImg = document.getElementById(`preview-img-${slotId}`);
-                    if (activeImg && !activeImg.classList.contains('d-none')) {
-                        document.getElementById('modalPreviewImage').src = activeImg.src;
-                        previewModal.show();
-                    } else {
-                        alert('No media asset loaded into this slot.');
-                    }
-                });
-            });
         }
 
-        await loadScheduleSettings();
-    };
+        // Handle Enable/Disable Toggle Changes
+        if (e.target.classList.contains('slot-toggle')) {
+            const slotId = parseInt(e.target.id.replace('toggle-slot-', ''), 10);
+            await supabase.from('schedule_slots').update({ enabled: e.target.checked }).eq('slot', slotId);
+        }
+    });
 
-    // Run immediately or attach hook check parameters based on lifecycle setup
+    // 4. Modal Lightbox Trigger Actions
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-preview-modal');
+        if (btn && window.bootstrap) {
+            const slotId = btn.dataset.slot;
+            const activeImg = document.getElementById(`preview-img-${slotId}`);
+            if (activeImg && !activeImg.classList.contains('d-none')) {
+                document.getElementById('modalPreviewImage').src = activeImg.src;
+                const previewModal = new bootstrap.Modal(document.getElementById('schedulePreviewModal'));
+                previewModal.show();
+            } else {
+                alert('No media asset loaded into this slot.');
+            }
+        }
+    });
+
+    // Run Engine Context Verification Checking Loop
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initScheduleManager);
     } else {
