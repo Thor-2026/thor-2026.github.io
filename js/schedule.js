@@ -1,25 +1,24 @@
 // ======================================
 // THOR DISPLAY CMS
-// Schedule Module (Ken Burns Slideshow)
+// Schedule Module (Smooth Cross-Fade Slideshow)
 // ======================================
 
 let scheduleTimer = null;
 let currentSlideIndex = 0;
 
 async function loadSchedule() {
-    // If the element doesn't exist, stop execution immediately.
-    // This safely keeps this script out of the admin dashboard.
+    // SECURITY GUARD: Stop execution if the presentation element is missing (e.g. inside Admin)
     const container = document.getElementById("scheduleImage");
     if (!container) return;
 
     if (typeof supabaseClient === 'undefined') return;
 
     try {
-        // 1. Fetch Rotation Configuration settings row
+        // 1. Fetch Rotation Configuration Interval
         const { data: settingsData } = await supabaseClient.from('settings').select('schedule_seconds').limit(1).single();
         const intervalMs = (settingsData && settingsData.schedule_seconds ? parseInt(settingsData.schedule_seconds, 10) : 5) * 1000;
 
-        // 2. Fetch all active rows dynamically from table layers
+        // 2. Fetch Active Slots
         const { data: activeSlides, error } = await supabaseClient
             .from('schedule_slots')
             .select('url')
@@ -33,68 +32,64 @@ async function loadSchedule() {
             return;
         }
 
-        // Clean up or append CSS styles safely inside head layers once
-        if (!document.getElementById('kb-slideshow-core-styles')) {
+        // 3. Inject CSS for Safe Proportional Cross-Fading
+        if (!document.getElementById('fade-slideshow-core-styles')) {
             const styleBlock = document.createElement('style');
-            styleBlock.id = 'kb-slideshow-core-styles';
+            styleBlock.id = 'fade-slideshow-core-styles';
             styleBlock.innerHTML = `
-                .kb-wrapper-frame {
+                .fade-wrapper-frame {
                     position: relative;
                     width: 100%;
                     height: 100%;
                     overflow: hidden;
                     background: #000;
                 }
-                .kb-slide-layer {
+                .fade-slide-layer {
                     position: absolute;
-                    top:0; left:0; width:100%; height:100%;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
                     opacity: 0;
-                    transition: opacity 1500ms ease-in-out;
-                    background-size: cover;
+                    transition: opacity 1000ms ease-in-out;
+                    background-size: contain; /* Ensures 100% of the image fits without cropping or stretching */
                     background-position: center;
-                    transform: scale(1);
+                    background-repeat: no-repeat;
                 }
-                .kb-slide-layer.active {
+                .fade-slide-layer.active {
                     opacity: 1;
-                    animation: runKenBurnsAnimation var(--kb-speed, 6000ms) ease-in-out forwards;
-                }
-                @keyframes runKenBurnsAnimation {
-                    0% { transform: scale(1); }
-                    100% { transform: scale(1.06); }
                 }
             `;
             document.head.appendChild(styleBlock);
         }
 
-        // Setup rendering views blueprint loops mapping paths
+        // 4. Initialize Elements Setup
         const parent = container.parentNode;
         let slideshowBox = document.getElementById('slideshowRenderContainer');
         
         if (!slideshowBox) {
             slideshowBox = document.createElement('div');
             slideshowBox.id = 'slideshowRenderContainer';
-            slideshowBox.className = 'kb-wrapper-frame';
-            // Match dimensions of original image target element bounding frames
+            slideshowBox.className = 'fade-wrapper-frame';
             slideshowBox.style.width = "100%";
             slideshowBox.style.height = "100%";
             parent.insertBefore(slideshowBox, container);
-            container.style.display = "none"; // Hide original img element placeholder safely
+            container.style.display = "none"; 
         }
 
-        // Build HTML strings markup inside container layers maps
+        // Generate slide DOM wrappers with a cache-busting timestamp
         const htmlContent = activeSlides.map((slide, idx) => `
-            <div class="kb-slide-layer" style="background-image: url('${slide.url}?t=${Date.now()}'); --kb-speed: ${intervalMs + 1500}ms;"></div>
+            <div class="fade-slide-layer" style="background-image: url('${slide.url}?t=${Date.now()}');"></div>
         `).join('');
         
         slideshowBox.innerHTML = htmlContent;
 
-        // Process slide rotation loop sequence executions logic maps 
-        const layers = slideshowBox.querySelectorAll('.kb-slide-layer');
+        // 5. Execute Slideshow Rotation Mechanics
+        const layers = slideshowBox.querySelectorAll('.fade-slide-layer');
         if (layers.length > 0) {
             if (currentSlideIndex >= layers.length) currentSlideIndex = 0;
             layers[currentSlideIndex].classList.add('active');
 
-            // clear previous automation timers and map up new loops context timings dynamically
             if (scheduleTimer) clearInterval(scheduleTimer);
             
             if (layers.length > 1) {
@@ -107,13 +102,13 @@ async function loadSchedule() {
         }
 
     } catch (err) {
-        console.error("Schedule Engine Loop Error:", err);
+        console.error("Schedule Presentation Engine Error:", err);
     }
 }
 
 function startSchedule() {
     loadSchedule();
-    // Re-check for database updates or changes every 60 seconds
+    // Periodically re-sync from the database map state layout updates every 60 seconds
     setInterval(loadSchedule, 60000);
 }
 
