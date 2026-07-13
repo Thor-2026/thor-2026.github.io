@@ -12,7 +12,7 @@ let selectedPartCodeData = [];
 async function initLabelsPage() {
     console.log("Initializing Gated Labels Inventory Controller System...");
     
-    // Evaluate if the logged-in personnel holds access permissions
+    // Evaluate if the logged-in personnel holds access permissions via global userPermissions map
     const userHasAccess = evaluateLabelUpdatePermissions();
     
     if (!userHasAccess) {
@@ -45,13 +45,16 @@ function evaluateLabelUpdatePermissions() {
     // Fallback security check: if entirely logged out, bar modification completely
     if (!currentUser) return false;
 
-    // 1. Check if user schema maps an explicit permission flag
+    // Check modern global userPermissions map instantiated by dashboard initialization logic
+    if (typeof userPermissions !== 'undefined' && userPermissions.labels) {
+        return userPermissions.labels.can_view === true;
+    }
+
+    // Legacy Fallback Check by Explicit user profile overrides or Role IDs (1 = Super Admin, 3 = Operator)
     if (currentUser.permissions && typeof currentUser.permissions.can_manage_labels !== 'undefined') {
         return currentUser.permissions.can_manage_labels === true;
     }
 
-    // 2. Fallback check by Role IDs (e.g., Role 1 = Super Admin, Role 3 = Operator)
-    // If your operators are authorized to count and save balances at run completion, allow 1 and 3.
     const userRoleId = currentUser.profile?.role_id;
     if (userRoleId === 1 || userRoleId === 3) {
         return true;
@@ -75,6 +78,7 @@ function renderAuthStatusArea() {
     const userRoleId = currentUser.profile?.role_id;
     if (userRoleId === 1) roleText = "Super Admin";
     if (userRoleId === 3) roleText = "Operator";
+    if (userRoleId === 2 && roleText === "Staff") roleText = "Staff";
     
     container.innerHTML = `
         <div class="inv-badge" style="background:#ffffff; border:2px solid #cbd5e1; padding:8px 14px; border-radius:6px; text-align:right;">
@@ -83,8 +87,10 @@ function renderAuthStatusArea() {
         </div>
     `;
     
-    // Only reveal core part code creation/deletion catalog metrics if profile is high-clearance Admin (Role 1)
-    if (userRoleId === 1) {
+    // Evaluate display layout rights for Master Part Code creation/deletion catalog mechanics
+    const canCreateCatalog = typeof userPermissions !== 'undefined' && userPermissions.labels ? userPermissions.labels.can_create : (userRoleId === 1);
+    
+    if (canCreateCatalog) {
         if (adminPanel) adminPanel.style.display = "block";
     } else {
         if (adminPanel) adminPanel.style.display = "none";
@@ -133,8 +139,11 @@ function renderSupplierCheckboxes() {
  * Administrative Feature: Adds a new supplier straight into the operational database
  */
 window.promptCreateNewSupplier = async function() {
-    if (currentUser.profile?.role_id !== 1) {
-        alert("Action Revoked: Only System Administrators possess catalog design rights.");
+    const userRoleId = currentUser.profile?.role_id;
+    const canCreateCatalog = typeof userPermissions !== 'undefined' && userPermissions.labels ? userPermissions.labels.can_create : (userRoleId === 1);
+
+    if (!canCreateCatalog) {
+        alert("Action Revoked: Only System Administrators or cleared staff possess catalog design rights.");
         return;
     }
 
@@ -249,7 +258,8 @@ async function loadInventoryForPartCode(partCode) {
     
     if (!rootContainer || !labelTitle || !tableBody) return;
     
-    const canModify = evaluateLabelUpdatePermissions();
+    const userRoleId = currentUser.profile?.role_id;
+    const canModify = typeof userPermissions !== 'undefined' && userPermissions.labels ? userPermissions.labels.can_edit : (userRoleId === 1 || userRoleId === 3);
 
     document.getElementById("table-action-header").style.display = canModify ? "" : "none";
     document.getElementById("table-action-footer").style.display = canModify ? "" : "none";
@@ -339,7 +349,10 @@ async function loadInventoryForPartCode(partCode) {
  * ENGINEERING TOOL: Adds a Brand New 4-Digit Part Code and maps specific custom Qty / Box counts
  */
 window.submitNewCatalogPartCode = async function() {
-    if (currentUser.profile?.role_id !== 1) {
+    const userRoleId = currentUser.profile?.role_id;
+    const canCreateCatalog = typeof userPermissions !== 'undefined' && userPermissions.labels ? userPermissions.labels.can_create : (userRoleId === 1);
+
+    if (!canCreateCatalog) {
         alert("Unauthorized action execution barred.");
         return;
     }
@@ -430,7 +443,10 @@ window.submitNewCatalogPartCode = async function() {
  * ENGINEERING TOOL: Purges Selected Part Code records
  */
 window.deleteCurrentSelectedPartCode = async function() {
-    if (currentUser.profile?.role_id !== 1) {
+    const userRoleId = currentUser.profile?.role_id;
+    const canCreateCatalog = typeof userPermissions !== 'undefined' && userPermissions.labels ? userPermissions.labels.can_create : (userRoleId === 1);
+
+    if (!canCreateCatalog) {
         alert("Action Denied.");
         return;
     }
