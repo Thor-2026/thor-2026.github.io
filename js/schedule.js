@@ -2,7 +2,6 @@
 // THOR DISPLAY CMS
 // Schedule Module
 // ======================================
-
 document.addEventListener('DOMContentLoaded', async () => {
     const containerId = 'scheduleDisplayView';
     let container = document.getElementById(containerId);
