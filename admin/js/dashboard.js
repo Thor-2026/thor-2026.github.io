@@ -168,13 +168,19 @@ async function loadPermissions() {
 
     userPermissions = {};
 
-    // Base default views for Staff
-    userPermissions['dashboard'] = { can_view: true };
-    userPermissions['labels'] = { can_view: true }; 
+    // Base default views for Staff with complete permission object shapes
+userPermissions['dashboard'] = { can_view: true, can_create: false, can_edit: false, can_delete: false };
+userPermissions['labels'] = { can_view: true, can_create: false, can_edit: false, can_delete: false }; 
 
-    (data || []).forEach(permission => {
-        userPermissions[permission.module] = permission;
-    });
+(data || []).forEach(permission => {
+    // This will now cleanly overwrite the false flags with your true values from the DB
+    userPermissions[permission.module] = {
+        can_view: permission.can_view,
+        can_create: permission.can_create,
+        can_edit: permission.can_edit,
+        can_delete: permission.can_delete
+    };
+});
 
 }
 
