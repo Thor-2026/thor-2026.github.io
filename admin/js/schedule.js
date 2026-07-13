@@ -4,19 +4,30 @@
 // =======================================
 
 (function() {
+    const getSupabaseClient = () => {
+        return window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
+    };
+
     const initScheduleManager = async () => {
+        const client = getSupabaseClient();
+        if (!client) {
+            console.error("Supabase client is not initialized globally or ready yet.");
+            return;
+        }
+
         const BUCKET_NAME = 'display'; 
         const FOLDER_PREFIX = 'schedule/';
 
-        // 1. Initial State Initialization and Database Query Fetch
         try {
-            const { data: settingsData } = await supabase.from('settings').select('schedule_seconds').limit(1).single();
+            // 1. Fetch Global Rotation Interval from settings row
+            const { data: settingsData } = await client.from('settings').select('schedule_seconds').limit(1).single();
             const intervalInput = document.getElementById('rotationInterval');
             if (settingsData && settingsData.schedule_seconds && intervalInput) {
                 intervalInput.value = settingsData.schedule_seconds;
             }
 
-            const { data: slots, error } = await supabase.from('schedule_slots').select('*').order('slot', { ascending: true });
+            // 2. Fetch all 5 rows from schedule_slots table
+            const { data: slots, error } = await client.from('schedule_slots').select('*').order('slot', { ascending: true });
             if (!error && slots) {
                 slots.forEach(slotData => {
                     const i = slotData.slot;
@@ -36,24 +47,27 @@
             console.error('Failed fetching data records from backend runtime:', err);
         }
 
-        // 2. Global Interval Save Control Button
+        // 3. Global Interval Save Control Button
         const saveIntervalBtn = document.getElementById('saveIntervalBtn');
         if (saveIntervalBtn) {
             saveIntervalBtn.onclick = async () => {
                 const value = parseInt(document.getElementById('rotationInterval').value, 10);
                 const finalValue = value >= 2 ? value : 5;
 
-                const { data: currentSettings } = await supabase.from('settings').select('id').limit(1).single();
+                const { data: currentSettings } = await client.from('settings').select('id').limit(1).single();
                 if (currentSettings) {
-                    const { error } = await supabase.from('settings').update({ schedule_seconds: finalValue }).eq('id', currentSettings.id);
+                    const { error } = await client.from('settings').update({ schedule_seconds: finalValue }).eq('id', currentSettings.id);
                     if (!error) alert('Rotation interval updated successfully!');
                 }
             };
         }
     };
 
-    // 3. Dynamic DOM Event Handling for Uploads & Toggles (Fixes UI Framework Sync Errors)
+    // 4. Dynamic DOM Event Handling for Uploads & Toggles
     document.addEventListener('change', async (e) => {
+        const client = getSupabaseClient();
+        if (!client) return;
+
         const BUCKET_NAME = 'display';
         const FOLDER_PREFIX = 'schedule/';
 
@@ -72,17 +86,17 @@
                 const filePath = `${FOLDER_PREFIX}slot_${slotId}.${fileExt}`;
 
                 // Instantly upload image straight to storage folder destination
-                const { error: uploadError } = await supabase.storage
+                const { error: uploadError } = await client.storage
                     .from(BUCKET_NAME)
                     .upload(filePath, file, { upsert: true, cacheControl: '0' });
 
                 if (uploadError) throw uploadError;
 
-                const { data: publicUrlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(filePath);
+                const { data: publicUrlData } = client.storage.from(BUCKET_NAME).getPublicUrl(filePath);
                 const assetUrl = publicUrlData.publicUrl;
 
                 // Instantly sync layout configuration mapping to schedule_slots row
-                const { error: dbError } = await supabase
+                const { error: dbError } = await client
                     .from('schedule_slots')
                     .update({ url: assetUrl })
                     .eq('slot', slotId);
@@ -103,11 +117,11 @@
         // Handle Enable/Disable Toggle Changes
         if (e.target.classList.contains('slot-toggle')) {
             const slotId = parseInt(e.target.id.replace('toggle-slot-', ''), 10);
-            await supabase.from('schedule_slots').update({ enabled: e.target.checked }).eq('slot', slotId);
+            await client.from('schedule_slots').update({ enabled: e.target.checked }).eq('slot', slotId);
         }
     });
 
-    // 4. Modal Lightbox Trigger Actions
+    // 5. Modal Lightbox Trigger Actions
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('.btn-preview-modal');
         if (btn && window.bootstrap) {
