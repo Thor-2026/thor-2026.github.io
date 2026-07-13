@@ -628,7 +628,7 @@ window.submitNewCatalogPartCode = async function() {
             };
         });
 
-        const { error: invError =  } = await supabaseClient
+        const { error: invError } = await supabaseClient
             .from("labels_inventory")
             .insert(initialRows);
 
