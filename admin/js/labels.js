@@ -5,6 +5,9 @@
 
 let masterSuppliersList = [];
 let selectedPartCodeData = [];
+let cachedPartCodesArray = [];
+let fullInventoryBalancesSnapshot = [];
+let activeLowStockItemsList = [];
 
 /**
  * Main Initialization Lifecycle Module Router Hook
@@ -31,8 +34,9 @@ async function initLabelsPage() {
     // 2. Fetch Base Structural Lookup Tables from Supabase
     await refreshSuppliersList();
 
-    // 3. Refresh Catalog Matrix and Dropdown Layouts
+    // 3. Refresh Catalog Matrix, Dropdown Layouts, and Cache Indicators
     await refreshPartCodesCatalogDropdown();
+    await buildGlobalInventoryCacheSnapshot();
 
     // 4. Bind Reactive UI Dynamic Click & Change Receivers
     bindLabelEventHandlers();
@@ -56,7 +60,7 @@ function evaluateLabelUpdatePermissions() {
     }
 
     const userRoleId = currentUser.profile?.role_id;
-    if (userRoleId === 1 || userRoleId === 3) {
+    if (userRoleId === 1 || userRoleId === 3 || userRoleId === 2) {
         return true;
     }
 
@@ -78,7 +82,7 @@ function renderAuthStatusArea() {
     const userRoleId = currentUser.profile?.role_id;
     if (userRoleId === 1) roleText = "Super Admin";
     if (userRoleId === 3) roleText = "Operator";
-    if (userRoleId === 2 && roleText === "Staff") roleText = "Staff";
+    if (userRoleId === 2) roleText = "Staff";
     
     container.innerHTML = `
         <div class="inv-badge" style="background:#ffffff; border:2px solid #cbd5e1; padding:8px 14px; border-radius:6px; text-align:right;">
@@ -180,7 +184,8 @@ window.promptCreateNewSupplier = async function() {
 async function refreshPartCodesCatalogDropdown() {
     const loadedPartCodes = await fetchAllPartCodes();
     if (loadedPartCodes) {
-        populatePartCodeDropdown(loadedPartCodes);
+        cachedPartCodesArray = loadedPartCodes;
+        populateSearchableComboOptions(loadedPartCodes);
     }
 }
 
@@ -210,37 +215,82 @@ async function fetchAllPartCodes() {
     return data;
 }
 
-function populatePartCodeDropdown(partCodes) {
-    const selector = document.getElementById("part-code-selector");
-    if (!selector) return;
+/**
+ * Advanced Searchable Combo Combobox Component Processing Matrix
+ */
+function populateSearchableComboOptions(partCodes) {
+    const dropdown = document.getElementById("part-combo-dropdown");
+    if (!dropdown) return;
 
     if (partCodes.length === 0) {
-        selector.innerHTML = '<option value="">-- No Part Codes Configured in System --</option>';
+        dropdown.innerHTML = '<div class="combo-no-results">No Part Codes Configured</div>';
         return;
     }
 
-    selector.innerHTML = '<option value="">-- Choose an Active Label Part Code --</option>';
+    dropdown.innerHTML = "";
     partCodes.forEach(item => {
-        const option = document.createElement("option");
-        option.value = item.part_code;
-        option.textContent = `${item.part_code} - ${item.label_name}`;
-        selector.appendChild(option);
+        const div = document.createElement("div");
+        div.className = "combo-item";
+        div.dataset.value = item.part_code;
+        div.textContent = `${item.part_code} - ${item.label_name}`;
+        div.onclick = function() {
+            selectComboValue(item.part_code, `${item.part_code} - ${item.label_name}`);
+        };
+        dropdown.appendChild(div);
     });
 }
 
-function bindLabelEventHandlers() {
-    const selector = document.getElementById("part-code-selector");
-    if (selector) {
-        selector.addEventListener("change", async (e) => {
-            const selectedCode = e.target.value;
-            if (!selectedCode) {
-                document.getElementById("inventory-display-root").style.display = "none";
-                return;
-            }
-            await loadInventoryForPartCode(selectedCode);
-        });
+window.showComboDropdown = function() {
+    document.getElementById("part-combo-dropdown").style.display = "block";
+};
+
+// Auto-dismiss combobox overlay window layouts when clicking out of boundaries
+document.addEventListener("click", function(e) {
+    const wrapper = document.querySelector(".combo-wrapper");
+    if (wrapper && !wrapper.contains(e.target)) {
+        document.getElementById("part-combo-dropdown").style.display = "none";
+    }
+});
+
+window.filterComboOptions = function() {
+    const query = document.getElementById("part-combo-input").value.toLowerCase().trim();
+    const dropdown = document.getElementById("part-combo-dropdown");
+    const items = dropdown.getElementsByClassName("combo-item");
+    let visibleCount = 0;
+
+    dropdown.style.display = "block";
+
+    for (let i = 0; i < items.length; i++) {
+        const text = items[i].textContent.toLowerCase();
+        if (text.includes(query)) {
+            items[i].style.display = "block";
+            visibleCount++;
+        } else {
+            items[i].style.display = "none";
+        }
     }
 
+    const existingNoRes = dropdown.querySelector(".combo-no-results");
+    if (existingNoRes) existingNoRes.remove();
+
+    if (visibleCount === 0) {
+        const noRes = document.createElement("div");
+        noRes.className = "combo-no-results";
+        noRes.textContent = "No matching part codes found";
+        dropdown.appendChild(noRes);
+    }
+};
+
+window.selectComboValue = async function(val, labelText) {
+    document.getElementById("part-combo-input").value = labelText;
+    document.getElementById("part-code-selector").value = val;
+    document.getElementById("part-combo-dropdown").style.display = "none";
+    
+    document.getElementById("view-page-search").value = "";
+    await loadInventoryForPartCode(val);
+};
+
+function bindLabelEventHandlers() {
     const form = document.getElementById("stock-update-form");
     if (form) {
         form.removeEventListener("submit", handleStockSubmit); 
@@ -259,16 +309,14 @@ async function loadInventoryForPartCode(partCode) {
     if (!rootContainer || !labelTitle || !tableBody) return;
     
     const userRoleId = currentUser.profile?.role_id;
-    const canModify = typeof userPermissions !== 'undefined' && userPermissions.labels ? userPermissions.labels.can_edit : (userRoleId === 1 || userRoleId === 3);
+    const canModify = typeof userPermissions !== 'undefined' && userPermissions.labels ? userPermissions.labels.can_edit : (userRoleId === 1 || userRoleId === 3 || userRoleId === 2);
 
     document.getElementById("table-action-header").style.display = canModify ? "" : "none";
     document.getElementById("table-action-footer").style.display = canModify ? "" : "none";
 
-    const selector = document.getElementById("part-code-selector");
-    if (selector.selectedIndex <= 0) return;
-    
-    const chosenText = selector.options[selector.selectedIndex].text;
-    labelTitle.textContent = chosenText;
+    const matchedPart = cachedPartCodesArray.find(p => p.part_code === partCode);
+    if (!matchedPart) return;
+    labelTitle.textContent = `${matchedPart.part_code} - ${matchedPart.label_name}`;
 
     const { data: inventoryRecords, error } = await supabaseClient
         .from("labels_inventory")
@@ -286,7 +334,6 @@ async function loadInventoryForPartCode(partCode) {
     let grandTotalBoxes = 0;
     let grandTotalLoose = 0;
     let grandTotalLabels = 0;
-    let minSetpointAlert = 5000; 
 
     const applicableSuppliers = masterSuppliersList.filter(s => 
         selectedPartCodeData.some(r => r.supplier_id === s.id)
@@ -298,13 +345,10 @@ async function loadInventoryForPartCode(partCode) {
         const record = selectedPartCodeData.find(r => r.supplier_id === supplier.id) || {
             current_full_boxes: 0,
             current_loose_labels: 0,
-            min_setpoint: 5000,
             qty_per_box: supplier.qty_per_box
         };
 
         const effectiveQtyPerBox = record.qty_per_box ? record.qty_per_box : supplier.qty_per_box;
-
-        minSetpointAlert = record.min_setpoint; 
         const supplierSubtotal = (record.current_full_boxes * effectiveQtyPerBox) + record.current_loose_labels;
 
         grandTotalBoxes += record.current_full_boxes;
@@ -333,17 +377,189 @@ async function loadInventoryForPartCode(partCode) {
     document.getElementById("grand-loose-cell").textContent = `${grandTotalLoose.toLocaleString()} Loose`;
     document.getElementById("grand-labels-cell").textContent = `${grandTotalLabels.toLocaleString()} Labels`;
 
-    const alertBanner = document.getElementById("low-stock-alert-banner");
-    if (alertBanner) {
-        if (grandTotalLabels <= minSetpointAlert) {
-            alertBanner.style.display = "block";
-        } else {
-            alertBanner.style.display = "none";
-        }
-    }
-
     rootContainer.style.display = "block";
 }
+
+/**
+ * Builds standard flat arrays tracking full inventory levels to calculate system exceptions
+ */
+async function buildGlobalInventoryCacheSnapshot() {
+    try {
+        const { data: allInventory, error: invErr } = await supabaseClient.from("labels_inventory").select("*");
+        if (invErr) throw invErr;
+        
+        fullInventoryBalancesSnapshot = allInventory || [];
+        evaluatePlantLowStockSafetyThresholds();
+    } catch (err) {
+        console.error("Failed building memory audit arrays:", err);
+    }
+}
+
+/**
+ * Evaluates stock counts across variables to catch drops beneath parameters
+ */
+function evaluatePlantLowStockSafetyThresholds() {
+    activeLowStockItemsList = [];
+    
+    cachedPartCodesArray.forEach(part => {
+        const associatedRecords = fullInventoryBalancesSnapshot.filter(r => r.part_code === part.part_code);
+        
+        let totalCalculatedLabels = 0;
+        let minimumAllowedSetpoint = 5000;
+        
+        if (associatedRecords.length > 0) {
+            minimumAllowedSetpoint = associatedRecords[0].min_setpoint;
+            associatedRecords.forEach(rec => {
+                totalCalculatedLabels += (rec.current_full_boxes * rec.qty_per_box) + rec.current_loose_labels;
+            });
+        }
+        
+        if (totalCalculatedLabels <= minimumAllowedSetpoint) {
+            activeLowStockItemsList.push({
+                part_code: part.part_code,
+                label_name: part.label_name,
+                current_stock: totalCalculatedLabels,
+                min_setpoint: minimumAllowedSetpoint
+            });
+        }
+    });
+
+    const warningTriggerBtn = document.getElementById("low-stock-summary-trigger");
+    const warningCountBadge = document.getElementById("low-stock-summary-count");
+    
+    if (warningTriggerBtn && warningCountBadge) {
+        if (activeLowStockItemsList.length > 0) {
+            warningCountBadge.textContent = activeLowStockItemsList.length;
+            warningTriggerBtn.style.display = "block";
+        } else {
+            warningTriggerBtn.style.display = "none";
+        }
+    }
+}
+
+/**
+ * Opens detailed low stock display lists
+ */
+window.openLowStockSummaryModal = function() {
+    const tbody = document.getElementById("low-stock-modal-tbody");
+    if (!tbody) return;
+    
+    tbody.innerHTML = "";
+    if (activeLowStockItemsList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b;">No items currently below safety rules.</td></tr>`;
+    } else {
+        activeLowStockItemsList.forEach(item => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td style="font-weight:700; color:#dc2626;">${item.part_code}</td>
+                <td style="font-weight:600; color:#1e293b;">${item.label_name}</td>
+                <td style="text-align:right; font-weight:700; color:#b91c1c;">${item.current_stock.toLocaleString()}</td>
+                <td style="text-align:right; font-weight:600; color:#64748b;">${item.min_setpoint.toLocaleString()}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+    
+    document.getElementById("lowStockItemsModalContainer").style.display = "block";
+};
+
+window.closeLowStockModal = function() {
+    document.getElementById("lowStockItemsModalContainer").style.display = "none";
+};
+
+/**
+ * Global Instant Filter Event Router Lookups
+ */
+window.executeViewPageGlobalSearch = function() {
+    const searchQuery = document.getElementById("view-page-search").value.toLowerCase().trim();
+    if (!searchQuery) return;
+    
+    const optimalMatch = cachedPartCodesArray.find(p => 
+        p.part_code.toLowerCase().includes(searchQuery) || 
+        p.label_name.toLowerCase().includes(searchQuery)
+    );
+    
+    if (optimalMatch) {
+        document.getElementById("part-combo-input").value = `${optimalMatch.part_code} - ${optimalMatch.label_name}`;
+        document.getElementById("part-code-selector").value = optimalMatch.part_code;
+        loadInventoryForPartCode(optimalMatch.part_code);
+    }
+};
+
+/**
+ * Native Browser XML Spreadsheet Export Generation Utility
+ */
+window.generateDatabaseExcelExport = function() {
+    let excelRowsXML = "";
+    
+    excelRowsXML += `
+        <tr>
+            <th style="background-color: #0f172a; color: #ffffff; font-weight: bold;">Part Code</th>
+            <th style="background-color: #0f172a; color: #ffffff; font-weight: bold;">Label Title Description</th>
+            <th style="background-color: #0f172a; color: #ffffff; font-weight: bold;">Supplier Line Channel</th>
+            <th style="background-color: #0f172a; color: #ffffff; font-weight: bold;">Full Sealed Boxes</th>
+            <th style="background-color: #0f172a; color: #ffffff; font-weight: bold;">Loose Pieces Count</th>
+            <th style="background-color: #0f172a; color: #ffffff; font-weight: bold;">Box Base Calibration</th>
+            <th style="background-color: #0f172a; color: #ffffff; font-weight: bold;">Total Item Stock Balance</th>
+            <th style="background-color: #0f172a; color: #ffffff; font-weight: bold;">Safety Setpoint Target</th>
+        </tr>
+    `;
+
+    cachedPartCodesArray.forEach(part => {
+        const associatedRecords = fullInventoryBalancesSnapshot.filter(r => r.part_code === part.part_code);
+        
+        if (associatedRecords.length === 0) {
+            excelRowsXML += `
+                <tr>
+                    <td>${part.part_code}</td>
+                    <td>${part.label_name}</td>
+                    <td>No Associated Records</td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>15000</td>
+                    <td>0</td>
+                    <td>5000</td>
+                </tr>
+            `;
+        } else {
+            associatedRecords.forEach(rec => {
+                const supplierObj = masterSuppliersList.find(s => s.id === rec.supplier_id);
+                const supplierNameStr = supplierObj ? supplierObj.supplier_name : `Line Link ID #${rec.supplier_id}`;
+                const computedBalanceSum = (rec.current_full_boxes * rec.qty_per_box) + rec.current_loose_labels;
+                
+                excelRowsXML += `
+                    <tr>
+                        <td>${part.part_code}</td>
+                        <td>${part.label_name}</td>
+                        <td>${supplierNameStr}</td>
+                        <td>${rec.current_full_boxes}</td>
+                        <td>${rec.current_loose_labels}</td>
+                        <td>${rec.qty_per_box}</td>
+                        <td>${computedBalanceSum}</td>
+                        <td>${rec.min_setpoint}</td>
+                    </tr>
+                `;
+            });
+        }
+    });
+
+    const blobTemplateWrapper = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Label Plant Inventory</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+        <body><table border="1">${excelRowsXML}</table></body>
+        </html>
+    `;
+
+    const blobDataInstance = new Blob([blobTemplateWrapper], { type: "application/vnd.ms-excel" });
+    const downloadUrlAnchor = window.URL.createObjectURL(blobDataInstance);
+    const hiddenTriggerElement = document.createElement("a");
+    
+    hiddenTriggerElement.href = downloadUrlAnchor;
+    hiddenTriggerElement.download = `LABEL_INVENTORY_AUDIT_SHEET_${new Date().toISOString().slice(0,10)}.xls`;
+    document.body.appendChild(hiddenTriggerElement);
+    hiddenTriggerElement.click();
+    document.body.removeChild(hiddenTriggerElement);
+};
 
 /**
  * ENGINEERING TOOL: Adds a Brand New 4-Digit Part Code and maps specific custom Qty / Box counts
@@ -424,14 +640,14 @@ window.submitNewCatalogPartCode = async function() {
             details: { part_code: partCode, label_name: labelName, suppliers: initialRows }
         });
 
-        alert(`Success: Part code ${partCode} initialized perfectly.`);
+        alert("Success: Part code " + partCode + " initialized perfectly.");
         codeInput.value = "";
         nameInput.value = "";
         minStockInput.value = "5000"; 
         
         await refreshPartCodesCatalogDropdown();
-        document.getElementById("part-code-selector").value = partCode;
-        await loadInventoryForPartCode(partCode);
+        await buildGlobalInventoryCacheSnapshot();
+        selectComboValue(partCode, `${partCode} - ${labelName}`);
 
     } catch (err) {
         console.error("Critical failure during catalog insert:", err);
@@ -451,10 +667,7 @@ window.deleteCurrentSelectedPartCode = async function() {
         return;
     }
 
-    const selector = document.getElementById("part-code-selector");
-    if (!selector) return;
-    
-    const selectedCode = selector.value;
+    const selectedCode = document.getElementById("part-code-selector").value;
     if (!selectedCode) {
         alert("Selection Request: Please pick a part code from the selector dropdown menu first.");
         return;
@@ -473,7 +686,11 @@ window.deleteCurrentSelectedPartCode = async function() {
 
         alert(`Catalog Success: Part code ${selectedCode} successfully removed.`);
         document.getElementById("inventory-display-root").style.display = "none";
+        document.getElementById("part-combo-input").value = "";
+        document.getElementById("part-code-selector").value = "";
+        
         await refreshPartCodesCatalogDropdown();
+        await buildGlobalInventoryCacheSnapshot();
 
     } catch (err) {
         console.error("Critical cascade purge failure:", err);
@@ -547,6 +764,7 @@ async function handleStockSubmit(event) {
 
         closeCustomModal();
         await loadInventoryForPartCode(partCode);
+        await buildGlobalInventoryCacheSnapshot();
 
     } catch (err) {
         console.error("Critical Failure processing packaging data sync records:", err);
