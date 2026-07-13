@@ -7,6 +7,9 @@
     <!-- Include Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
+    <!-- Include SheetJS for Excel Generation -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
     <!-- LINK TO YOUR ROOT JS CONFIG FILE -->
     <script src="js/supabase.js" defer></script>
 </head>
@@ -32,6 +35,12 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 20px;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    .nav-left-group {
+        display: flex;
+        gap: 12px;
     }
     .btn-nav-back {
         display: inline-flex;
@@ -46,10 +55,20 @@
         font-weight: 700;
         font-size: 14px;
         transition: background 0.15s ease;
+        cursor: pointer;
     }
     .btn-nav-back:hover {
         background: #f1f5f9;
         border-color: #94a3b8;
+    }
+    .btn-excel {
+        background: #107c41;
+        color: #ffffff;
+        border: 2px solid #0e6c38;
+    }
+    .btn-excel:hover {
+        background: #0e6c38;
+        border-color: #0c5a2f;
     }
     .btn-nav-secure {
         display: inline-flex;
@@ -76,7 +95,7 @@
         align-items: flex-end;
         border-bottom: 3px solid #e2e8f0;
         padding-bottom: 20px;
-        margin-bottom: 30px;
+        margin-bottom: 25px;
     }
     .dash-title h1 {
         margin: 0 0 6px 0;
@@ -101,6 +120,42 @@
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         align-self: flex-end;
     }
+
+    /* Interactive Search Bar Area */
+    .search-container {
+        margin-bottom: 25px;
+    }
+    .search-input-wrapper {
+        position: relative;
+        max-width: 500px;
+    }
+    .search-input {
+        width: 100%;
+        padding: 12px 16px 12px 42px;
+        font-size: 15px;
+        font-weight: 600;
+        border: 2px solid #cbd5e1;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #0f172a;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        box-sizing: border-box;
+        transition: all 0.15s ease;
+    }
+    .search-input:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 16px;
+        color: #64748b;
+        pointer-events: none;
+    }
     
     /* Live Status Filtering Metrics Row */
     .metric-summary-bar {
@@ -115,6 +170,14 @@
         border-radius: 8px;
         padding: 20px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .metric-card.clickable {
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .metric-card.clickable:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
     .metric-card .label {
         font-size: 12px;
@@ -213,15 +276,130 @@
         font-weight: 700;
         color: #475569;
     }
+
+    /* Modal Overlay UI Elements for Low Supply Listing */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+    }
+    .modal-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .modal-box {
+        background: #ffffff;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 650px;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        overflow: hidden;
+        transform: scale(0.95);
+        transition: transform 0.2s ease;
+        border: 1px solid #cbd5e1;
+    }
+    .modal-overlay.active .modal-box {
+        transform: scale(1);
+    }
+    .modal-header {
+        background: #7f1d1d;
+        color: #ffffff;
+        padding: 18px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .modal-header h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .modal-close {
+        background: transparent;
+        border: none;
+        color: #fca5a5;
+        font-size: 22px;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+    }
+    .modal-close:hover {
+        color: #ffffff;
+    }
+    .modal-body {
+        padding: 24px;
+        max-height: 450px;
+        overflow-y: auto;
+    }
+    .alert-list-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-radius: 8px;
+        background: #fef2f2;
+        border: 1px solid #fee2e2;
+        margin-bottom: 10px;
+    }
+    .alert-list-item:last-child {
+        margin-bottom: 0;
+    }
+    .alert-item-info h4 {
+        margin: 0 0 4px 0;
+        font-size: 15px;
+        font-weight: 700;
+        color: #991b1b;
+    }
+    .alert-item-info p {
+        margin: 0;
+        font-size: 13px;
+        color: #7f1d1d;
+        font-weight: 500;
+    }
+    .alert-item-badge {
+        background: #dc2626;
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 6px 12px;
+        border-radius: 6px;
+    }
+    .modal-empty {
+        text-align: center;
+        padding: 30px;
+        color: #16a34a;
+        font-weight: 700;
+        font-size: 16px;
+    }
 </style>
 
 <div class="dash-container">
     
     <!-- Top Control Row containing Navigation -->
     <div class="top-nav-bar">
-        <a href="index.html" class="btn-nav-back">
-            ⬅️ Return to Main Display
-        </a>
+        <div class="nav-left-group">
+            <a href="index.html" class="btn-nav-back">
+                ⬅️ Return to Main Display
+            </a>
+            <button onclick="exportInventoryToExcel()" class="btn-nav-back btn-excel">
+                📊 Generate Excel Audit Sheet
+            </button>
+        </div>
         <a href="admin/login.html" class="btn-nav-secure">
             🔐 Operator Log In / Update Stock
         </a>
@@ -235,6 +413,14 @@
         <div class="refresh-badge" id="live-clock">Updated: Loading...</div>
     </div>
 
+    <!-- Interactive Search Box Filter -->
+    <div class="search-container">
+        <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="dashboard-search-bar" class="search-input" placeholder="Search by Part Code or Label Name..." oninput="handleDashboardFiltering()">
+        </div>
+    </div>
+
     <!-- Executive Stock KPIs -->
     <div class="metric-summary-bar">
         <div class="metric-card" style="border-left: 5px solid #2563eb;">
@@ -245,7 +431,7 @@
             <div class="label">Total Bulk Storage Vault Boxes</div>
             <div class="val" id="kpi-total-boxes">0 Boxes</div>
         </div>
-        <div class="metric-card" style="border-left: 5px solid #dc2626;">
+        <div class="metric-card clickable" id="kpi-alerts-trigger" onclick="openAlertsModal()" style="border-left: 5px solid #cbd5e1;">
             <div class="label">Critical Low Supply Warnings</div>
             <div class="val" id="kpi-critical-alerts" style="color: #0f172a;">0 Items</div>
         </div>
@@ -257,8 +443,27 @@
     </div>
 </div>
 
+<!-- Low Supply Operational Modal Structure -->
+<div class="modal-overlay" id="alerts-modal-overlay" onclick="closeAlertsModalExternal(event)">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>⚠️ Low Supply Component Matrix</h3>
+            <button class="modal-close" onclick="closeAlertsModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="alerts-modal-listing">
+            <!-- Populated dynamically via Javascript engine -->
+        </div>
+    </div>
+</div>
+
 <script>
     let dbClient = null;
+    
+    // Core data cache states for structural interactions
+    let cachedPartCodes = [];
+    let cachedInventory = [];
+    let cachedSuppliers = [];
+    let cachedLowStockItems = [];
 
     window.addEventListener("DOMContentLoaded", () => {
         initializeDatabaseConnection();
@@ -270,14 +475,12 @@
     });
 
     function initializeDatabaseConnection() {
-        // 1. Direct connection check matching your file setup
         if (typeof supabaseClient !== 'undefined') {
             dbClient = supabaseClient;
         } 
         else if (window.supabaseClient) {
             dbClient = window.supabaseClient;
         }
-        // 2. Ironclad hardcoded connection fallback using your exact tokens
         else if (typeof supabase !== 'undefined') {
             const SUPABASE_URL = "https://ggohaurqbsyamznzuuaf.supabase.co";
             const SUPABASE_KEY = "sb_publishable_ZpHvrV-a_BmznhfbVupvxQ_b5NKYPYk";
@@ -294,9 +497,7 @@
     }
 
     async function loadPublicDashboardData() {
-        if (!dbClient) {
-            initializeDatabaseConnection();
-        }
+        if (!dbClient) { initializeDatabaseConnection(); }
 
         if (!dbClient) {
             document.getElementById("dashboard-catalog-root").innerHTML = `
@@ -320,7 +521,13 @@
             if (inventoryRes.error) throw inventoryRes.error;
             if (suppliersRes.error) throw suppliersRes.error;
 
-            renderDashboardDom(partCodesRes.data, inventoryRes.data, suppliersRes.data);
+            // Retain memory space states
+            cachedPartCodes = partCodesRes.data;
+            cachedInventory = inventoryRes.data;
+            cachedSuppliers = suppliersRes.data;
+
+            processDashboardMetrics();
+            renderDashboardDom(cachedPartCodes);
             updateLiveClock();
         } catch (err) {
             console.error("Dashboard engine fault:", err);
@@ -331,29 +538,83 @@
         }
     }
 
-    function renderDashboardDom(partCodes, inventory, suppliers) {
+    function processDashboardMetrics() {
+        let totalBoxes = 0;
+        cachedLowStockItems = [];
+
+        cachedPartCodes.forEach(codeObj => {
+            const codeRecords = cachedInventory.filter(r => r.part_code === codeObj.part_code);
+            let partTotalLabels = 0;
+            let partMinSetpoint = 5000;
+
+            const targetSuppliers = cachedSuppliers.filter(s => codeRecords.some(r => r.supplier_id === s.id));
+            const activeList = targetSuppliers.length > 0 ? targetSuppliers : cachedSuppliers;
+
+            activeList.forEach(supp => {
+                const record = codeRecords.find(r => r.supplier_id === supp.id) || {
+                    current_full_boxes: 0,
+                    current_loose_labels: 0,
+                    min_setpoint: 5000,
+                    qty_per_box: supp.qty_per_box
+                };
+                const effectiveQty = record.qty_per_box ? record.qty_per_box : supp.qty_per_box;
+                partMinSetpoint = record.min_setpoint;
+
+                partTotalLabels += (record.current_full_boxes * effectiveQty) + record.current_loose_labels;
+                totalBoxes += record.current_full_boxes;
+            });
+
+            if (partTotalLabels <= partMinSetpoint) {
+                cachedLowStockItems.push({
+                    part_code: codeObj.part_code,
+                    label_name: codeObj.label_name,
+                    total_labels: partTotalLabels,
+                    threshold: partMinSetpoint
+                });
+            }
+        });
+
+        // Mutate Executive KPIs DOM
+        document.getElementById("kpi-total-profiles").textContent = cachedPartCodes.length;
+        document.getElementById("kpi-total-boxes").textContent = `${totalBoxes.toLocaleString()} Boxes`;
+        
+        const alertKpi = document.getElementById("kpi-critical-alerts");
+        const alertCard = document.getElementById("kpi-alerts-trigger");
+        const alertCount = cachedLowStockItems.length;
+
+        alertKpi.textContent = `${alertCount} Part Codes`;
+        if (alertCount > 0) {
+            alertKpi.style.color = "#dc2626";
+            alertCard.style.borderColor = "#ef4444";
+            alertCard.style.background = "#fff5f5";
+        } else {
+            alertKpi.style.color = "#16a34a";
+            alertCard.style.borderColor = "#cbd5e1";
+            alertCard.style.background = "#ffffff";
+        }
+
+        buildAlertsModalDOM();
+    }
+
+    function renderDashboardDom(targetPartCodesList) {
         const container = document.getElementById("dashboard-catalog-root");
         if (!container) return;
 
-        if (partCodes.length === 0) {
-            container.innerHTML = `<div class="loading-spinner-box">No label components populated in system.</div>`;
+        if (targetPartCodesList.length === 0) {
+            container.innerHTML = `<div class="loading-spinner-box">No matching labels found in floor index.</div>`;
             return;
         }
 
         container.innerHTML = "";
         
-        let operationalBoxesCount = 0;
-        let criticalAlertsCount = 0;
-
-        partCodes.forEach(codeObj => {
-            const codeRecords = inventory.filter(r => r.part_code === codeObj.part_code);
-            
+        targetPartCodesList.forEach(codeObj => {
+            const codeRecords = cachedInventory.filter(r => r.part_code === codeObj.part_code);
             let partTotalLabels = 0;
             let partTotalBoxes = 0;
             let partMinSetpoint = 5000;
 
-            const targetSuppliers = suppliers.filter(s => codeRecords.some(r => r.supplier_id === s.id));
-            const displayList = targetSuppliers.length > 0 ? targetSuppliers : suppliers;
+            const targetSuppliers = cachedSuppliers.filter(s => codeRecords.some(r => r.supplier_id === s.id));
+            const displayList = targetSuppliers.length > 0 ? targetSuppliers : cachedSuppliers;
 
             let rowHtmlAccumulator = "";
 
@@ -371,7 +632,6 @@
                 const rowSubtotal = (record.current_full_boxes * effectiveQtyPerBox) + record.current_loose_labels;
                 partTotalLabels += rowSubtotal;
                 partTotalBoxes += record.current_full_boxes;
-                operationalBoxesCount += record.current_full_boxes;
 
                 rowHtmlAccumulator += `
                     <tr>
@@ -385,7 +645,6 @@
             });
 
             const isLowStock = partTotalLabels <= partMinSetpoint;
-            if (isLowStock) criticalAlertsCount++;
 
             const blockCard = document.createElement("div");
             blockCard.className = "part-block-card";
@@ -418,15 +677,120 @@
             `;
             container.appendChild(blockCard);
         });
+    }
 
-        // Update KPIs
-        document.getElementById("kpi-total-profiles").textContent = partCodes.length;
-        document.getElementById("kpi-total-boxes").textContent = `${operationalBoxesCount.toLocaleString()} Boxes`;
-        
-        const alertKpi = document.getElementById("kpi-critical-alerts");
-        alertKpi.textContent = `${criticalAlertsCount} Part Codes`;
-        alertKpi.style.color = criticalAlertsCount > 0 ? "#dc2626" : "#16a34a";
-        alertKpi.parentElement.style.borderColor = criticalAlertsCount > 0 ? "#ef4444" : "#cbd5e1";
+    // Handles on-the-fly text searching across dynamic DOM entries
+    function handleDashboardFiltering() {
+        const query = document.getElementById("dashboard-search-bar").value.toLowerCase().trim();
+        if (!query) {
+            renderDashboardDom(cachedPartCodes);
+            return;
+        }
+
+        const filteredList = cachedPartCodes.filter(c => 
+            c.part_code.toLowerCase().includes(query) || 
+            (c.label_name && c.label_name.toLowerCase().includes(query))
+        );
+        renderDashboardDom(filteredList);
+    }
+
+    // Low Supply Warning Matrix Modals Layout Control
+    function buildAlertsModalDOM() {
+        const listContainer = document.getElementById("alerts-modal-listing");
+        if (cachedLowStockItems.length === 0) {
+            listContainer.innerHTML = `<div class="modal-empty">✅ All label item lines tracking safely above alert limits.</div>`;
+            return;
+        }
+
+        let alertItemAccumulator = "";
+        cachedLowStockItems.forEach(item => {
+            alertItemAccumulator += `
+                <div class="alert-list-item">
+                    <div class="alert-item-info">
+                        <h4>${item.part_code}</h4>
+                        <p>${item.label_name || 'Standard Production Item'}</p>
+                        <span style="font-size:11px; color:#991b1b; font-weight:700;">Threshold Limit: ${item.threshold.toLocaleString()}</span>
+                    </div>
+                    <div class="alert-item-badge">
+                        ${item.total_labels.toLocaleString()} On Hand
+                    </div>
+                </div>
+            `;
+        });
+        listContainer.innerHTML = alertItemAccumulator;
+    }
+
+    function openAlertsModal() {
+        document.getElementById("alerts-modal-overlay").classList.add("active");
+    }
+
+    function closeAlertsModal() {
+        document.getElementById("alerts-modal-overlay").classList.remove("active");
+    }
+
+    function closeAlertsModalExternal(e) {
+        if (e.target.id === "alerts-modal-overlay") {
+            closeAlertsModal();
+        }
+    }
+
+    // Generates a fully compliant matrix .xlsx sheet for physical verification tasks
+    function exportInventoryToExcel() {
+        if (cachedPartCodes.length === 0) {
+            alert("No floor dataset loaded to compile a ledger sheet.");
+            return;
+        }
+
+        const structuralRows = [];
+
+        cachedPartCodes.forEach(codeObj => {
+            const codeRecords = cachedInventory.filter(r => r.part_code === codeObj.part_code);
+            const targetSuppliers = cachedSuppliers.filter(s => codeRecords.some(r => r.supplier_id === s.id));
+            const iterationList = targetSuppliers.length > 0 ? targetSuppliers : cachedSuppliers;
+
+            iterationList.forEach(supp => {
+                const record = codeRecords.find(r => r.supplier_id === supp.id) || {
+                    current_full_boxes: 0,
+                    current_loose_labels: 0,
+                    min_setpoint: 5000,
+                    qty_per_box: supp.qty_per_box
+                };
+
+                const fallbackQty = record.qty_per_box ? record.qty_per_box : supp.qty_per_box;
+                const totalStockCalc = (record.current_full_boxes * fallbackQty) + record.current_loose_labels;
+                const statusMarker = totalStockCalc <= record.min_setpoint ? "CRITICAL LOW" : "OK";
+
+                structuralRows.push({
+                    "Part Code": codeObj.part_code,
+                    "Label Description": codeObj.label_name || "",
+                    "Supplier Identity": supp.supplier_name,
+                    "Current Sealed Boxes": record.current_full_boxes,
+                    "Loose Quantities Count": record.current_loose_labels,
+                    "Standard Box Units Qty": fallbackQty,
+                    "Total System On-Hand": totalStockCalc,
+                    "Minimum Alert Setpoint": record.min_setpoint,
+                    "Inventory Health Status": statusMarker,
+                    "Physical Audit Verified Count": "" // Intentionally empty for manual print clipboards
+                });
+            });
+        });
+
+        // SheetJS engine generation loop executions
+        const worksheet = XLSX.utils.json_to_sheet(structuralRows);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Plant Audit Sheet");
+
+        // Format column dimensional layout boundaries automatically
+        const colWidths = [
+            { wch: 15 }, { wch: 25 }, { wch: 20 }, 
+            { wch: 20 }, { wch: 22 }, { wch: 22 }, 
+            { wch: 20 }, { wch: 20 }, { wch: 18 }, { wch: 30 }
+        ];
+        worksheet["!cols"] = colWidths;
+
+        // Save generated output binary to local client terminal
+        const generatedDate = new Date().toISOString().split('T')[0];
+        XLSX.writeFile(workbook, `Plant_Label_Audit_Ledger_${generatedDate}.xlsx`);
     }
 </script>
 </body>
