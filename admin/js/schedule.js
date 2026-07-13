@@ -3,97 +3,117 @@
 // Schedule Manager
 // =======================================
 
-function initSchedulePage() {
+document.addEventListener('DOMContentLoaded', async () => {
+    const BUCKET_NAME = 'display'; 
+    const FOLDER_PREFIX = 'schedule/';
 
-    const fileInput = document.getElementById("scheduleFile");
+    async function loadScheduleSettings() {
+        try {
+            // 1. Fetch Global Rotation Interval from settings (targeting the first row)
+            const { data: settingsData } = await supabase.from('settings').select('schedule_seconds').limit(1).single();
+            if (settingsData && settingsData.schedule_seconds) {
+                document.getElementById('rotationInterval').value = settingsData.schedule_seconds;
+            }
 
-    if (!fileInput) return;
+            // 2. Fetch all 5 rows from schedule_slots table
+            const { data: slots, error } = await supabase.from('schedule_slots').select('*').order('slot', { ascending: true });
+            if (error) throw error;
 
-    const preview = document.getElementById("preview");
-    const uploadBtn = document.getElementById("uploadBtn");
-    const status = document.getElementById("status");
-    const currentSchedule = document.getElementById("currentSchedule");
+            slots.forEach(slotData => {
+                const i = slotData.slot;
+                const toggle = document.getElementById(`toggle-slot-${i}`);
+                const previewImg = document.getElementById(`preview-img-${i}`);
+                const placeholder = document.getElementById(`placeholder-${i}`);
 
-    // Show current schedule
-
-    const imageUrl = supabaseClient.storage
-        .from("display")
-        .getPublicUrl("schedule/current.png")
-        .data.publicUrl;
-
-    currentSchedule.src =
-        imageUrl + "?t=" + Date.now();
-
-    let selectedFile = null;
-
-    // Preview image
-
-    fileInput.addEventListener("change", () => {
-
-        selectedFile = fileInput.files[0];
-
-        if (!selectedFile) return;
-
-        preview.src =
-            URL.createObjectURL(selectedFile);
-
-        preview.style.display = "block";
-
-    });
-
-    // Upload
-
-    uploadBtn.addEventListener("click", async () => {
-
-        if (!selectedFile) {
-
-            alert("Please choose an image.");
-
-            return;
-
-        }
-
-        uploadBtn.disabled = true;
-
-        status.innerHTML = "Uploading...";
-
-        const { error } = await supabaseClient.storage
-
-            .from("display")
-
-            .upload(
-                "schedule/current.png",
-                selectedFile,
-                {
-                    upsert: true
+                if (toggle) toggle.checked = slotData.enabled;
+                if (slotData.url && previewImg) {
+                    previewImg.src = `${slotData.url}?t=${new Date().getTime()}`;
+                    previewImg.classList.remove('d-none');
+                    placeholder.classList.add('d-none');
                 }
-            );
-
-        if (error) {
-
-            status.innerHTML =
-                "❌ " + error.message;
-
-            uploadBtn.disabled = false;
-
-            return;
-
+            });
+        } catch (err) {
+            console.error('Error fetching relational schedule properties:', err);
         }
+    }
 
-        status.innerHTML =
-            "✅ Schedule Published Successfully";
+    // Handle File Processing and Storage uploading
+    document.querySelectorAll('.file-input').forEach(input => {
+        input.addEventListener('change', async (e) => {
+            const card = e.target.closest('.slot-card');
+            const slotId = parseInt(card.dataset.slot, 10);
+            const file = e.target.files[0];
+            if (!file) return;
 
-        currentSchedule.src =
-            imageUrl + "?t=" + Date.now();
+            const previewImg = document.getElementById(`preview-img-${slotId}`);
+            const placeholder = document.getElementById(`placeholder-${slotId}`);
 
-        preview.style.display = "none";
+            try {
+                const fileExt = file.name.split('.').pop();
+                const filePath = `${FOLDER_PREFIX}slot_${slotId}.${fileExt}`;
 
-        fileInput.value = "";
+                const { error: uploadError } = await supabase.storage
+                    .from(BUCKET_NAME)
+                    .upload(filePath, file, { upsert: true, cacheControl: '0' });
 
-        selectedFile = null;
+                if (uploadError) throw uploadError;
 
-        uploadBtn.disabled = false;
+                const { data: publicUrlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(filePath);
+                const assetUrl = publicUrlData.publicUrl;
 
+                const { error: dbError } = await supabase
+                    .from('schedule_slots')
+                    .update({ url: assetUrl })
+                    .eq('slot', slotId);
+
+                if (dbError) throw dbError;
+                
+                previewImg.src = `${assetUrl}?t=${new Date().getTime()}`;
+                previewImg.classList.remove('d-none');
+                placeholder.classList.add('d-none');
+
+            } catch (err) {
+                alert(`Upload operation failed: ${err.message || err}`);
+            }
+        });
     });
 
-}
+    // Save Enable/Disable State changes straight to rows
+    document.querySelectorAll('.slot-toggle').forEach(toggle => {
+        toggle.addEventListener('change', async (e) => {
+            const slotId = parseInt(e.target.id.replace('toggle-slot-', ''), 10);
+            await supabase.from('schedule_slots').update({ enabled: e.target.checked }).eq('slot', slotId);
+        });
+    });
+
+    // Handle Rotation Timer updates (Updates the first settings record matching your setup row pattern)
+    document.getElementById('saveIntervalBtn').addEventListener('click', async () => {
+        const value = parseInt(document.getElementById('rotationInterval').value, 10);
+        const finalValue = value >= 2 ? value : 5;
+
+        // Fetch current row ID to perform a safe update match
+        const { data: currentSettings } = await supabase.from('settings').select('id').limit(1).single();
+        
+        if (currentSettings) {
+            await supabase.from('settings').update({ schedule_seconds: finalValue }).eq('id', currentSettings.id);
+            alert('Rotation frequency update complete!');
+        }
+    });
+
+    // Wire Up Lightbox Dynamic Previews
+    const previewModal = new bootstrap.Modal(document.getElementById('schedulePreviewModal'));
+    document.querySelectorAll('.btn-preview-modal').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const slotId = e.currentTarget.dataset.slot;
+            const activeImgSrc = document.getElementById(`preview-img-${slotId}`).src;
+            if (activeImgSrc) {
+                document.getElementById('modalPreviewImage').src = activeImgSrc;
+                previewModal.show();
+            } else {
+                alert('No media asset loaded into this slot.');
+            }
+        });
+    });
+
+    await loadScheduleSettings();
+});
