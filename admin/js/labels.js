@@ -91,13 +91,15 @@ function renderAuthStatusArea() {
         </div>
     `;
     
-    // Evaluate display layout rights for Master Part Code creation/deletion catalog mechanics
-    const canCreateCatalog = typeof userPermissions !== 'undefined' && userPermissions.labels ? userPermissions.labels.can_create : (userRoleId === 1);
+    // STRICT SECURITY: Restrict Master Part Code Creation/Deletion Catalog mechanics to Admin only
+    const canCreateCatalog = typeof userPermissions !== 'undefined' && userPermissions.labels ? userPermissions.labels.can_create === true : (userRoleId === 1);
     
-    if (canCreateCatalog) {
-        if (adminPanel) adminPanel.style.display = "block";
-    } else {
-        if (adminPanel) adminPanel.style.display = "none";
+    if (adminPanel) {
+        if (canCreateCatalog) {
+            adminPanel.style.display = "block";
+        } else {
+            adminPanel.style.display = "none";
+        }
     }
 }
 
@@ -144,7 +146,7 @@ function renderSupplierCheckboxes() {
  */
 window.promptCreateNewSupplier = async function() {
     const userRoleId = currentUser.profile?.role_id;
-    const canCreateCatalog = typeof userPermissions !== 'undefined' && userPermissions.labels ? userPermissions.labels.can_create : (userRoleId === 1);
+    const canCreateCatalog = typeof userPermissions !== 'undefined' && userPermissions.labels ? userPermissions.labels.can_create === true : (userRoleId === 1);
 
     if (!canCreateCatalog) {
         alert("Action Revoked: Only System Administrators or cleared staff possess catalog design rights.");
@@ -566,7 +568,7 @@ window.generateDatabaseExcelExport = function() {
  */
 window.submitNewCatalogPartCode = async function() {
     const userRoleId = currentUser.profile?.role_id;
-    const canCreateCatalog = typeof userPermissions !== 'undefined' && userPermissions.labels ? userPermissions.labels.can_create : (userRoleId === 1);
+    const canCreateCatalog = typeof userPermissions !== 'undefined' && userPermissions.labels ? userPermissions.labels.can_create === true : (userRoleId === 1);
 
     if (!canCreateCatalog) {
         alert("Unauthorized action execution barred.");
@@ -626,7 +628,7 @@ window.submitNewCatalogPartCode = async function() {
             };
         });
 
-        const { error: invError } = await supabaseClient
+        const { error: invError =  } = await supabaseClient
             .from("labels_inventory")
             .insert(initialRows);
 
@@ -660,7 +662,7 @@ window.submitNewCatalogPartCode = async function() {
  */
 window.deleteCurrentSelectedPartCode = async function() {
     const userRoleId = currentUser.profile?.role_id;
-    const canCreateCatalog = typeof userPermissions !== 'undefined' && userPermissions.labels ? userPermissions.labels.can_create : (userRoleId === 1);
+    const canCreateCatalog = typeof userPermissions !== 'undefined' && userPermissions.labels ? userPermissions.labels.can_create === true : (userRoleId === 1);
 
     if (!canCreateCatalog) {
         alert("Action Denied.");
