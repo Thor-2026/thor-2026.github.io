@@ -2,7 +2,6 @@
 // THOR DISPLAY CMS
 // Schedule Manager
 // =======================================
-
 document.addEventListener('DOMContentLoaded', async () => {
     const BUCKET_NAME = 'display'; 
     const FOLDER_PREFIX = 'schedule/';
