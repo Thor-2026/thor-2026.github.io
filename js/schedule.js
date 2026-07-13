@@ -1,6 +1,6 @@
 // ======================================
 // THOR DISPLAY CMS
-// Schedule Module (Smooth Cross-Fade Slideshow)
+// Schedule Module (Proportional Fit Cross-Fade)
 // ======================================
 
 let scheduleTimer = null;
@@ -32,7 +32,7 @@ async function loadSchedule() {
             return;
         }
 
-        // 3. Inject CSS for Safe Proportional Cross-Fading
+        // 3. Inject CSS for Pure Proportional Layout Matching
         if (!document.getElementById('fade-slideshow-core-styles')) {
             const styleBlock = document.createElement('style');
             styleBlock.id = 'fade-slideshow-core-styles';
@@ -42,19 +42,20 @@ async function loadSchedule() {
                     width: 100%;
                     height: 100%;
                     overflow: hidden;
-                    background: #000;
+                    background: transparent;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
                 }
                 .fade-slide-layer {
                     position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
+                    max-width: 100%;
+                    max-height: 100%;
+                    width: auto;
+                    height: auto;
                     opacity: 0;
                     transition: opacity 1000ms ease-in-out;
-                    background-size: contain; /* Ensures 100% of the image fits without cropping or stretching */
-                    background-position: center;
-                    background-repeat: no-repeat;
+                    object-fit: contain; /* Keeps original aspect ratio intact completely */
                 }
                 .fade-slide-layer.active {
                     opacity: 1;
@@ -63,7 +64,7 @@ async function loadSchedule() {
             document.head.appendChild(styleBlock);
         }
 
-        // 4. Initialize Elements Setup
+        // 4. Initialize Elements Layout Setup
         const parent = container.parentNode;
         let slideshowBox = document.getElementById('slideshowRenderContainer');
         
@@ -77,14 +78,13 @@ async function loadSchedule() {
             container.style.display = "none"; 
         }
 
-        // Generate slide DOM wrappers with a cache-busting timestamp
+        // Generate slide <img> tags directly instead of background-images for strict constraint parsing
         const htmlContent = activeSlides.map((slide, idx) => `
-            <div class="fade-slide-layer" style="background-image: url('${slide.url}?t=${Date.now()}');"></div>
+            <img class="fade-slide-layer" src="${slide.url}?t=${Date.now()}" alt="Schedule Slot">
         `).join('');
         
         slideshowBox.innerHTML = htmlContent;
 
-        
         // 5. Execute Slideshow Rotation Mechanics
         const layers = slideshowBox.querySelectorAll('.fade-slide-layer');
         if (layers.length > 0) {
@@ -109,7 +109,6 @@ async function loadSchedule() {
 
 function startSchedule() {
     loadSchedule();
-    // Periodically re-sync from the database map state layout updates every 60 seconds
     setInterval(loadSchedule, 60000);
 }
 
