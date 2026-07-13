@@ -1,11 +1,11 @@
 // =======================================
 // THOR DISPLAY CMS
-// Schedule Manager (Multi-Slot Edition)
+// Schedule Manager Backend Interface
 // =======================================
 
 async function initSchedulePage() {
     if (typeof supabaseClient === 'undefined') {
-        console.error("Supabase client instance not detected.");
+        console.error("Supabase engine connection interface missing.");
         return;
     }
 
@@ -13,14 +13,14 @@ async function initSchedulePage() {
     const FOLDER_PREFIX = 'schedule/';
 
     try {
-        // 1. Fetch Global Rotation configuration settings row
+        // 1. Fetch Timing Settings Row
         const { data: settingsData } = await supabaseClient.from('settings').select('schedule_seconds').limit(1).single();
         const intervalInput = document.getElementById('rotationInterval');
         if (settingsData && settingsData.schedule_seconds && intervalInput) {
             intervalInput.value = settingsData.schedule_seconds;
         }
 
-        // 2. Map all rows into the dashboard panels UI state grids
+        // 2. Fetch and Load Active Data Slots mapping records inside panels UI grids
         const { data: slots, error } = await supabaseClient.from('schedule_slots').select('*').order('slot', { ascending: true });
         if (!error && slots) {
             slots.forEach(slotData => {
@@ -38,10 +38,10 @@ async function initSchedulePage() {
             });
         }
     } catch (err) {
-        console.error('Failed processing administrative layouts init: ', err);
+        console.error('Failed processing backend layout initialization states:', err);
     }
 
-    // 3. Save Interval Config Listener Loop Hook
+    // 3. Timing Configuration Updates Action Submit Trigger Loop
     const saveIntervalBtn = document.getElementById('saveIntervalBtn');
     if (saveIntervalBtn) {
         saveIntervalBtn.onclick = async () => {
@@ -56,7 +56,7 @@ async function initSchedulePage() {
         };
     }
 
-    // 4. Track Dynamic Elements Context Swaps 
+    // 4. File Chooser Pipeline Stream Sync Handling
     document.querySelectorAll('.file-input').forEach(input => {
         input.onchange = async (e) => {
             const card = e.target.closest('.slot-card');
@@ -71,7 +71,7 @@ async function initSchedulePage() {
                 const fileExt = file.name.split('.').pop();
                 const filePath = `${FOLDER_PREFIX}slot_${slotId}.${fileExt}`;
 
-                // Upload direct target streams straight to cloud context pipelines
+                // Upload structural files streams direct to storage layer bucket
                 const { error: uploadError } = await supabaseClient.storage
                     .from(BUCKET_NAME)
                     .upload(filePath, file, { upsert: true, cacheControl: '0' });
@@ -80,7 +80,7 @@ async function initSchedulePage() {
 
                 const assetUrl = supabaseClient.storage.from(BUCKET_NAME).getPublicUrl(filePath).data.publicUrl;
 
-                // Update row URL index maps
+                // Bind update values straight into target database rows indices
                 const { error: dbError } = await supabaseClient
                     .from('schedule_slots')
                     .update({ url: assetUrl })
@@ -93,14 +93,14 @@ async function initSchedulePage() {
                     previewImg.style.display = 'block';
                     placeholder.style.display = 'none';
                 }
-                alert(`Slot ${slotId} image updated instantly!`);
+                alert(`Slot ${slotId} schedule updated successfully!`);
             } catch (err) {
-                alert(`Upload execution failed: ${err.message || err}`);
+                alert(`Upload execution processing failed: ${err.message || err}`);
             }
         };
     });
 
-    // Handle Toggles
+    // 5. Handle Slide Toggle Status updates hooks 
     document.querySelectorAll('.slot-toggle').forEach(chk => {
         chk.onchange = async (e) => {
             const slotId = parseInt(e.target.id.replace('toggle-slot-', ''), 10);
@@ -108,7 +108,7 @@ async function initSchedulePage() {
         };
     });
 
-    // Handle Custom Simple Lightbox Modal Display click tracking mappings
+    // 6. Inline Simple Lightbox Frame Dialog Modal Trigger Loops Map Action
     document.querySelectorAll('.btn-preview-modal').forEach(btn => {
         btn.onclick = (e) => {
             const slotId = e.target.closest('.btn-preview-modal').dataset.slot;
@@ -117,7 +117,7 @@ async function initSchedulePage() {
                 document.getElementById('lightboxTargetImage').src = activeImg.src;
                 document.getElementById('simplePreviewLightbox').style.display = 'flex';
             } else {
-                alert('No media asset loaded into this slot layout.');
+                alert('No media file loaded into this target schedule grid slot loop layout.');
             }
         };
     });
