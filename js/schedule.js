@@ -84,6 +84,7 @@ async function loadSchedule() {
         
         slideshowBox.innerHTML = htmlContent;
 
+        
         // 5. Execute Slideshow Rotation Mechanics
         const layers = slideshowBox.querySelectorAll('.fade-slide-layer');
         if (layers.length > 0) {
