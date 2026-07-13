@@ -1,24 +1,20 @@
 // ======================================
 // THOR DISPLAY CMS
-// Schedule Module (Proportional Fit Cross-Fade)
+// Schedule Module
 // ======================================
 
 let scheduleTimer = null;
 let currentSlideIndex = 0;
+let activeSlidesCached = [];
 
 async function loadSchedule() {
-    // SECURITY GUARD: Stop execution if the presentation element is missing (e.g. inside Admin)
-    const container = document.getElementById("scheduleImage");
-    if (!container) return;
+    const scheduleImage = document.getElementById("scheduleImage");
+    if (!scheduleImage) return;
 
     if (typeof supabaseClient === 'undefined') return;
 
     try {
-        // 1. Fetch Rotation Configuration Interval
-        const { data: settingsData } = await supabaseClient.from('settings').select('schedule_seconds').limit(1).single();
-        const intervalMs = (settingsData && settingsData.schedule_seconds ? parseInt(settingsData.schedule_seconds, 10) : 5) * 1000;
-
-        // 2. Fetch Active Slots
+        // 1. Fetch active slots from your new database setup
         const { data: activeSlides, error } = await supabaseClient
             .from('schedule_slots')
             .select('url')
@@ -27,89 +23,50 @@ async function loadSchedule() {
             .order('slot', { ascending: true });
 
         if (error || !activeSlides || activeSlides.length === 0) {
-            container.parentNode.style.background = "transparent";
-            container.style.display = "none";
+            scheduleImage.style.display = "none";
             return;
         }
 
-        // 3. Inject CSS for Pure Proportional Layout Matching
-        if (!document.getElementById('fade-slideshow-core-styles')) {
-            const styleBlock = document.createElement('style');
-            styleBlock.id = 'fade-slideshow-core-styles';
-            styleBlock.innerHTML = `
-                .fade-wrapper-frame {
-                    position: relative;
-                    width: 100%;
-                    height: 100%;
-                    overflow: hidden;
-                    background: transparent;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                }
-                .fade-slide-layer {
-                    position: absolute;
-                    max-width: 100%;
-                    max-height: 100%;
-                    width: auto;
-                    height: auto;
-                    opacity: 0;
-                    transition: opacity 1000ms ease-in-out;
-                    object-fit: contain; /* Keeps original aspect ratio intact completely */
-                }
-                .fade-slide-layer.active {
-                    opacity: 1;
-                }
-            `;
-            document.head.appendChild(styleBlock);
+        // Store the list globally so we can loop through them
+        activeSlidesCached = activeSlides;
+
+        // Ensure our index is safe
+        if (currentSlideIndex >= activeSlidesCached.length) {
+            currentSlideIndex = 0;
         }
 
-        // 4. Initialize Elements Layout Setup
-        const parent = container.parentNode;
-        let slideshowBox = document.getElementById('slideshowRenderContainer');
-        
-        if (!slideshowBox) {
-            slideshowBox = document.createElement('div');
-            slideshowBox.id = 'slideshowRenderContainer';
-            slideshowBox.className = 'fade-wrapper-frame';
-            slideshowBox.style.width = "100%";
-            slideshowBox.style.height = "100%";
-            parent.insertBefore(slideshowBox, container);
-            container.style.display = "none"; 
-        }
+        // 2. Get the current image URL to display
+        const imageUrl = activeSlidesCached[currentSlideIndex].url;
 
-        // Generate slide <img> tags directly instead of background-images for strict constraint parsing
-        const htmlContent = activeSlides.map((slide, idx) => `
-            <img class="fade-slide-layer" src="${slide.url}?t=${Date.now()}" alt="Schedule Slot">
-        `).join('');
-        
-        slideshowBox.innerHTML = htmlContent;
-
-        // 5. Execute Slideshow Rotation Mechanics
-        const layers = slideshowBox.querySelectorAll('.fade-slide-layer');
-        if (layers.length > 0) {
-            if (currentSlideIndex >= layers.length) currentSlideIndex = 0;
-            layers[currentSlideIndex].classList.add('active');
-
-            if (scheduleTimer) clearInterval(scheduleTimer);
-            
-            if (layers.length > 1) {
-                scheduleTimer = setInterval(() => {
-                    layers[currentSlideIndex].classList.remove('active');
-                    currentSlideIndex = (currentSlideIndex + 1) % layers.length;
-                    layers[currentSlideIndex].classList.add('active');
-                }, intervalMs);
-            }
-        }
+        // 3. Preload and swap exactly like your original logic did
+        const newImage = new Image();
+        newImage.onload = () => {
+            scheduleImage.src = imageUrl + "?t=" + Date.now();
+            scheduleImage.style.display = "block";
+        };
+        newImage.src = imageUrl + "?t=" + Date.now();
 
     } catch (err) {
-        console.error("Schedule Presentation Engine Error:", err);
+        console.error("Schedule Engine Error:", err);
     }
 }
 
 function startSchedule() {
+    if (scheduleTimer) {
+        clearInterval(scheduleTimer);
+    }
+
+    // Load the first image instantly
     loadSchedule();
-    setInterval(loadSchedule, 60000);
+
+    // Set an interval to advance to the next image every 60 seconds
+    // exactly like your original 60000ms loop timer.
+    scheduleTimer = setInterval(() => {
+        if (activeSlidesCached.length > 1) {
+            currentSlideIndex = (currentSlideIndex + 1) % activeSlidesCached.length;
+        }
+        loadSchedule();
+    }, 60000);
 }
 
 function stopSchedule() {
