@@ -142,9 +142,9 @@ window.promptCreateNewSupplier = async function() {
     const supplierName = prompt("Enter the name of the new label supplier line:\n(e.g., Prodigy, Northern, Apex Packaging)");
     if (!supplierName || !supplierName.trim()) return;
 
-    const qtyText = prompt(`Enter standard fallback label quantity packed inside one full box for ${supplierName.trim()}:`, "15000");
+    const qtyText = prompt(`Enter standard fallback label quantity packed inside one full box for ${supplierName.trim()}:`, "6000");
     if (qtyText === null) return;
-    const qtyPerBox = parseInt(qtyText) || 15000;
+    const qtyPerBox = parseInt(qtyText) || 6000;
 
     try {
         const { error: insertError } = await supabaseClient
@@ -394,7 +394,7 @@ function evaluatePlantLowStockSafetyThresholds() {
         const associatedRecords = fullInventoryBalancesSnapshot.filter(r => r.part_code === part.part_code);
         
         let totalCalculatedLabels = 0;
-        let minimumAllowedSetpoint = 5000;
+        let minimumAllowedSetpoint = 30000;
         
         if (associatedRecords.length > 0) {
             minimumAllowedSetpoint = associatedRecords[0].min_setpoint;
@@ -505,9 +505,9 @@ window.generateDatabaseExcelExport = function() {
                     <td>No Associated Records</td>
                     <td>0</td>
                     <td>0</td>
-                    <td>15000</td>
+                    <td>6000</td>
                     <td>0</td>
-                    <td>5000</td>
+                    <td>30000</td>
                 </tr>
             `;
         } else {
@@ -569,7 +569,7 @@ window.submitNewCatalogPartCode = async function() {
     const partCode = codeInput.value.trim();
     const labelName = nameInput.value.trim();
     const parsedMinStock = parseInt(minStockInput.value);
-    const minSetpoint = isNaN(parsedMinStock) ? 5000 : parsedMinStock;
+    const minSetpoint = isNaN(parsedMinStock) ? 30000 : parsedMinStock;
 
     if (partCode.length !== 4 || isNaN(partCode)) {
         alert("Verification Error: Part Code must be exactly a 4-digit number.");
@@ -600,7 +600,7 @@ window.submitNewCatalogPartCode = async function() {
             let customQty = qtyBoxInput ? parseInt(qtyBoxInput.value) : 0;
             if (!customQty || isNaN(customQty)) {
                 const matchedSupp = masterSuppliersList.find(s => s.id === suppId);
-                customQty = matchedSupp ? matchedSupp.qty_per_box : 15000;
+                customQty = matchedSupp ? matchedSupp.qty_per_box : 6000;
             }
 
             return {
@@ -630,7 +630,7 @@ window.submitNewCatalogPartCode = async function() {
         alert("Success: Part code " + partCode + " initialized perfectly.");
         codeInput.value = "";
         nameInput.value = "";
-        minStockInput.value = "5000"; 
+        minStockInput.value = "30000"; 
         
         await refreshPartCodesCatalogDropdown();
         await buildGlobalInventoryCacheSnapshot();
@@ -714,7 +714,7 @@ async function handleStockSubmit(event) {
     const partCode = document.getElementById("modal-part-code").value;
     const supplierId = parseInt(document.getElementById("modal-supplier-id").value);
     const supplierName = document.getElementById("modal-supplier-name").value;
-    const qtyPerBox = parseInt(document.getElementById("modal-qty-per-box").value) || 15000;
+    const qtyPerBox = parseInt(document.getElementById("modal-qty-per-box").value) || 6000;
     
     const inputBoxes = parseInt(document.getElementById("input-full-boxes").value) || 0;
     const inputLoose = parseInt(document.getElementById("input-loose-labels").value) || 0;
