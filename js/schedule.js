@@ -1,6 +1,6 @@
 // ======================================
 // THOR DISPLAY CMS
-// Schedule Module (True Seconds Layer)
+// Schedule Module (True Seconds - Fast Startup)
 // ======================================
 
 let scheduleTimer = null;
@@ -8,6 +8,9 @@ let dbSyncTimer = null;
 let currentSlideIndex = 0;
 let activeSlidesCached = [];
 let currentIntervalMs = 5000; // Default fallback to 5 seconds
+
+// Use one stable session timestamp so images are instant after the first download
+const sessionToken = Date.now(); 
 
 // 1. FAST ROTATION: Slides through images instantly using your exact original image swap style
 function advanceSlide() {
@@ -18,13 +21,13 @@ function advanceSlide() {
     currentSlideIndex = (currentSlideIndex + 1) % activeSlidesCached.length;
     const imageUrl = activeSlidesCached[currentSlideIndex].url;
 
-    // Direct original image swap execution mapping path
+    // Direct original image swap execution
     const newImage = new Image();
     newImage.onload = () => {
-        scheduleImage.src = imageUrl + "?t=" + Date.now();
+        scheduleImage.src = imageUrl + "?t=" + sessionToken;
         scheduleImage.style.display = "block";
     };
-    newImage.src = imageUrl + "?t=" + Date.now();
+    newImage.src = imageUrl + "?t=" + sessionToken;
 }
 
 // 2. BACKGROUND SYNC: Fetches settings and new uploads quietly without lagging the slideshow
@@ -32,7 +35,30 @@ async function syncWithDatabase() {
     if (typeof supabaseClient === 'undefined') return;
 
     try {
-        // Fetch intervals from database settings table
+        // PRIORITIZE IMAGES FIRST: Fetch active layout slots rows indices immediately
+        const { data: activeSlides, error } = await supabaseClient
+            .from('schedule_slots')
+            .select('url')
+            .eq('enabled', true)
+            .neq('url', '')
+            .order('slot', { ascending: true });
+
+        if (!error && activeSlides && activeSlides.length > 0) {
+            activeSlidesCached = activeSlides;
+            
+            // If this is the first run, show the first image immediately!
+            const scheduleImage = document.getElementById("scheduleImage");
+            if (scheduleImage && (!scheduleImage.src || scheduleImage.src === window.location.href || scheduleImage.style.display === "none")) {
+                scheduleImage.src = activeSlidesCached[0].url + "?t=" + sessionToken;
+                scheduleImage.style.display = "block";
+            }
+        } else if (error || !activeSlides || activeSlides.length === 0) {
+            const scheduleImage = document.getElementById("scheduleImage");
+            if (scheduleImage) scheduleImage.style.display = "none";
+            return;
+        }
+
+        // DEFER TIMING INFO: Fetch intervals from database quietly afterward
         const { data: settingsData } = await supabaseClient.from('settings').select('schedule_seconds').limit(1).single();
         if (settingsData && settingsData.schedule_seconds) {
             const dbSeconds = parseInt(settingsData.schedule_seconds, 10);
@@ -42,25 +68,6 @@ async function syncWithDatabase() {
             if (targetMs !== currentIntervalMs) {
                 currentIntervalMs = targetMs;
                 if (scheduleTimer) startSlideshowTimer();
-            }
-        }
-
-        // Fetch active layout slots rows indices
-        const { data: activeSlides, error } = await supabaseClient
-            .from('schedule_slots')
-            .select('url')
-            .eq('enabled', true)
-            .neq('url', '')
-            .order('slot', { ascending: true });
-
-        if (!error && activeSlides) {
-            activeSlidesCached = activeSlides;
-            
-            // If this is the first run, show the first image immediately
-            const scheduleImage = document.getElementById("scheduleImage");
-            if (scheduleImage && activeSlidesCached.length > 0 && !scheduleImage.src) {
-                scheduleImage.src = activeSlidesCached[0].url + "?t=" + Date.now();
-                scheduleImage.style.display = "block";
             }
         }
     } catch (err) {
@@ -82,7 +89,6 @@ function startSlideshowTimer() {
 
 // 4. MAIN CMS HOOK ENTRY POINTS
 async function loadSchedule() {
-    // Sync once immediately on call
     await syncWithDatabase();
 }
 
