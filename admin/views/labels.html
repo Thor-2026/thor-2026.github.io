@@ -218,30 +218,17 @@
         font-size: 17px;
     }
     
-    /* Action Buttons */
     .inv-btn-edit { 
         background: #2563eb; 
         color: white !important; 
         border: none; 
-        padding: 8px 14px; 
+        padding: 10px 18px; 
         font-weight: 700; 
         border-radius: 6px; 
         cursor: pointer; 
-        font-size: 13px; 
+        font-size: 14px; 
     }
     .inv-btn-edit:hover { background: #1d4ed8; }
-
-    .inv-btn-specs { 
-        background: #475569; 
-        color: white !important; 
-        border: none; 
-        padding: 8px 14px; 
-        font-weight: 700; 
-        border-radius: 6px; 
-        cursor: pointer; 
-        font-size: 13px; 
-    }
-    .inv-btn-specs:hover { background: #334155; }
     
     /* Interactive Warning Bar Controls */
     .inv-alert-trigger { 
@@ -274,14 +261,7 @@
     .inv-modal-close { background: none; border: none; color: #94a3b8; font-size: 28px; cursor: pointer; }
     .inv-modal-close:hover { color: white; }
     .inv-modal-body { padding: 24px; background: #ffffff; max-height: 550px; overflow-y: auto; }
-    .inv-modal-footer { padding: 16px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; }
     
-    /* Missing baseline form & button styling declarations */
-    .inv-form-control { width: 100%; padding: 10px 12px; font-size: 14px; border: 2px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none; background: #ffffff; color: #0f172a; font-weight: 600; }
-    .inv-form-control:focus { border-color: #2563eb; }
-    .inv-btn-can { background: #64748b; color: white; border: none; padding: 10px 20px; font-weight: 700; border-radius: 6px; cursor: pointer; font-size: 14px; }
-    .inv-btn-can:hover { background: #475569; }
-
     /* Three-Column Traffic Light Layout Rules */
     .traffic-light-grid {
         display: grid;
@@ -375,25 +355,29 @@
         background-color: #94a3b8 !important;
         cursor: not-allowed;
     }
+
+    .permission-denied-block {
+        background: #ffffff;
+        border: 2px dashed #ef4444;
+        border-radius: 8px;
+        padding: 40px;
+        text-align: center;
+        max-width: 600px;
+        margin: 80px auto;
+    }
 </style>
 
-<!-- Main Container: Now hardcoded to display clearly with Admin status active -->
-<div class="inv-container" id="authorized-view-wrapper" style="display: block;">
+<div class="inv-container" id="authorized-view-wrapper" style="display: none;">
     <div class="inv-header-flex">
         <div class="inv-title-area">
             <h2>Label Inventory Management Control</h2>
             <p>Authorized Console: Adjust floor balances, alter limits, and configure supply codes.</p>
         </div>
-        <!-- Super Admin Status visual badge hardcoded to be visible by default -->
-        <div id="auth-status-area" style="display: flex; align-items: center; gap: 12px;">
-            <span style="background: #ecfdf5; color: #047857; border: 2px solid #a7f3d0; padding: 8px 16px; font-weight: 800; font-size: 13px; border-radius: 6px; letter-spacing: 0.05em;">
-                🛡️ SUPER ADMIN CONSOLE ACTIVE
-            </span>
-        </div>
+        <div id="auth-status-area" style="display: flex; align-items: center; gap: 12px;"></div>
     </div>
 
-    <!-- Master Catalog Administration Panel: Visible by default -->
-    <div id="catalog-management-row" class="catalog-admin-panel" style="display: block;">
+    <!-- Master Catalog Administration Panel -->
+    <div id="catalog-management-row" class="catalog-admin-panel" style="display: none;">
         <h4 style="margin: 0 0 15px 0; color: #0f172a; font-weight: 700; font-size: 16px;">⚙️ Master Part Code Catalog Administration</h4>
         <div class="catalog-row-flex">
             <div class="catalog-input-group">
@@ -420,6 +404,8 @@
             </div>
             
             <button type="button" class="btn-action-add" onclick="submitNewCatalogPartCode()">➕ Add Part Code</button>
+            <div style="border-left: 2px solid #cbd5e1; height: 42px; margin: 0 5px;"></div>
+            <button type="button" class="btn-action-del" onclick="deleteCurrentSelectedPartCode()">🗑️ Delete Selected Code</button>
         </div>
     </div>
 
@@ -434,82 +420,62 @@
         </div>
     </div>
 
+    <!-- Master Searchable Part Selector Dropdown Card Row -->
+    <div class="inv-card" id="part-selector-card-block">
+        <label for="part-combo-input" class="inv-label">Select Active Production Part Code:</label>
+        <div class="combo-wrapper">
+            <input type="text" id="part-combo-input" class="combo-input" placeholder="Click or type to search Part Codes..." autocomplete="off" onfocus="showComboDropdown()" oninput="filterComboOptions()">
+            <input type="hidden" id="part-code-selector">
+            <div id="part-combo-dropdown" class="combo-dropdown"></div>
+        </div>
+    </div>
+
     <!-- Main Output Matrix Dynamic Section Grid -->
-    <div id="inventory-display-root" style="display: block;">
+    <div id="inventory-display-root" style="display: none;">
         <div class="inv-table-card">
             <h4 id="display-label-name" class="inv-table-title">--</h4>
             <table class="inv-table">
                 <thead>
                     <tr>
-                        <th style="width: 100px;">Part Code</th>
-                        <th>Label Description Name</th>
                         <th>Supplier Line Name</th>
                         <th style="text-align: center;">Sealed Full Boxes</th>
                         <th style="text-align: center;">Loose Labels Remaining</th>
                         <th style="text-align: center;">Standard Qty / Box</th>
                         <th style="text-align: center;">Supplier Balance</th>
-                        <!-- Action header hardcoded to display: table-cell -->
-                        <th id="table-action-header" style="text-align: right; width: 220px;">Actions</th>
+                        <th id="table-action-header" style="text-align: right; display: none;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="inventory-table-body"></tbody>
                 <tfoot>
                     <tr class="inv-tfoot">
-                        <td>—</td>
                         <td>PLANT GRAND TOTAL</td>
-                        <td>—</td>
                         <td id="grand-boxes-cell" style="text-align: center;">0 Boxes</td>
                         <td id="grand-loose-cell" style="text-align: center;">0 Loose</td>
                         <td style="text-align: center; color: #64748b;">—</td>
                         <td id="grand-labels-cell" style="text-align: center; color: #2563eb; font-weight: 800;">0 Labels</td>
-                        <td style="text-align: right;"></td>
+                        <td id="table-action-footer" style="display: none;"></td>
                     </tr>
                 </tfoot>
             </table>
         </div>
     </div>
+
+    <!-- Critical Low Stock Setpoint Interlocking Summary Button Trigger -->
+    <button type="button" id="low-stock-summary-trigger" class="inv-alert-trigger" style="display: none;" onclick="openLowStockSummaryModal()">
+        ⚠️ <strong>Critical Stock Setpoint Alert:</strong> <span id="low-stock-summary-count">0</span> part configuration(s) are running below parameters. Click here to list low stock lines.
+    </button>
 </div>
 
-<!-- ================= MODAL 1: EDIT CORE CATALOG SPECS (Part #, Qty per Box, Supplier, Description) ================= -->
-<div id="specsEditModalContainer" style="display: none;">
-    <div class="inv-modal-backdrop">
-        <div class="inv-modal-content" style="max-width: 500px;">
-            <div class="inv-modal-header" style="background: #1e293b;">
-                <span>⚙️ Edit Part Specifications</span>
-                <button type="button" class="inv-modal-close" onclick="closeSpecsModal()">&times;</button>
-            </div>
-            <div class="inv-modal-body">
-                <input type="hidden" id="specs-target-index">
-                
-                <div style="margin-bottom: 15px;">
-                    <label for="edit-part-code" style="font-weight:700; font-size:13px; color:#1e293b; display:block; margin-bottom:4px;">Part Code (4-Digit ID)</label>
-                    <input type="text" class="inv-form-control" id="edit-part-code" maxlength="4">
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <label for="edit-label-name" style="font-weight:700; font-size:13px; color:#1e293b; display:block; margin-bottom:4px;">Label Description Name</label>
-                    <input type="text" class="inv-form-control" id="edit-label-name">
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <label for="edit-supplier-name" style="font-weight:700; font-size:13px; color:#1e293b; display:block; margin-bottom:4px;">Supplier Name</label>
-                    <input type="text" class="inv-form-control" id="edit-supplier-name">
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <label for="edit-qty-per-box" style="font-weight:700; font-size:13px; color:#1e293b; display:block; margin-bottom:4px;">Standard Quantity per Box</label>
-                    <input type="number" class="inv-form-control" id="edit-qty-per-box" min="1">
-                </div>
-            </div>
-            <div class="inv-modal-footer" style="gap: 10px;">
-                <button type="button" class="inv-btn-can" onclick="closeSpecsModal()">Cancel</button>
-                <button type="button" class="btn-action-add" style="height: auto;" onclick="saveSpecsModification()">Save Specifications</button>
-            </div>
-        </div>
+<!-- Lock Screen Error Placeholder -->
+<div id="unauthorized-barrier-wrapper" class="permission-denied-block" style="display: none;">
+    <h2 style="color: #dc2626; margin-top: 0;">🔒 Access Restrained</h2>
+    <p style="color: #475569; font-size: 16px; line-height: 1.5;">Your profile does not hold modification rights for label stock balances. If you are trying to view balances, please use the public floor monitor dashboard link below.</p>
+    <div style="margin-top: 25px;">
+        <a href="../labels-view.html" style="background:#2563eb; color:white; text-decoration:none; padding:12px 24px; font-weight:700; border-radius:6px; display:inline-block;">🌐 Open Public Read-Only Dashboard</a>
     </div>
 </div>
 
-<!-- ================= MODAL 2: EDIT STOCK QUANTITIES (Addition, Deduction, Force Correction) ================= -->
+<!-- Custom Traffic Light Inventory Operations Modal Container -->
 <div id="customUpdateModalContainer" style="display: none;">
     <div class="inv-modal-backdrop">
         <div class="inv-modal-content">
@@ -520,6 +486,7 @@
             
             <div class="inv-modal-body">
                 <input type="hidden" id="modal-part-code">
+                <input type="hidden" id="modal-supplier-id">
                 <input type="hidden" id="modal-supplier-name">
                 <input type="hidden" id="modal-qty-per-box">
                 <input type="hidden" id="modal-current-boxes">
@@ -538,12 +505,12 @@
                 <!-- Three-Column Operations Grid -->
                 <div class="traffic-light-grid">
                     
-                    <!-- COLUMN 1: GREEN (+) ADD STOCK -->
+                    <!-- COLUMN 1: GREEN (+) ADD STOCK (Staff & Admin Only) -->
                     <div class="traffic-column col-green-add" id="col-add-stock-container">
                         <div>
                             <div class="column-badge">🟢 Addition (+)</div>
                             <h5 class="action-title">Add New Stock</h5>
-                            <p class="action-help-text">Use when new shipments arrive at the loading dock. This will add new boxes straight to our current stock count.</p>
+                            <p class="action-help-text">Use when new shipments arrive at the loading dock. This will add new boxes straight to our current stock count without needing to count what is already inside the warehouse.</p>
                             
                             <div style="margin-bottom: 12px;">
                                 <label for="add-input-boxes" style="font-weight:700; font-size:13px; color:#1e293b; display:block; margin-bottom:4px;">How many boxes arrived?</label>
@@ -553,15 +520,15 @@
                         <button type="button" class="btn-submit-action" id="btn-submit-add" onclick="processStockTransaction('add')">📥 Add To Stock</button>
                     </div>
 
-                    <!-- COLUMN 2: ORANGE/RED (-) ORDER COMPLETION DEDUCTIONS -->
+                    <!-- COLUMN 2: ORANGE/RED (-) ORDER COMPLETION DEDUCTIONS (All Users) -->
                     <div class="traffic-column col-red-deduct" id="col-deduct-stock-container">
                         <div>
                             <div class="column-badge">🟡 Deduction (-)</div>
                             <h5 class="action-title">Order Completion</h5>
-                            <p class="action-help-text">Use when you finish a production order run. Enter only the amount of stock consumed/used during your run.</p>
+                            <p class="action-help-text">Use when you finish a production order run. Enter only the amount of stock consumed/used during your run to subtract it from the warehouse balance.</p>
                             
                             <div class="shortcut-row">
-                                <button type="button" class="btn-shortcut" onclick="applyBoxLeftShortcut()">📦 Box Left (500 Loose)</button>
+                                <button type="button" class="btn-shortcut" onclick="applyBoxLeftShortcut()">📦 Box Left (0 Full / 500 Loose)</button>
                                 <button type="button" class="btn-shortcut" onclick="applyShiftEndShortcut()">⏱️ Clear / 0 Left</button>
                             </div>
 
@@ -577,12 +544,12 @@
                         <button type="button" class="btn-submit-action" id="btn-submit-deduct" onclick="processStockTransaction('deduct')">📤 Deduct Used Stock</button>
                     </div>
 
-                    <!-- COLUMN 3: BLUE (=) STOCK OVERRIDE CORRECTION -->
+                    <!-- COLUMN 3: BLUE (=) STOCK OVERRIDE CORRECTION (Staff & Admin Only) -->
                     <div class="traffic-column col-blue-correct" id="col-correct-stock-container">
                         <div>
                             <div class="column-badge">🔵 Correction (=)</div>
                             <h5 class="action-title">Override Balance</h5>
-                            <p class="action-help-text">⚠️ <strong>WARNING:</strong> This will overwrite the database count directly. Use this ONLY to correct past human errors.</p>
+                            <p class="action-help-text">⚠️ <strong>WARNING:</strong> This will overwrite the database count directly. Use this ONLY to correct past human errors or after doing physical inventory checks.</p>
                             
                             <div style="margin-bottom: 10px;">
                                 <label for="correct-input-boxes" style="font-weight:700; font-size:13px; color:#1e293b; display:block; margin-bottom:4px;">Actual Full Boxes on Floor:</label>
@@ -605,239 +572,43 @@
     </div>
 </div>
 
+<!-- Modal Container Layout for Listing Critical Low Stock Items -->
+<div id="lowStockItemsModalContainer" style="display: none;">
+    <div class="inv-modal-backdrop">
+        <div class="inv-modal-content" style="max-width: 600px;">
+            <div class="inv-modal-header" style="background: #dc2626;">
+                <span>⚠️ Low Stock Material Exceptions</span>
+                <button type="button" class="inv-modal-close" onclick="closeLowStockModal()">&times;</button>
+            </div>
+            <div class="inv-modal-body">
+                <table class="inv-table" style="font-size:14px;">
+                    <thead>
+                        <tr>
+                            <th>Part Code</th>
+                            <th>Description</th>
+                            <th style="text-align:right;">Current Stock</th>
+                            <th style="text-align:right;">Setpoint Min</th>
+                        </tr>
+                    </thead>
+                    <tbody id="low-stock-modal-tbody"></tbody>
+                </table>
+            </div>
+            <div class="inv-modal-footer">
+                <button type="button" class="inv-btn-can" onclick="closeLowStockModal()">Dismiss Window</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    // --- Mock Database Arrays ---
-    const mockSuppliers = [
-        { id: "S1", name: "Sunrise Paper Ltd", checked: true, boxQty: 5000 },
-        { id: "S2", name: "Cascades West packaging", checked: true, boxQty: 8000 },
-        { id: "S3", name: "Can-Am Container Group", checked: false, boxQty: 10000 }
-    ];
-
-    const mockData = [
-        { code: "4012", name: "Large Brown Egg Labels - Premium Grade", supplier: "Sunrise Paper Ltd", boxes: 12, loose: 450, boxQty: 5000 },
-        { code: "1055", name: "Medium White Egg Labels - Standard Class", supplier: "Cascades West packaging", boxes: 5, loose: 1200, boxQty: 8000 }
-    ];
-
-    // --- Automatic Setup (Visible by Default) ---
-    document.addEventListener("DOMContentLoaded", () => {
-        renderSupplierAdminCheckboxes();
-        loadInventoryTable();
-    });
-
-    // Render supplier checklist options in the catalog command card
-    function renderSupplierAdminCheckboxes() {
-        const container = document.getElementById('catalog-supplier-checkboxes');
-        if (!container) return;
-        
-        container.innerHTML = "";
-        mockSuppliers.forEach(sup => {
-            const row = document.createElement('div');
-            row.className = 'supplier-config-row';
-            row.innerHTML = `
-                <label class="supplier-label-item">
-                    <input type="checkbox" id="chk-${sup.id}" ${sup.checked ? 'checked' : ''}>
-                    <span>${sup.name}</span>
-                </label>
-                <input type="number" class="supplier-box-qty-input" id="qty-${sup.id}" value="${sup.boxQty}">
-            `;
-            container.appendChild(row);
-        });
-    }
-
-    // Renders active row values directly to screen
-    function loadInventoryTable() {
-        const tbody = document.getElementById('inventory-table-body');
-        if (!tbody) return;
-        
-        tbody.innerHTML = "";
-        let totalBoxes = 0;
-        let totalLoose = 0;
-        let totalLabels = 0;
-
-        mockData.forEach((item, index) => {
-            const rowTotal = (item.boxes * item.boxQty) + item.loose;
-            totalBoxes += item.boxes;
-            totalLoose += item.loose;
-            totalLabels += rowTotal;
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><strong style="color: #1e3a8a;">${item.code}</strong></td>
-                <td><strong>${item.name}</strong></td>
-                <td><strong>${item.supplier}</strong></td>
-                <td style="text-align: center;">${item.boxes} Boxes</td>
-                <td style="text-align: center;">${item.loose.toLocaleString()} Loose</td>
-                <td style="text-align: center; color: #64748b;">${item.boxQty.toLocaleString()}</td>
-                <td style="text-align: center; font-weight: 700; color: #2563eb;">${rowTotal.toLocaleString()}</td>
-                <!-- Two explicit Action choices are rendered natively -->
-                <td style="text-align: right; display: flex; gap: 8px; justify-content: flex-end;" class="action-cell">
-                    <button type="button" class="inv-btn-edit" onclick="triggerEditStockModal(${index})">
-                        ✏️ Edit Stock
-                    </button>
-                    <button type="button" class="inv-btn-specs" onclick="triggerEditSpecsModal(${index})">
-                        ⚙️ Edit Specs
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        document.getElementById('grand-boxes-cell').textContent = `${totalBoxes} Boxes`;
-        document.getElementById('grand-loose-cell').textContent = `${totalLoose.toLocaleString()} Loose`;
-        document.getElementById('grand-labels-cell').textContent = `${totalLabels.toLocaleString()} Labels`;
-        document.getElementById('display-label-name').textContent = "📦 CURRENT ON-HAND PLANT INVENTORY MATRICES";
-    }
-
-    // --- Core Specification Editing Actions (The new feature!) ---
-    function triggerEditSpecsModal(index) {
-        const item = mockData[index];
-        
-        document.getElementById('specs-target-index').value = index;
-        document.getElementById('edit-part-code').value = item.code;
-        document.getElementById('edit-label-name').value = item.name;
-        document.getElementById('edit-supplier-name').value = item.supplier;
-        document.getElementById('edit-qty-per-box').value = item.boxQty;
-
-        document.getElementById('specsEditModalContainer').style.display = 'block';
-    }
-
-    function saveSpecsModification() {
-        const index = document.getElementById('specs-target-index').value;
-        if (index === "" || !mockData[index]) return;
-
-        const updatedCode = document.getElementById('edit-part-code').value.trim();
-        const updatedName = document.getElementById('edit-label-name').value.trim();
-        const updatedSupplier = document.getElementById('edit-supplier-name').value.trim();
-        const updatedQty = parseInt(document.getElementById('edit-qty-per-box').value) || 0;
-
-        if (!updatedCode || !updatedName || !updatedSupplier || updatedQty <= 0) {
-            alert("All catalog definition fields must be filled out with valid values.");
-            return;
-        }
-
-        // Apply revisions directly to database index
-        mockData[index].code = updatedCode;
-        mockData[index].name = updatedName;
-        mockData[index].supplier = updatedSupplier;
-        mockData[index].boxQty = updatedQty;
-
-        loadInventoryTable();
-        closeSpecsModal();
-    }
-
-    function closeSpecsModal() {
-        document.getElementById('specsEditModalContainer').style.display = 'none';
-    }
-
-    // --- Stock Volume Adjustments Modal Trigger ---
-    function triggerEditStockModal(index) {
-        const item = mockData[index];
-        const total = (item.boxes * item.boxQty) + item.loose;
-        
-        document.getElementById('modal-title-text').textContent = `Adjust Stock balance: [Part ${item.code}] - Supplier: ${item.supplier}`;
-        document.getElementById('modal-current-balance-badge').textContent = total.toLocaleString();
-        document.getElementById('modal-box-qty-badge').textContent = item.boxQty.toLocaleString();
-        
-        document.getElementById('modal-part-code').value = item.code;
-        document.getElementById('modal-supplier-name').value = item.supplier;
-        document.getElementById('modal-qty-per-box').value = item.boxQty;
-        document.getElementById('modal-current-boxes').value = item.boxes;
-        document.getElementById('modal-current-loose').value = item.loose;
-
-        // Clean input layouts
-        document.getElementById('add-input-boxes').value = '';
-        document.getElementById('deduct-input-boxes').value = '';
-        document.getElementById('deduct-input-loose').value = '';
-        document.getElementById('correct-input-boxes').value = item.boxes;
-        document.getElementById('correct-input-loose').value = item.loose;
-
-        document.getElementById('customUpdateModalContainer').style.display = 'block';
-    }
-
-    // Process local modification execution
-    function processStockTransaction(action) {
-        const currentBoxes = parseInt(document.getElementById('modal-current-boxes').value) || 0;
-        const currentLoose = parseInt(document.getElementById('modal-current-loose').value) || 0;
-        const boxQty = parseInt(document.getElementById('modal-qty-per-box').value) || 5000;
-        const partCode = document.getElementById('modal-part-code').value;
-        const supplierName = document.getElementById('modal-supplier-name').value;
-
-        let finalBoxes = currentBoxes;
-        let finalLoose = currentLoose;
-
-        if (action === 'add') {
-            const inputVal = parseInt(document.getElementById('add-input-boxes').value) || 0;
-            if (inputVal <= 0) { alert("Please enter a valid box value to add!"); return; }
-            finalBoxes += inputVal;
-        } 
-        else if (action === 'deduct') {
-            const inputBoxes = parseInt(document.getElementById('deduct-input-boxes').value) || 0;
-            const inputLoose = parseInt(document.getElementById('deduct-input-loose').value) || 0;
-            
-            let currentTotal = (currentBoxes * boxQty) + currentLoose;
-            let deductTotal = (inputBoxes * boxQty) + inputLoose;
-            
-            if (deductTotal <= 0) { alert("Please specify an amount of labels consumed to deduct."); return; }
-            if (deductTotal > currentTotal) { alert("Insufficient inventory! You cannot deduct more than is currently in stock."); return; }
-            
-            let finalTotal = currentTotal - deductTotal;
-            finalBoxes = Math.floor(finalTotal / boxQty);
-            finalLoose = finalTotal % boxQty;
-        } 
-        else if (action === 'correct') {
-            finalBoxes = parseInt(document.getElementById('correct-input-boxes').value) || 0;
-            finalLoose = parseInt(document.getElementById('correct-input-loose').value) || 0;
-        }
-
-        // Apply changes directly to our memory model
-        const target = mockData.find(item => item.code === partCode && item.supplier === supplierName);
-        if (target) {
-            target.boxes = finalBoxes;
-            target.loose = finalLoose;
-        }
-
-        loadInventoryTable();
-        closeCustomModal();
-    }
-
-    // --- UI Short-hands ---
-    function closeCustomModal() {
-        document.getElementById('customUpdateModalContainer').style.display = 'none';
-    }
-
     function applyBoxLeftShortcut() {
         document.getElementById('deduct-input-boxes').value = 0;
         document.getElementById('deduct-input-loose').value = 500;
     }
-    
     function applyShiftEndShortcut() {
         document.getElementById('deduct-input-boxes').value = 0;
         document.getElementById('deduct-input-loose').value = 0;
     }
-
-    // Catalog admin operations
-    function submitNewCatalogPartCode() {
-        const code = document.getElementById('new-part-code').value.trim();
-        const name = document.getElementById('new-label-name').value.trim();
-        if (!code || !name) { alert("Please enter a valid code and description."); return; }
-        
-        mockData.push({
-            code: code,
-            name: name,
-            supplier: "Sunrise Paper Ltd",
-            boxes: 0,
-            loose: 0,
-            boxQty: 5000
-        });
-        loadInventoryTable();
-        document.getElementById('new-part-code').value = '';
-        document.getElementById('new-label-name').value = '';
-    }
-
-    // Placeholders for search configurations
-    function executeViewPageGlobalSearch() {}
-    function generateDatabaseExcelExport() { alert("Exporting database snapshot to Excel..."); }
-    function promptCreateNewSupplier() { alert("Adding brand new supplier definition..."); }
 </script>
 </body>
 </html>
