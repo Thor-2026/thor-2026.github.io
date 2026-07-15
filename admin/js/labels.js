@@ -733,6 +733,7 @@ window.closeCustomModal = function() {
 /**
  * Handles transactional processing logic across all three action states
  * Action: 'add' (adds stock), 'deduct' (subtracts stock), 'correct' (force overrides)
+ * Integrates OPTION A (Auto-Convert) logic for loose inputs.
  */
 window.processStockTransaction = async function(action) {
     const submitAdd = document.getElementById("btn-submit-add");
@@ -757,6 +758,7 @@ window.processStockTransaction = async function(action) {
     let targetBoxes = currentBoxes;
     let targetLoose = currentLoose;
     let logDeltaText = "";
+    let autoConvertNotice = "";
 
     if (action === 'add') {
         const addedBoxesInput = document.getElementById("add-input-boxes").value;
@@ -792,7 +794,7 @@ window.processStockTransaction = async function(action) {
             targetBoxes = 0;
             targetLoose = 0;
         } else {
-            // Deduct from total label quantities, keeping loose limits clean
+            // Deduct from total label quantities, automatically keeping loose limits normalized
             const finalTotalRemaining = initialTotal - totalDeductionQuantity;
             targetBoxes = Math.floor(finalTotalRemaining / qtyPerBox);
             targetLoose = finalTotalRemaining % qtyPerBox;
@@ -801,12 +803,23 @@ window.processStockTransaction = async function(action) {
         logDeltaText = `Subtracted ${totalDeductionQuantity} labels (${inputBoxesDeduct} boxes, ${inputLooseDeduct} loose) used on production run.`;
 
     } else if (action === 'correct') {
-        const forceBoxes = parseInt(document.getElementById("correct-input-boxes").value);
-        const forceLoose = parseInt(document.getElementById("correct-input-loose").value);
+        let forceBoxes = parseInt(document.getElementById("correct-input-boxes").value);
+        let forceLoose = parseInt(document.getElementById("correct-input-loose").value);
 
         if (isNaN(forceBoxes) || isNaN(forceLoose) || forceBoxes < 0 || forceLoose < 0) {
             alert("Input Error: Force correction counts must be valid positive numbers.");
             return;
+        }
+
+        // OPTION A AUTO-CONVERT: Check if the user entered more loose labels than the box capacity
+        if (forceLoose >= qtyPerBox) {
+            const extraBoxes = Math.floor(forceLoose / qtyPerBox);
+            const remainingLoose = forceLoose % qtyPerBox;
+            
+            autoConvertNotice = `\n\n💡 Auto-Convert Action:\nYour input of ${forceLoose.toLocaleString()} loose labels has been normalized to ${extraBoxes} full box(es) and ${remainingLoose.toLocaleString()} loose.`;
+            
+            forceBoxes += extraBoxes;
+            forceLoose = remainingLoose;
         }
 
         const forceTotal = (forceBoxes * qtyPerBox) + forceLoose;
@@ -816,14 +829,14 @@ window.processStockTransaction = async function(action) {
             `⚠️ FORCE STOCK CORRECTION OVERRIDE:\n\n` +
             `Are you absolutely sure you want to force overwrite the inventory balance for Part Code "${partCode}" under ${supplierName}?\n\n` +
             `• Current Balance: ${initialTotal.toLocaleString()} labels (${currentBoxes} boxes, ${currentLoose} loose)\n` +
-            `• Corrected Balance: ${forceTotal.toLocaleString()} labels (${forceBoxes} boxes, ${forceLoose} loose)\n\n` +
+            `• Corrected Balance: ${forceTotal.toLocaleString()} labels (${forceBoxes} boxes, ${forceLoose} loose)${autoConvertNotice}\n\n` +
             `This action will overwrite the database directly.`
         );
         if (!confirmForce) return;
 
         targetBoxes = forceBoxes;
         targetLoose = forceLoose;
-        logDeltaText = `Force stock override from ${initialTotal} labels to ${forceTotal} labels.`;
+        logDeltaText = `Force stock override from ${initialTotal} labels to ${forceTotal} labels (Normalized: ${forceBoxes} boxes, ${forceLoose} loose).`;
     }
 
     const calculatedTotal = (targetBoxes * qtyPerBox) + targetLoose;
