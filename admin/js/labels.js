@@ -15,7 +15,7 @@ let activeLowStockItemsList = [];
 async function initLabelsPage() {
     console.log("Initializing Gated Labels Inventory Controller System...");
     
-    // Evaluate if the logged-in personnel holds access permissions
+    // Evaluate if the logged-in personnel holds access permissions via global userPermissions map
     const userHasAccess = evaluateLabelUpdatePermissions();
     
     const authorizedWrapper = document.getElementById("authorized-view-wrapper");
@@ -27,7 +27,7 @@ async function initLabelsPage() {
         return;
     }
 
-    // Access granted: Toggle views safely
+    // Is clear, show form layout management fields
     if (unauthorizedWrapper) unauthorizedWrapper.style.display = "none";
     if (authorizedWrapper) authorizedWrapper.style.display = "block";
 
@@ -50,9 +50,9 @@ async function initLabelsPage() {
  * Allowed roles: Super Admin (1), Staff (2), Operator (3)
  */
 function evaluateLabelUpdatePermissions() {
-    if (!currentUser) return false;
+    if (!window.currentUser) return false;
 
-    const userRoleId = currentUser.profile?.role_id;
+    const userRoleId = window.currentUser.profile?.role_id;
     if (userRoleId === 1 || userRoleId === 2 || userRoleId === 3) {
         return true;
     }
@@ -68,11 +68,11 @@ function renderAuthStatusArea() {
     const adminPanel = document.getElementById("catalog-management-row");
     if (!container) return;
 
-    const currentShift = currentUser.profile?.shift || "Unassigned Shift";
-    const displayName = currentUser.profile?.full_name || currentUser.profile?.username || "Staff";
+    const currentShift = window.currentUser?.profile?.shift || "Unassigned Shift";
+    const displayName = window.currentUser?.profile?.full_name || window.currentUser?.profile?.username || "Staff";
     
     let roleText = "Staff";
-    const userRoleId = currentUser.profile?.role_id;
+    const userRoleId = window.currentUser?.profile?.role_id;
     if (userRoleId === 1) roleText = "Super Admin";
     if (userRoleId === 3) roleText = "Operator";
     if (userRoleId === 2) roleText = "Staff";
@@ -136,7 +136,7 @@ function renderSupplierCheckboxes() {
  * Administrative Feature: Adds a new supplier straight into the operational database
  */
 window.promptCreateNewSupplier = async function() {
-    const userRoleId = currentUser.profile?.role_id;
+    const userRoleId = window.currentUser?.profile?.role_id;
     if (userRoleId !== 1) {
         alert("Action Revoked: Only System Administrators possess catalog design rights.");
         return;
@@ -159,7 +159,7 @@ window.promptCreateNewSupplier = async function() {
         alert(`Supplier "${supplierName.trim()}" successfully recorded!`);
         await refreshSuppliersList();
         
-        const currentCode = document.getElementById("part-code-selector").value;
+        const currentCode = document.getElementById("part-code-selector")?.value;
         if (currentCode) {
             await loadInventoryForPartCode(currentCode);
         }
@@ -232,20 +232,24 @@ function populateSearchableComboOptions(partCodes) {
 }
 
 window.showComboDropdown = function() {
-    document.getElementById("part-combo-dropdown").style.display = "block";
+    const dropdown = document.getElementById("part-combo-dropdown");
+    if (dropdown) dropdown.style.display = "block";
 };
 
 // Auto-dismiss combobox overlay window layouts when clicking out of boundaries
 document.addEventListener("click", function(e) {
     const wrapper = document.querySelector(".combo-wrapper");
-    if (wrapper && !wrapper.contains(e.target)) {
-        document.getElementById("part-combo-dropdown").style.display = "none";
+    const dropdown = document.getElementById("part-combo-dropdown");
+    if (wrapper && dropdown && !wrapper.contains(e.target)) {
+        dropdown.style.display = "none";
     }
 });
 
 window.filterComboOptions = function() {
-    const query = document.getElementById("part-combo-input").value.toLowerCase().trim();
+    const query = document.getElementById("part-combo-input")?.value.toLowerCase().trim() || "";
     const dropdown = document.getElementById("part-combo-dropdown");
+    if (!dropdown) return;
+    
     const items = dropdown.getElementsByClassName("combo-item");
     let visibleCount = 0;
 
@@ -273,11 +277,16 @@ window.filterComboOptions = function() {
 };
 
 window.selectComboValue = async function(val, labelText) {
-    document.getElementById("part-combo-input").value = labelText;
-    document.getElementById("part-code-selector").value = val;
-    document.getElementById("part-combo-dropdown").style.display = "none";
+    const comboInput = document.getElementById("part-combo-input");
+    const codeSelector = document.getElementById("part-code-selector");
+    const viewPageSearch = document.getElementById("view-page-search");
+
+    if (comboInput) comboInput.value = labelText;
+    if (codeSelector) codeSelector.value = val;
+    const dropdown = document.getElementById("part-combo-dropdown");
+    if (dropdown) dropdown.style.display = "none";
     
-    document.getElementById("view-page-search").value = "";
+    if (viewPageSearch) viewPageSearch.value = "";
     await loadInventoryForPartCode(val);
 };
 
@@ -292,16 +301,18 @@ async function loadInventoryForPartCode(partCode) {
     const rootContainer = document.getElementById("inventory-display-root");
     const labelTitle = document.getElementById("display-label-name");
     const tableBody = document.getElementById("inventory-table-body");
+    const tableActionHeader = document.getElementById("table-action-header");
+    const tableActionFooter = document.getElementById("table-action-footer");
     
     if (!rootContainer || !labelTitle || !tableBody) return;
     
-    const userRoleId = currentUser.profile?.role_id;
+    const userRoleId = window.currentUser?.profile?.role_id;
     // Everyone verified has rights to trigger inventory modifications
     const canModify = (userRoleId === 1 || userRoleId === 3 || userRoleId === 2);
     const isAdmin = (userRoleId === 1);
 
-    document.getElementById("table-action-header").style.display = (canModify || isAdmin) ? "" : "none";
-    document.getElementById("table-action-footer").style.display = (canModify || isAdmin) ? "" : "none";
+    if (tableActionHeader) tableActionHeader.style.display = (canModify || isAdmin) ? "" : "none";
+    if (tableActionFooter) tableActionFooter.style.display = (canModify || isAdmin) ? "" : "none";
 
     const matchedPart = cachedPartCodesArray.find(p => p.part_code === partCode);
     if (!matchedPart) return;
@@ -358,7 +369,7 @@ async function loadInventoryForPartCode(partCode) {
                     </button>
                 ` : ''}
                 ${isAdmin ? `
-                    <button type="button" class="inv-btn-specs" onclick="openSpecsEditModal('${partCode}', ${supplier.id}, '${matchedPart.label_name}', '${supplier.supplier_name}', ${effectiveQtyPerBox})">
+                    <button type="button" class="inv-btn-specs" onclick="openSpecsEditModal('${partCode}', ${supplier.id}, '${matchedPart.label_name.replace(/'/g, "\\'")}', '${supplier.supplier_name.replace(/'/g, "\\'")}', ${effectiveQtyPerBox})">
                         ⚙️ Edit Specs
                     </button>
                 ` : ''}
@@ -367,9 +378,13 @@ async function loadInventoryForPartCode(partCode) {
         tableBody.appendChild(row);
     });
 
-    document.getElementById("grand-boxes-cell").textContent = `${grandTotalBoxes.toLocaleString()} Boxes`;
-    document.getElementById("grand-loose-cell").textContent = `${grandTotalLoose.toLocaleString()} Loose`;
-    document.getElementById("grand-labels-cell").textContent = `${grandTotalLabels.toLocaleString()} Labels`;
+    const grandBoxesCell = document.getElementById("grand-boxes-cell");
+    const grandLooseCell = document.getElementById("grand-loose-cell");
+    const grandLabelsCell = document.getElementById("grand-labels-cell");
+
+    if (grandBoxesCell) grandBoxesCell.textContent = `${grandTotalBoxes.toLocaleString()} Boxes`;
+    if (grandLooseCell) grandLooseCell.textContent = `${grandTotalLoose.toLocaleString()} Loose`;
+    if (grandLabelsCell) grandLabelsCell.textContent = `${grandTotalLabels.toLocaleString()} Labels`;
 
     rootContainer.style.display = "block";
 }
@@ -378,43 +393,52 @@ async function loadInventoryForPartCode(partCode) {
  * Opens detailed specifications modifier modal - SECURED ONLY FOR SUPER ADMINS
  */
 window.openSpecsEditModal = function(partCode, supplierId, labelName, supplierName, qtyPerBox) {
-    const userRoleId = currentUser.profile?.role_id;
+    const userRoleId = window.currentUser?.profile?.role_id;
     if (userRoleId !== 1) {
         alert("Unauthorized action execution barred. Admins only.");
         return;
     }
 
-    document.getElementById("specs-target-code").value = partCode;
-    document.getElementById("specs-target-supplier-id").value = supplierId;
-    document.getElementById("edit-part-code").value = partCode;
-    document.getElementById("edit-label-name").value = labelName;
-    document.getElementById("edit-supplier-name").value = supplierName;
-    document.getElementById("edit-qty-per-box").value = qtyPerBox;
+    const targetCode = document.getElementById("specs-target-code");
+    const targetSup = document.getElementById("specs-target-supplier-id");
+    const editCode = document.getElementById("edit-part-code");
+    const editLabel = document.getElementById("edit-label-name");
+    const editSupp = document.getElementById("edit-supplier-name");
+    const editQty = document.getElementById("edit-qty-per-box");
 
-    document.getElementById("specsEditModalContainer").style.display = "block";
+    if (targetCode) targetCode.value = partCode;
+    if (targetSup) targetSup.value = supplierId;
+    if (editCode) editCode.value = partCode;
+    if (editLabel) editLabel.value = labelName;
+    if (editSupp) editSupp.value = supplierName;
+    if (editQty) editQty.value = qtyPerBox;
+
+    const modal = document.getElementById("specsEditModalContainer");
+    if (modal) modal.style.display = "block";
 };
 
 window.closeSpecsModal = function() {
-    document.getElementById("specsEditModalContainer").style.display = "none";
+    const modal = document.getElementById("specsEditModalContainer");
+    if (modal) modal.style.display = "none";
 };
 
 /**
  * Handles database specifications update routines
  */
 window.saveSpecsModification = async function() {
-    const userRoleId = currentUser.profile?.role_id;
+    const userRoleId = window.currentUser?.profile?.role_id;
     if (userRoleId !== 1) {
         alert("Unauthorized execution barrier.");
         return;
     }
 
-    const originalPartCode = document.getElementById("specs-target-code").value;
-    const originalSupplierId = parseInt(document.getElementById("specs-target-supplier-id").value, 10);
+    const originalPartCode = document.getElementById("specs-target-code")?.value;
+    const originalSupplierId = parseInt(document.getElementById("specs-target-supplier-id")?.value || "0", 10);
 
-    const updatedPartCode = document.getElementById("edit-part-code").value.trim();
-    const updatedLabelName = document.getElementById("edit-label-name").value.trim();
-    const updatedSupplierName = document.getElementById("edit-supplier-name").value.trim();
-    const updatedQtyPerBox = parseInt(document.getElementById("edit-qty-per-box").value, 10);
+    const updatedPartCode = document.getElementById("edit-part-code")?.value.trim() || "";
+    const updatedLabelName = document.getElementById("edit-label-name")?.value.trim() || "";
+    const updatedSupplierName = document.getElementById("edit-supplier-name")?.value.trim() || "";
+    const updatedQtyPerBox = parseInt(document.getElementById("edit-qty-per-box")?.value || "0", 10);
 
     if (!updatedPartCode || updatedPartCode.length !== 4 || isNaN(updatedPartCode)) {
         alert("Verification Error: Part Code must be a 4-digit number.");
@@ -452,8 +476,8 @@ window.saveSpecsModification = async function() {
         if (invError) throw invError;
 
         await supabaseClient.from("activity_log").insert({
-            user_id: currentUser?.id || null,
-            username: currentUser?.profile?.username || "admin",
+            user_id: window.currentUser?.id || null,
+            username: window.currentUser?.profile?.username || "admin",
             module: "labels",
             action: "edit_specs",
             details: { original_code: originalPartCode, updated_code: updatedPartCode, label_name: updatedLabelName, qty: updatedQtyPerBox }
@@ -551,18 +575,23 @@ window.openLowStockSummaryModal = function() {
         });
     }
     
-    document.getElementById("lowStockItemsModalContainer").style.display = "block";
+    const modal = document.getElementById("lowStockItemsModalContainer");
+    if (modal) modal.style.display = "block";
 };
 
 window.closeLowStockModal = function() {
-    document.getElementById("lowStockItemsModalContainer").style.display = "none";
+    const modal = document.getElementById("lowStockItemsModalContainer");
+    if (modal) modal.style.display = "none";
 };
 
 /**
  * Global Instant Filter Event Router Lookups
  */
 window.executeViewPageGlobalSearch = function() {
-    const searchQuery = document.getElementById("view-page-search").value.toLowerCase().trim();
+    const searchInput = document.getElementById("view-page-search");
+    if (!searchInput) return;
+
+    const searchQuery = searchInput.value.toLowerCase().trim();
     if (!searchQuery) return;
     
     const optimalMatch = cachedPartCodesArray.find(p => 
@@ -571,8 +600,16 @@ window.executeViewPageGlobalSearch = function() {
     );
     
     if (optimalMatch) {
-        document.getElementById("part-combo-input").value = `${optimalMatch.part_code} - ${optimalMatch.label_name}`;
-        document.getElementById("part-code-selector").value = optimalMatch.part_code;
+        const comboInput = document.getElementById("part-combo-input");
+        const codeSelector = document.getElementById("part-code-selector");
+
+        if (comboInput) {
+            comboInput.value = `${optimalMatch.part_code} - ${optimalMatch.label_name}`;
+        }
+        if (codeSelector) {
+            codeSelector.value = optimalMatch.part_code;
+        }
+
         loadInventoryForPartCode(optimalMatch.part_code);
     }
 };
@@ -656,7 +693,7 @@ window.generateDatabaseExcelExport = function() {
  * ENGINEERING TOOL: Adds a Brand New 4-Digit Part Code and maps specific custom Qty / Box counts
  */
 window.submitNewCatalogPartCode = async function() {
-    const userRoleId = currentUser.profile?.role_id;
+    const userRoleId = window.currentUser?.profile?.role_id;
     if (userRoleId !== 1) {
         alert("Unauthorized action execution barred.");
         return;
@@ -722,8 +759,8 @@ window.submitNewCatalogPartCode = async function() {
         if (invError) throw invError;
 
         await supabaseClient.from("activity_log").insert({
-            user_id: currentUser?.id || null,
-            username: currentUser?.profile?.username || "admin",
+            user_id: window.currentUser?.id || null,
+            username: window.currentUser?.profile?.username || "admin",
             module: "labels",
             action: "create_part_code",
             details: { part_code: partCode, label_name: labelName, suppliers: initialRows }
@@ -748,13 +785,13 @@ window.submitNewCatalogPartCode = async function() {
  * ENGINEERING TOOL: Purges Selected Part Code records
  */
 window.deleteCurrentSelectedPartCode = async function() {
-    const userRoleId = currentUser.profile?.role_id;
+    const userRoleId = window.currentUser?.profile?.role_id;
     if (userRoleId !== 1) {
         alert("Action Denied.");
         return;
     }
 
-    const selectedCode = document.getElementById("part-code-selector").value;
+    const selectedCode = document.getElementById("part-code-selector")?.value;
     if (!selectedCode) {
         alert("Selection Request: Please pick a part code from the selector dropdown menu first.");
         return;
@@ -772,9 +809,13 @@ window.deleteCurrentSelectedPartCode = async function() {
         if (catalogPurgeError) throw catalogPurgeError;
 
         alert(`Catalog Success: Part code ${selectedCode} successfully removed.`);
-        document.getElementById("inventory-display-root").style.display = "none";
-        document.getElementById("part-combo-input").value = "";
-        document.getElementById("part-code-selector").value = "";
+        const displayRoot = document.getElementById("inventory-display-root");
+        if (displayRoot) displayRoot.style.display = "none";
+        
+        const comboInput = document.getElementById("part-combo-input");
+        const codeSelector = document.getElementById("part-code-selector");
+        if (comboInput) comboInput.value = "";
+        if (codeSelector) codeSelector.value = "";
         
         await refreshPartCodesCatalogDropdown();
         await buildGlobalInventoryCacheSnapshot();
@@ -811,7 +852,7 @@ window.openUpdateModal = function(partCode, supplierId, supplierName, currentBox
     document.getElementById("correct-input-loose").value = currentLoose;
 
     // Evaluate Role-Based UI Gate Access visibility
-    const userRoleId = currentUser.profile?.role_id; // 1: Admin, 2: Staff, 3: Operator
+    const userRoleId = window.currentUser?.profile?.role_id; // 1: Admin, 2: Staff, 3: Operator
     
     const colAdd = document.getElementById("col-add-stock-container");
     const colDeduct = document.getElementById("col-deduct-stock-container");
@@ -974,8 +1015,8 @@ window.processStockTransaction = async function(action) {
 
         // Save detailed logging entries to activity_log
         await supabaseClient.from("activity_log").insert({
-            user_id: currentUser?.id || null,
-            username: currentUser?.profile?.username || "unknown_user",
+            user_id: window.currentUser?.id || null,
+            username: window.currentUser?.profile?.username || "unknown_user",
             module: "labels",
             action: `stock_${action}`,
             details: {
