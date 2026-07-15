@@ -11,7 +11,7 @@ let activeLowStockItemsList = [];
 
 /**
  * Main Initialization Lifecycle Module Router Hook
- **/
+ */
 async function initLabelsPage() {
     console.log("Initializing Gated Labels Inventory Controller System...");
     
@@ -144,7 +144,7 @@ window.promptCreateNewSupplier = async function() {
 
     const qtyText = prompt(`Enter standard fallback label quantity packed inside one full box for ${supplierName.trim()}:`, "6000");
     if (qtyText === null) return;
-    const qtyPerBox = parseInt(qtyText) || 6000;
+    const qtyPerBox = parseInt(qtyText, 10) || 6000;
 
     try {
         const { error: insertError } = await supabaseClient
@@ -564,7 +564,7 @@ window.submitNewCatalogPartCode = async function() {
 
     const partCode = codeInput.value.trim();
     const labelName = nameInput.value.trim();
-    const parsedMinStock = parseInt(minStockInput.value);
+    const parsedMinStock = parseInt(minStockInput.value, 10);
     const minSetpoint = isNaN(parsedMinStock) ? 30000 : parsedMinStock;
 
     if (partCode.length !== 4 || isNaN(partCode)) {
@@ -590,10 +590,10 @@ window.submitNewCatalogPartCode = async function() {
         if (partError) throw partError;
 
         const initialRows = Array.from(checkedBoxes).map(box => {
-            const suppId = parseInt(box.value);
+            const suppId = parseInt(box.value, 10);
             const qtyBoxInput = document.querySelector(`.supplier-box-qty-input[data-supplier-id="${suppId}"]`);
             
-            let customQty = qtyBoxInput ? parseInt(qtyBoxInput.value) : 0;
+            let customQty = qtyBoxInput ? parseInt(qtyBoxInput.value, 10) : 0;
             if (!customQty || isNaN(customQty)) {
                 const matchedSupp = masterSuppliersList.find(s => s.id === suppId);
                 customQty = matchedSupp ? matchedSupp.qty_per_box : 6000;
@@ -747,12 +747,12 @@ window.processStockTransaction = async function(action) {
     };
 
     const partCode = document.getElementById("modal-part-code").value;
-    const supplierId = parseInt(document.getElementById("modal-supplier-id").value);
+    const supplierId = parseInt(document.getElementById("modal-supplier-id").value, 10);
     const supplierName = document.getElementById("modal-supplier-name").value;
-    const qtyPerBox = parseInt(document.getElementById("modal-qty-per-box").value) || 6000;
+    const qtyPerBox = parseInt(document.getElementById("modal-qty-per-box").value, 10) || 6000;
     
-    const currentBoxes = parseInt(document.getElementById("modal-current-boxes").value) || 0;
-    const currentLoose = parseInt(document.getElementById("modal-current-loose").value) || 0;
+    const currentBoxes = parseInt(document.getElementById("modal-current-boxes").value, 10) || 0;
+    const currentLoose = parseInt(document.getElementById("modal-current-loose").value, 10) || 0;
     const initialTotal = (currentBoxes * qtyPerBox) + currentLoose;
 
     let targetBoxes = currentBoxes;
@@ -762,7 +762,7 @@ window.processStockTransaction = async function(action) {
 
     if (action === 'add') {
         const addedBoxesInput = document.getElementById("add-input-boxes").value;
-        const boxesToAdd = parseInt(addedBoxesInput) || 0;
+        const boxesToAdd = parseInt(addedBoxesInput, 10) || 0;
         
         if (boxesToAdd <= 0) {
             alert("Input Error: Please enter a valid number of boxes to add (minimum 1).");
@@ -774,8 +774,8 @@ window.processStockTransaction = async function(action) {
         logDeltaText = `Added ${boxesToAdd} new boxes.`;
 
     } else if (action === 'deduct') {
-        const inputBoxesDeduct = parseInt(document.getElementById("deduct-input-boxes").value) || 0;
-        const inputLooseDeduct = parseInt(document.getElementById("deduct-input-loose").value) || 0;
+        const inputBoxesDeduct = parseInt(document.getElementById("deduct-input-boxes").value, 10) || 0;
+        const inputLooseDeduct = parseInt(document.getElementById("deduct-input-loose").value, 10) || 0;
         const totalDeductionQuantity = (inputBoxesDeduct * qtyPerBox) + inputLooseDeduct;
 
         if (totalDeductionQuantity <= 0) {
@@ -803,15 +803,16 @@ window.processStockTransaction = async function(action) {
         logDeltaText = `Subtracted ${totalDeductionQuantity} labels (${inputBoxesDeduct} boxes, ${inputLooseDeduct} loose) used on production run.`;
 
     } else if (action === 'correct') {
-        let forceBoxes = parseInt(document.getElementById("correct-input-boxes").value);
-        let forceLoose = parseInt(document.getElementById("correct-input-loose").value);
+        // Explicitly parse inputs as Base-10 Integers to prevent string concatenation/comparison bugs
+        let forceBoxes = parseInt(document.getElementById("correct-input-boxes").value, 10);
+        let forceLoose = parseInt(document.getElementById("correct-input-loose").value, 10);
 
         if (isNaN(forceBoxes) || isNaN(forceLoose) || forceBoxes < 0 || forceLoose < 0) {
             alert("Input Error: Force correction counts must be valid positive numbers.");
             return;
         }
 
-        // OPTION A AUTO-CONVERT: Check if the user entered more loose labels than the box capacity
+        // OPTION A AUTO-CONVERT: Safely compare as numbers
         if (forceLoose >= qtyPerBox) {
             const extraBoxes = Math.floor(forceLoose / qtyPerBox);
             const remainingLoose = forceLoose % qtyPerBox;
