@@ -218,17 +218,30 @@
         font-size: 17px;
     }
     
+    /* Action Buttons */
     .inv-btn-edit { 
         background: #2563eb; 
         color: white !important; 
         border: none; 
-        padding: 10px 18px; 
+        padding: 8px 14px; 
         font-weight: 700; 
         border-radius: 6px; 
         cursor: pointer; 
-        font-size: 14px; 
+        font-size: 13px; 
     }
     .inv-btn-edit:hover { background: #1d4ed8; }
+
+    .inv-btn-specs { 
+        background: #475569; 
+        color: white !important; 
+        border: none; 
+        padding: 8px 14px; 
+        font-weight: 700; 
+        border-radius: 6px; 
+        cursor: pointer; 
+        font-size: 13px; 
+    }
+    .inv-btn-specs:hover { background: #334155; }
     
     /* Interactive Warning Bar Controls */
     .inv-alert-trigger { 
@@ -261,7 +274,14 @@
     .inv-modal-close { background: none; border: none; color: #94a3b8; font-size: 28px; cursor: pointer; }
     .inv-modal-close:hover { color: white; }
     .inv-modal-body { padding: 24px; background: #ffffff; max-height: 550px; overflow-y: auto; }
+    .inv-modal-footer { padding: 16px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; }
     
+    /* Missing baseline form & button styling declarations */
+    .inv-form-control { width: 100%; padding: 10px 12px; font-size: 14px; border: 2px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none; background: #ffffff; color: #0f172a; font-weight: 600; }
+    .inv-form-control:focus { border-color: #2563eb; }
+    .inv-btn-can { background: #64748b; color: white; border: none; padding: 10px 20px; font-weight: 700; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .inv-btn-can:hover { background: #475569; }
+
     /* Three-Column Traffic Light Layout Rules */
     .traffic-light-grid {
         display: grid;
@@ -355,29 +375,24 @@
         background-color: #94a3b8 !important;
         cursor: not-allowed;
     }
-
-    .permission-denied-block {
-        background: #ffffff;
-        border: 2px dashed #ef4444;
-        border-radius: 8px;
-        padding: 40px;
-        text-align: center;
-        max-width: 600px;
-        margin: 80px auto;
-    }
 </style>
 
-<div class="inv-container" id="authorized-view-wrapper" style="display: none;">
+<!-- Main Container -->
+<div class="inv-container" id="authorized-view-wrapper" style="display: block;">
     <div class="inv-header-flex">
         <div class="inv-title-area">
             <h2>Label Inventory Management Control</h2>
             <p>Authorized Console: Adjust floor balances, alter limits, and configure supply codes.</p>
         </div>
-        <div id="auth-status-area" style="display: flex; align-items: center; gap: 12px;"></div>
+        <div id="auth-status-area" style="display: flex; align-items: center; gap: 12px;">
+            <span style="background: #ecfdf5; color: #047857; border: 2px solid #a7f3d0; padding: 8px 16px; font-weight: 800; font-size: 13px; border-radius: 6px; letter-spacing: 0.05em;">
+                🛡️ SUPER ADMIN CONSOLE ACTIVE
+            </span>
+        </div>
     </div>
 
     <!-- Master Catalog Administration Panel -->
-    <div id="catalog-management-row" class="catalog-admin-panel" style="display: none;">
+    <div id="catalog-management-row" class="catalog-admin-panel" style="display: block;">
         <h4 style="margin: 0 0 15px 0; color: #0f172a; font-weight: 700; font-size: 16px;">⚙️ Master Part Code Catalog Administration</h4>
         <div class="catalog-row-flex">
             <div class="catalog-input-group">
@@ -404,12 +419,10 @@
             </div>
             
             <button type="button" class="btn-action-add" onclick="submitNewCatalogPartCode()">➕ Add Part Code</button>
-            <div style="border-left: 2px solid #cbd5e1; height: 42px; margin: 0 5px;"></div>
-            <button type="button" class="btn-action-del" onclick="deleteCurrentSelectedPartCode()">🗑️ Delete Selected Code</button>
         </div>
     </div>
 
-    <!-- View Page Global Layout Controls: Search Bar and Excel Actions -->
+    <!-- View Page Global Layout Controls -->
     <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
         <div style="flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 6px;">
             <label for="view-page-search" style="font-weight: 700; font-size: 14px; color: #334155;">🔍 Global Label Catalog Stock Search:</label>
@@ -420,18 +433,8 @@
         </div>
     </div>
 
-    <!-- Master Searchable Part Selector Dropdown Card Row -->
-    <div class="inv-card" id="part-selector-card-block">
-        <label for="part-combo-input" class="inv-label">Select Active Production Part Code:</label>
-        <div class="combo-wrapper">
-            <input type="text" id="part-combo-input" class="combo-input" placeholder="Click or type to search Part Codes..." autocomplete="off" onfocus="showComboDropdown()" oninput="filterComboOptions()">
-            <input type="hidden" id="part-code-selector">
-            <div id="part-combo-dropdown" class="combo-dropdown"></div>
-        </div>
-    </div>
-
     <!-- Main Output Matrix Dynamic Section Grid -->
-    <div id="inventory-display-root" style="display: none;">
+    <div id="inventory-display-root" style="display: block;">
         <div class="inv-table-card">
             <h4 id="display-label-name" class="inv-table-title">--</h4>
             <table class="inv-table">
@@ -442,7 +445,7 @@
                         <th style="text-align: center;">Loose Labels Remaining</th>
                         <th style="text-align: center;">Standard Qty / Box</th>
                         <th style="text-align: center;">Supplier Balance</th>
-                        <th id="table-action-header" style="text-align: right; display: none;">Actions</th>
+                        <th id="table-action-header" style="text-align: right; width: 260px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="inventory-table-body"></tbody>
@@ -453,29 +456,55 @@
                         <td id="grand-loose-cell" style="text-align: center;">0 Loose</td>
                         <td style="text-align: center; color: #64748b;">—</td>
                         <td id="grand-labels-cell" style="text-align: center; color: #2563eb; font-weight: 800;">0 Labels</td>
-                        <td id="table-action-footer" style="display: none;"></td>
+                        <td id="table-action-footer" style="text-align: right;"></td>
                     </tr>
                 </tfoot>
             </table>
         </div>
     </div>
-
-    <!-- Critical Low Stock Setpoint Interlocking Summary Button Trigger -->
-    <button type="button" id="low-stock-summary-trigger" class="inv-alert-trigger" style="display: none;" onclick="openLowStockSummaryModal()">
-        ⚠️ <strong>Critical Stock Setpoint Alert:</strong> <span id="low-stock-summary-count">0</span> part configuration(s) are running below parameters. Click here to list low stock lines.
-    </button>
 </div>
 
-<!-- Lock Screen Error Placeholder -->
-<div id="unauthorized-barrier-wrapper" class="permission-denied-block" style="display: none;">
-    <h2 style="color: #dc2626; margin-top: 0;">🔒 Access Restrained</h2>
-    <p style="color: #475569; font-size: 16px; line-height: 1.5;">Your profile does not hold modification rights for label stock balances. If you are trying to view balances, please use the public floor monitor dashboard link below.</p>
-    <div style="margin-top: 25px;">
-        <a href="../labels-view.html" style="background:#2563eb; color:white; text-decoration:none; padding:12px 24px; font-weight:700; border-radius:6px; display:inline-block;">🌐 Open Public Read-Only Dashboard</a>
+<!-- ================= MODAL 1: EDIT CORE CATALOG SPECS (Part #, Qty per Box, Supplier, Description) ================= -->
+<div id="specsEditModalContainer" style="display: none;">
+    <div class="inv-modal-backdrop">
+        <div class="inv-modal-content" style="max-width: 500px;">
+            <div class="inv-modal-header" style="background: #1e293b;">
+                <span>⚙️ Edit Part Specifications</span>
+                <button type="button" class="inv-modal-close" onclick="closeSpecsModal()">&times;</button>
+            </div>
+            <div class="inv-modal-body">
+                <input type="hidden" id="specs-target-code">
+                <input type="hidden" id="specs-target-supplier-id">
+                
+                <div style="margin-bottom: 15px;">
+                    <label for="edit-part-code" style="font-weight:700; font-size:13px; color:#1e293b; display:block; margin-bottom:4px;">Part Code (4-Digit ID)</label>
+                    <input type="text" class="inv-form-control" id="edit-part-code" maxlength="4">
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <label for="edit-label-name" style="font-weight:700; font-size:13px; color:#1e293b; display:block; margin-bottom:4px;">Label Description Name</label>
+                    <input type="text" class="inv-form-control" id="edit-label-name">
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <label for="edit-supplier-name" style="font-weight:700; font-size:13px; color:#1e293b; display:block; margin-bottom:4px;">Supplier Name</label>
+                    <input type="text" class="inv-form-control" id="edit-supplier-name">
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <label for="edit-qty-per-box" style="font-weight:700; font-size:13px; color:#1e293b; display:block; margin-bottom:4px;">Standard Quantity per Box</label>
+                    <input type="number" class="inv-form-control" id="edit-qty-per-box" min="1">
+                </div>
+            </div>
+            <div class="inv-modal-footer" style="gap: 10px;">
+                <button type="button" class="inv-btn-can" onclick="closeSpecsModal()">Cancel</button>
+                <button type="button" class="btn-action-add" style="height: auto;" onclick="saveSpecsModification()">Save Specifications</button>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- Custom Traffic Light Inventory Operations Modal Container -->
+<!-- ================= MODAL 2: EDIT STOCK QUANTITIES ================= -->
 <div id="customUpdateModalContainer" style="display: none;">
     <div class="inv-modal-backdrop">
         <div class="inv-modal-content">
@@ -483,7 +512,6 @@
                 <span id="modal-title-text">Update Stock Count</span>
                 <button type="button" class="inv-modal-close" onclick="closeCustomModal()">&times;</button>
             </div>
-            
             <div class="inv-modal-body">
                 <input type="hidden" id="modal-part-code">
                 <input type="hidden" id="modal-supplier-id">
@@ -492,7 +520,6 @@
                 <input type="hidden" id="modal-current-boxes">
                 <input type="hidden" id="modal-current-loose">
                 
-                <!-- Info Header and Calibration Rule badge -->
                 <div style="display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; padding: 12px 16px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #cbd5e1;">
                     <div style="font-size: 14px; font-weight: 700; color: #1e293b;">
                         📦 Current Balance: <span id="modal-current-balance-badge" style="color: #2563eb;">0</span> labels
@@ -502,16 +529,13 @@
                     </div>
                 </div>
 
-                <!-- Three-Column Operations Grid -->
                 <div class="traffic-light-grid">
-                    
-                    <!-- COLUMN 1: GREEN (+) ADD STOCK (Staff & Admin Only) -->
+                    <!-- COLUMN 1: GREEN (+) ADD STOCK -->
                     <div class="traffic-column col-green-add" id="col-add-stock-container">
                         <div>
                             <div class="column-badge">🟢 Addition (+)</div>
                             <h5 class="action-title">Add New Stock</h5>
-                            <p class="action-help-text">Use when new shipments arrive at the loading dock. This will add new boxes straight to our current stock count without needing to count what is already inside the warehouse.</p>
-                            
+                            <p class="action-help-text">Use when new shipments arrive. This adds new boxes straight to current stock.</p>
                             <div style="margin-bottom: 12px;">
                                 <label for="add-input-boxes" style="font-weight:700; font-size:13px; color:#1e293b; display:block; margin-bottom:4px;">How many boxes arrived?</label>
                                 <input type="number" class="inv-form-control" id="add-input-boxes" min="1" placeholder="Boxes to add...">
@@ -520,18 +544,16 @@
                         <button type="button" class="btn-submit-action" id="btn-submit-add" onclick="processStockTransaction('add')">📥 Add To Stock</button>
                     </div>
 
-                    <!-- COLUMN 2: ORANGE/RED (-) ORDER COMPLETION DEDUCTIONS (All Users) -->
+                    <!-- COLUMN 2: ORANGE/RED (-) DEDUCTIONS -->
                     <div class="traffic-column col-red-deduct" id="col-deduct-stock-container">
                         <div>
                             <div class="column-badge">🟡 Deduction (-)</div>
                             <h5 class="action-title">Order Completion</h5>
-                            <p class="action-help-text">Use when you finish a production order run. Enter only the amount of stock consumed/used during your run to subtract it from the warehouse balance.</p>
-                            
+                            <p class="action-help-text">Enter only the amount of stock consumed/used during your run.</p>
                             <div class="shortcut-row">
-                                <button type="button" class="btn-shortcut" onclick="applyBoxLeftShortcut()">📦 Box Left (0 Full / 500 Loose)</button>
+                                <button type="button" class="btn-shortcut" onclick="applyBoxLeftShortcut()">📦 Box Left (500 Loose)</button>
                                 <button type="button" class="btn-shortcut" onclick="applyShiftEndShortcut()">⏱️ Clear / 0 Left</button>
                             </div>
-
                             <div style="margin-bottom: 10px;">
                                 <label for="deduct-input-boxes" style="font-weight:700; font-size:13px; color:#1e293b; display:block; margin-bottom:4px;">Full Sealed Boxes Used:</label>
                                 <input type="number" class="inv-form-control" id="deduct-input-boxes" min="0" placeholder="0">
@@ -544,13 +566,12 @@
                         <button type="button" class="btn-submit-action" id="btn-submit-deduct" onclick="processStockTransaction('deduct')">📤 Deduct Used Stock</button>
                     </div>
 
-                    <!-- COLUMN 3: BLUE (=) STOCK OVERRIDE CORRECTION (Staff & Admin Only) -->
+                    <!-- COLUMN 3: BLUE (=) OVERRIDE -->
                     <div class="traffic-column col-blue-correct" id="col-correct-stock-container">
                         <div>
                             <div class="column-badge">🔵 Correction (=)</div>
                             <h5 class="action-title">Override Balance</h5>
-                            <p class="action-help-text">⚠️ <strong>WARNING:</strong> This will overwrite the database count directly. Use this ONLY to correct past human errors or after doing physical inventory checks.</p>
-                            
+                            <p class="action-help-text">⚠️ <strong>WARNING:</strong> Direct DB overwrite. Use ONLY to correct past human errors.</p>
                             <div style="margin-bottom: 10px;">
                                 <label for="correct-input-boxes" style="font-weight:700; font-size:13px; color:#1e293b; display:block; margin-bottom:4px;">Actual Full Boxes on Floor:</label>
                                 <input type="number" class="inv-form-control" id="correct-input-boxes" min="0" placeholder="Actual boxes...">
@@ -562,7 +583,6 @@
                         </div>
                         <button type="button" class="btn-submit-action" id="btn-submit-correct" onclick="processStockTransaction('correct')">💾 Force Correct Stock</button>
                     </div>
-
                 </div>
             </div>
             <div class="inv-modal-footer">
@@ -572,43 +592,5 @@
     </div>
 </div>
 
-<!-- Modal Container Layout for Listing Critical Low Stock Items -->
-<div id="lowStockItemsModalContainer" style="display: none;">
-    <div class="inv-modal-backdrop">
-        <div class="inv-modal-content" style="max-width: 600px;">
-            <div class="inv-modal-header" style="background: #dc2626;">
-                <span>⚠️ Low Stock Material Exceptions</span>
-                <button type="button" class="inv-modal-close" onclick="closeLowStockModal()">&times;</button>
-            </div>
-            <div class="inv-modal-body">
-                <table class="inv-table" style="font-size:14px;">
-                    <thead>
-                        <tr>
-                            <th>Part Code</th>
-                            <th>Description</th>
-                            <th style="text-align:right;">Current Stock</th>
-                            <th style="text-align:right;">Setpoint Min</th>
-                        </tr>
-                    </thead>
-                    <tbody id="low-stock-modal-tbody"></tbody>
-                </table>
-            </div>
-            <div class="inv-modal-footer">
-                <button type="button" class="inv-btn-can" onclick="closeLowStockModal()">Dismiss Window</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    function applyBoxLeftShortcut() {
-        document.getElementById('deduct-input-boxes').value = 0;
-        document.getElementById('deduct-input-loose').value = 500;
-    }
-    function applyShiftEndShortcut() {
-        document.getElementById('deduct-input-boxes').value = 0;
-        document.getElementById('deduct-input-loose').value = 0;
-    }
-</script>
 </body>
 </html>
