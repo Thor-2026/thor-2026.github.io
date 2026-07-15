@@ -803,16 +803,20 @@ window.processStockTransaction = async function(action) {
         logDeltaText = `Subtracted ${totalDeductionQuantity} labels (${inputBoxesDeduct} boxes, ${inputLooseDeduct} loose) used on production run.`;
 
     } else if (action === 'correct') {
+        // Fetch HTML input elements directly
+        const inputBoxesEl = document.getElementById("correct-input-boxes");
+        const inputLooseEl = document.getElementById("correct-input-loose");
+
         // Explicitly parse inputs as Base-10 Integers to prevent string concatenation/comparison bugs
-        let forceBoxes = parseInt(document.getElementById("correct-input-boxes").value, 10);
-        let forceLoose = parseInt(document.getElementById("correct-input-loose").value, 10);
+        let forceBoxes = parseInt(inputBoxesEl.value, 10);
+        let forceLoose = parseInt(inputLooseEl.value, 10);
 
         if (isNaN(forceBoxes) || isNaN(forceLoose) || forceBoxes < 0 || forceLoose < 0) {
             alert("Input Error: Force correction counts must be valid positive numbers.");
             return;
         }
 
-        // OPTION A AUTO-CONVERT: Safely compare as numbers
+        // OPTION A AUTO-CONVERT: Safely compare as numbers and update on-screen inputs
         if (forceLoose >= qtyPerBox) {
             const extraBoxes = Math.floor(forceLoose / qtyPerBox);
             const remainingLoose = forceLoose % qtyPerBox;
@@ -821,6 +825,11 @@ window.processStockTransaction = async function(action) {
             
             forceBoxes += extraBoxes;
             forceLoose = remainingLoose;
+
+            // CRITICAL UI SYNC: Force-update the input fields on-screen 
+            // so they match the confirmation dialog and don't double-submit raw values.
+            inputBoxesEl.value = forceBoxes;
+            inputLooseEl.value = forceLoose;
         }
 
         const forceTotal = (forceBoxes * qtyPerBox) + forceLoose;
