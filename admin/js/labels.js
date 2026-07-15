@@ -18,18 +18,15 @@ async function initLabelsPage() {
     // Evaluate if the logged-in personnel holds access permissions via global userPermissions map
     const userHasAccess = evaluateLabelUpdatePermissions();
     
-    const authorizedWrapper = document.getElementById("authorized-view-wrapper");
-    const unauthorizedWrapper = document.getElementById("unauthorized-barrier-wrapper");
-    
     if (!userHasAccess) {
-        if (authorizedWrapper) authorizedWrapper.style.display = "none";
-        if (unauthorizedWrapper) unauthorizedWrapper.style.display = "block";
+        document.getElementById("authorized-view-wrapper").style.display = "none";
+        document.getElementById("unauthorized-barrier-wrapper").style.display = "block";
         return;
     }
 
     // Is clear, show form layout management fields
-    if (unauthorizedWrapper) unauthorizedWrapper.style.display = "none";
-    if (authorizedWrapper) authorizedWrapper.style.display = "block";
+    document.getElementById("unauthorized-barrier-wrapper").style.display = "none";
+    document.getElementById("authorized-view-wrapper").style.display = "block";
 
     // 1. Establish Authentication View Modes Layout Elements
     renderAuthStatusArea();
@@ -50,9 +47,9 @@ async function initLabelsPage() {
  * Allowed roles: Super Admin (1), Staff (2), Operator (3)
  */
 function evaluateLabelUpdatePermissions() {
-    if (!window.currentUser) return false;
+    if (!currentUser) return false;
 
-    const userRoleId = window.currentUser.profile?.role_id;
+    const userRoleId = currentUser.profile?.role_id;
     if (userRoleId === 1 || userRoleId === 2 || userRoleId === 3) {
         return true;
     }
@@ -68,11 +65,11 @@ function renderAuthStatusArea() {
     const adminPanel = document.getElementById("catalog-management-row");
     if (!container) return;
 
-    const currentShift = window.currentUser?.profile?.shift || "Unassigned Shift";
-    const displayName = window.currentUser?.profile?.full_name || window.currentUser?.profile?.username || "Staff";
+    const currentShift = currentUser.profile?.shift || "Unassigned Shift";
+    const displayName = currentUser.profile?.full_name || currentUser.profile?.username || "Staff";
     
     let roleText = "Staff";
-    const userRoleId = window.currentUser?.profile?.role_id;
+    const userRoleId = currentUser.profile?.role_id;
     if (userRoleId === 1) roleText = "Super Admin";
     if (userRoleId === 3) roleText = "Operator";
     if (userRoleId === 2) roleText = "Staff";
@@ -136,7 +133,7 @@ function renderSupplierCheckboxes() {
  * Administrative Feature: Adds a new supplier straight into the operational database
  */
 window.promptCreateNewSupplier = async function() {
-    const userRoleId = window.currentUser?.profile?.role_id;
+    const userRoleId = currentUser.profile?.role_id;
     if (userRoleId !== 1) {
         alert("Action Revoked: Only System Administrators possess catalog design rights.");
         return;
@@ -159,7 +156,7 @@ window.promptCreateNewSupplier = async function() {
         alert(`Supplier "${supplierName.trim()}" successfully recorded!`);
         await refreshSuppliersList();
         
-        const currentCode = document.getElementById("part-code-selector")?.value;
+        const currentCode = document.getElementById("part-code-selector").value;
         if (currentCode) {
             await loadInventoryForPartCode(currentCode);
         }
@@ -232,24 +229,20 @@ function populateSearchableComboOptions(partCodes) {
 }
 
 window.showComboDropdown = function() {
-    const dropdown = document.getElementById("part-combo-dropdown");
-    if (dropdown) dropdown.style.display = "block";
+    document.getElementById("part-combo-dropdown").style.display = "block";
 };
 
 // Auto-dismiss combobox overlay window layouts when clicking out of boundaries
 document.addEventListener("click", function(e) {
     const wrapper = document.querySelector(".combo-wrapper");
-    const dropdown = document.getElementById("part-combo-dropdown");
-    if (wrapper && dropdown && !wrapper.contains(e.target)) {
-        dropdown.style.display = "none";
+    if (wrapper && !wrapper.contains(e.target)) {
+        document.getElementById("part-combo-dropdown").style.display = "none";
     }
 });
 
 window.filterComboOptions = function() {
-    const query = document.getElementById("part-combo-input")?.value.toLowerCase().trim() || "";
+    const query = document.getElementById("part-combo-input").value.toLowerCase().trim();
     const dropdown = document.getElementById("part-combo-dropdown");
-    if (!dropdown) return;
-    
     const items = dropdown.getElementsByClassName("combo-item");
     let visibleCount = 0;
 
@@ -277,16 +270,11 @@ window.filterComboOptions = function() {
 };
 
 window.selectComboValue = async function(val, labelText) {
-    const comboInput = document.getElementById("part-combo-input");
-    const codeSelector = document.getElementById("part-code-selector");
-    const viewPageSearch = document.getElementById("view-page-search");
-
-    if (comboInput) comboInput.value = labelText;
-    if (codeSelector) codeSelector.value = val;
-    const dropdown = document.getElementById("part-combo-dropdown");
-    if (dropdown) dropdown.style.display = "none";
+    document.getElementById("part-combo-input").value = labelText;
+    document.getElementById("part-code-selector").value = val;
+    document.getElementById("part-combo-dropdown").style.display = "none";
     
-    if (viewPageSearch) viewPageSearch.value = "";
+    document.getElementById("view-page-search").value = "";
     await loadInventoryForPartCode(val);
 };
 
@@ -301,18 +289,14 @@ async function loadInventoryForPartCode(partCode) {
     const rootContainer = document.getElementById("inventory-display-root");
     const labelTitle = document.getElementById("display-label-name");
     const tableBody = document.getElementById("inventory-table-body");
-    const tableActionHeader = document.getElementById("table-action-header");
-    const tableActionFooter = document.getElementById("table-action-footer");
     
     if (!rootContainer || !labelTitle || !tableBody) return;
     
-    const userRoleId = window.currentUser?.profile?.role_id;
+    const userRoleId = currentUser.profile?.role_id;
     // Everyone verified has rights to trigger inventory modifications
     const canModify = (userRoleId === 1 || userRoleId === 3 || userRoleId === 2);
-    const isAdmin = (userRoleId === 1);
 
-    if (tableActionHeader) tableActionHeader.style.display = (canModify || isAdmin) ? "" : "none";
-    if (tableActionFooter) tableActionFooter.style.display = (canModify || isAdmin) ? "" : "none";
+    document.getElementById("table-action-header").style.display = canModify ? "" : "none";
 
     const matchedPart = cachedPartCodesArray.find(p => p.part_code === partCode);
     if (!matchedPart) return;
@@ -357,143 +341,35 @@ async function loadInventoryForPartCode(partCode) {
 
         const row = document.createElement("tr");
         row.innerHTML = `
-            <td style="font-weight: 700; color: #0f172a;">${supplier.supplier_name}</td>
+            <td><strong style="color: #1e3a8a;">${partCode}</strong></td>
+            <td><strong>${matchedPart.label_name}</strong></td>
+            <td><strong>${supplier.supplier_name}</strong></td>
             <td style="text-align: center; font-weight: 600;">${record.current_full_boxes.toLocaleString()} Boxes</td>
-            <td style="text-align: center; font-weight: 600;">${record.current_loose_labels.toLocaleString()} Labels</td>
+            <td style="text-align: center; font-weight: 600;">${record.current_loose_labels.toLocaleString()} Loose</td>
             <td style="text-align: center; color: #475569; font-weight: 600;">${effectiveQtyPerBox.toLocaleString()} / box</td>
             <td style="text-align: center; font-weight: 800; color: #0f172a;">${supplierSubtotal.toLocaleString()}</td>
-            <td style="text-align: right; display: flex; gap: 8px; justify-content: flex-end;">
-                ${canModify ? `
+            ${canModify ? `
+                <td style="text-align: right; display: flex; gap: 8px; justify-content: flex-end;">
                     <button type="button" class="inv-btn-edit" onclick="openUpdateModal('${partCode}', ${supplier.id}, '${supplier.supplier_name}', ${record.current_full_boxes}, ${record.current_loose_labels}, ${effectiveQtyPerBox})">
-                        ✏️ Update Count
+                        ✏️ Edit Stock
                     </button>
-                ` : ''}
-                ${isAdmin ? `
+                    ${userRoleId === 1 ? `
                     <button type="button" class="inv-btn-specs" onclick="openSpecsEditModal('${partCode}', ${supplier.id}, '${matchedPart.label_name.replace(/'/g, "\\'")}', '${supplier.supplier_name.replace(/'/g, "\\'")}', ${effectiveQtyPerBox})">
                         ⚙️ Edit Specs
                     </button>
-                ` : ''}
-            </td>
+                    ` : ''}
+                </td>
+            ` : '<td style="display:none;"></td>'}
         `;
         tableBody.appendChild(row);
     });
 
-    const grandBoxesCell = document.getElementById("grand-boxes-cell");
-    const grandLooseCell = document.getElementById("grand-loose-cell");
-    const grandLabelsCell = document.getElementById("grand-labels-cell");
-
-    if (grandBoxesCell) grandBoxesCell.textContent = `${grandTotalBoxes.toLocaleString()} Boxes`;
-    if (grandLooseCell) grandLooseCell.textContent = `${grandTotalLoose.toLocaleString()} Loose`;
-    if (grandLabelsCell) grandLabelsCell.textContent = `${grandTotalLabels.toLocaleString()} Labels`;
+    document.getElementById("grand-boxes-cell").textContent = `${grandTotalBoxes.toLocaleString()} Boxes`;
+    document.getElementById("grand-loose-cell").textContent = `${grandTotalLoose.toLocaleString()} Loose`;
+    document.getElementById("grand-labels-cell").textContent = `${grandTotalLabels.toLocaleString()} Labels`;
 
     rootContainer.style.display = "block";
 }
-
-/**
- * Opens detailed specifications modifier modal - SECURED ONLY FOR SUPER ADMINS
- */
-window.openSpecsEditModal = function(partCode, supplierId, labelName, supplierName, qtyPerBox) {
-    const userRoleId = window.currentUser?.profile?.role_id;
-    if (userRoleId !== 1) {
-        alert("Unauthorized action execution barred. Admins only.");
-        return;
-    }
-
-    const targetCode = document.getElementById("specs-target-code");
-    const targetSup = document.getElementById("specs-target-supplier-id");
-    const editCode = document.getElementById("edit-part-code");
-    const editLabel = document.getElementById("edit-label-name");
-    const editSupp = document.getElementById("edit-supplier-name");
-    const editQty = document.getElementById("edit-qty-per-box");
-
-    if (targetCode) targetCode.value = partCode;
-    if (targetSup) targetSup.value = supplierId;
-    if (editCode) editCode.value = partCode;
-    if (editLabel) editLabel.value = labelName;
-    if (editSupp) editSupp.value = supplierName;
-    if (editQty) editQty.value = qtyPerBox;
-
-    const modal = document.getElementById("specsEditModalContainer");
-    if (modal) modal.style.display = "block";
-};
-
-window.closeSpecsModal = function() {
-    const modal = document.getElementById("specsEditModalContainer");
-    if (modal) modal.style.display = "none";
-};
-
-/**
- * Handles database specifications update routines
- */
-window.saveSpecsModification = async function() {
-    const userRoleId = window.currentUser?.profile?.role_id;
-    if (userRoleId !== 1) {
-        alert("Unauthorized execution barrier.");
-        return;
-    }
-
-    const originalPartCode = document.getElementById("specs-target-code")?.value;
-    const originalSupplierId = parseInt(document.getElementById("specs-target-supplier-id")?.value || "0", 10);
-
-    const updatedPartCode = document.getElementById("edit-part-code")?.value.trim() || "";
-    const updatedLabelName = document.getElementById("edit-label-name")?.value.trim() || "";
-    const updatedSupplierName = document.getElementById("edit-supplier-name")?.value.trim() || "";
-    const updatedQtyPerBox = parseInt(document.getElementById("edit-qty-per-box")?.value || "0", 10);
-
-    if (!updatedPartCode || updatedPartCode.length !== 4 || isNaN(updatedPartCode)) {
-        alert("Verification Error: Part Code must be a 4-digit number.");
-        return;
-    }
-    if (!updatedLabelName || !updatedSupplierName || isNaN(updatedQtyPerBox) || updatedQtyPerBox <= 0) {
-        alert("Please provide valid description title, supplier reference, and quantities per box.");
-        return;
-    }
-
-    try {
-        // Update part_codes specifications
-        const { error: partError } = await supabaseClient
-            .from("part_codes")
-            .update({ part_code: updatedPartCode, label_name: updatedLabelName })
-            .eq("part_code", originalPartCode);
-
-        if (partError) throw partError;
-
-        // Update supplier name details
-        const { error: supplierError } = await supabaseClient
-            .from("suppliers")
-            .update({ supplier_name: updatedSupplierName })
-            .eq("id", originalSupplierId);
-
-        if (supplierError) throw supplierError;
-
-        // Update box quantities mapping 
-        const { error: invError } = await supabaseClient
-            .from("labels_inventory")
-            .update({ part_code: updatedPartCode, qty_per_box: updatedQtyPerBox })
-            .eq("part_code", originalPartCode)
-            .eq("supplier_id", originalSupplierId);
-
-        if (invError) throw invError;
-
-        await supabaseClient.from("activity_log").insert({
-            user_id: window.currentUser?.id || null,
-            username: window.currentUser?.profile?.username || "admin",
-            module: "labels",
-            action: "edit_specs",
-            details: { original_code: originalPartCode, updated_code: updatedPartCode, label_name: updatedLabelName, qty: updatedQtyPerBox }
-        });
-
-        alert("Specifications saved successfully!");
-        closeSpecsModal();
-        await refreshPartCodesCatalogDropdown();
-        await buildGlobalInventoryCacheSnapshot();
-        await loadInventoryForPartCode(updatedPartCode);
-
-    } catch (err) {
-        console.error("Critical spec update failure:", err);
-        alert(`Failed to save specs update: ${err.message}`);
-    }
-};
 
 /**
  * Builds standard flat arrays tracking full inventory levels to calculate system exceptions
@@ -575,23 +451,18 @@ window.openLowStockSummaryModal = function() {
         });
     }
     
-    const modal = document.getElementById("lowStockItemsModalContainer");
-    if (modal) modal.style.display = "block";
+    document.getElementById("lowStockItemsModalContainer").style.display = "block";
 };
 
 window.closeLowStockModal = function() {
-    const modal = document.getElementById("lowStockItemsModalContainer");
-    if (modal) modal.style.display = "none";
+    document.getElementById("lowStockItemsModalContainer").style.display = "none";
 };
 
 /**
  * Global Instant Filter Event Router Lookups
  */
 window.executeViewPageGlobalSearch = function() {
-    const searchInput = document.getElementById("view-page-search");
-    if (!searchInput) return;
-
-    const searchQuery = searchInput.value.toLowerCase().trim();
+    const searchQuery = document.getElementById("view-page-search").value.toLowerCase().trim();
     if (!searchQuery) return;
     
     const optimalMatch = cachedPartCodesArray.find(p => 
@@ -600,16 +471,8 @@ window.executeViewPageGlobalSearch = function() {
     );
     
     if (optimalMatch) {
-        const comboInput = document.getElementById("part-combo-input");
-        const codeSelector = document.getElementById("part-code-selector");
-
-        if (comboInput) {
-            comboInput.value = `${optimalMatch.part_code} - ${optimalMatch.label_name}`;
-        }
-        if (codeSelector) {
-            codeSelector.value = optimalMatch.part_code;
-        }
-
+        document.getElementById("part-combo-input").value = `${optimalMatch.part_code} - ${optimalMatch.label_name}`;
+        document.getElementById("part-code-selector").value = optimalMatch.part_code;
         loadInventoryForPartCode(optimalMatch.part_code);
     }
 };
@@ -693,7 +556,7 @@ window.generateDatabaseExcelExport = function() {
  * ENGINEERING TOOL: Adds a Brand New 4-Digit Part Code and maps specific custom Qty / Box counts
  */
 window.submitNewCatalogPartCode = async function() {
-    const userRoleId = window.currentUser?.profile?.role_id;
+    const userRoleId = currentUser.profile?.role_id;
     if (userRoleId !== 1) {
         alert("Unauthorized action execution barred.");
         return;
@@ -759,8 +622,8 @@ window.submitNewCatalogPartCode = async function() {
         if (invError) throw invError;
 
         await supabaseClient.from("activity_log").insert({
-            user_id: window.currentUser?.id || null,
-            username: window.currentUser?.profile?.username || "admin",
+            user_id: currentUser?.id || null,
+            username: currentUser?.profile?.username || "admin",
             module: "labels",
             action: "create_part_code",
             details: { part_code: partCode, label_name: labelName, suppliers: initialRows }
@@ -785,13 +648,13 @@ window.submitNewCatalogPartCode = async function() {
  * ENGINEERING TOOL: Purges Selected Part Code records
  */
 window.deleteCurrentSelectedPartCode = async function() {
-    const userRoleId = window.currentUser?.profile?.role_id;
+    const userRoleId = currentUser.profile?.role_id;
     if (userRoleId !== 1) {
         alert("Action Denied.");
         return;
     }
 
-    const selectedCode = document.getElementById("part-code-selector")?.value;
+    const selectedCode = document.getElementById("part-code-selector").value;
     if (!selectedCode) {
         alert("Selection Request: Please pick a part code from the selector dropdown menu first.");
         return;
@@ -809,13 +672,9 @@ window.deleteCurrentSelectedPartCode = async function() {
         if (catalogPurgeError) throw catalogPurgeError;
 
         alert(`Catalog Success: Part code ${selectedCode} successfully removed.`);
-        const displayRoot = document.getElementById("inventory-display-root");
-        if (displayRoot) displayRoot.style.display = "none";
-        
-        const comboInput = document.getElementById("part-combo-input");
-        const codeSelector = document.getElementById("part-code-selector");
-        if (comboInput) comboInput.value = "";
-        if (codeSelector) codeSelector.value = "";
+        document.getElementById("inventory-display-root").style.display = "none";
+        document.getElementById("part-combo-input").value = "";
+        document.getElementById("part-code-selector").value = "";
         
         await refreshPartCodesCatalogDropdown();
         await buildGlobalInventoryCacheSnapshot();
@@ -823,6 +682,73 @@ window.deleteCurrentSelectedPartCode = async function() {
     } catch (err) {
         console.error("Critical cascade purge failure:", err);
         alert(`Failed to execute clear commands: ${err.message}`);
+    }
+};
+
+/**
+ * OPENS THE NEW SPECIFICATIONS EDIT MODAL
+ */
+window.openSpecsEditModal = function(partCode, supplierId, labelName, supplierName, qtyPerBox) {
+    document.getElementById("specs-target-code").value = partCode;
+    document.getElementById("specs-target-supplier-id").value = supplierId;
+    
+    document.getElementById("edit-part-code").value = partCode;
+    document.getElementById("edit-label-name").value = labelName;
+    document.getElementById("edit-supplier-name").value = supplierName;
+    document.getElementById("edit-qty-per-box").value = qtyPerBox;
+
+    document.getElementById("specsEditModalContainer").style.display = "block";
+};
+
+window.closeSpecsModal = function() {
+    document.getElementById("specsEditModalContainer").style.display = "none";
+};
+
+/**
+ * SAVES THE UPDATED SPECIFICATIONS DIRECTLY TO SUPABASE
+ */
+window.saveSpecsModification = async function() {
+    const originalPartCode = document.getElementById("specs-target-code").value;
+    const supplierId = parseInt(document.getElementById("specs-target-supplier-id").value, 10);
+
+    const updatedPartCode = document.getElementById("edit-part-code").value.trim();
+    const updatedLabelName = document.getElementById("edit-label-name").value.trim();
+    const updatedQty = parseInt(document.getElementById("edit-qty-per-box").value, 10);
+
+    if (!updatedPartCode || !updatedLabelName || isNaN(updatedQty) || updatedQty <= 0) {
+        alert("All fields are required. Box quantity calibration setting must be a number greater than 0.");
+        return;
+    }
+
+    try {
+        // 1. Update master table part_codes
+        const { error: pcError } = await supabaseClient
+            .from("part_codes")
+            .update({ part_code: updatedPartCode, label_name: updatedLabelName })
+            .eq("part_code", originalPartCode);
+
+        if (pcError) throw pcError;
+
+        // 2. Update child table labels_inventory entry
+        const { error: liError } = await supabaseClient
+            .from("labels_inventory")
+            .update({ part_code: updatedPartCode, qty_per_box: updatedQty })
+            .eq("part_code", originalPartCode)
+            .eq("supplier_id", supplierId);
+
+        if (liError) throw liError;
+
+        alert("Specifications updated successfully!");
+        closeSpecsModal();
+        
+        // Refresh systems mapping
+        await refreshPartCodesCatalogDropdown();
+        await buildGlobalInventoryCacheSnapshot();
+        await loadInventoryForPartCode(updatedPartCode);
+
+    } catch (err) {
+        console.error("Database failure updating specifications configuration: ", err);
+        alert(`Database spec configuration save failure: ${err.message}`);
     }
 };
 
@@ -852,7 +778,7 @@ window.openUpdateModal = function(partCode, supplierId, supplierName, currentBox
     document.getElementById("correct-input-loose").value = currentLoose;
 
     // Evaluate Role-Based UI Gate Access visibility
-    const userRoleId = window.currentUser?.profile?.role_id; // 1: Admin, 2: Staff, 3: Operator
+    const userRoleId = currentUser.profile?.role_id; // 1: Admin, 2: Staff, 3: Operator
     
     const colAdd = document.getElementById("col-add-stock-container");
     const colDeduct = document.getElementById("col-deduct-stock-container");
@@ -875,6 +801,19 @@ window.openUpdateModal = function(partCode, supplierId, supplierName, currentBox
 
 window.closeCustomModal = function() {
     document.getElementById("customUpdateModalContainer").style.display = "none";
+};
+
+/**
+ * UI Deduct Shortcuts
+ */
+window.applyBoxLeftShortcut = function() {
+    document.getElementById("deduct-input-boxes").value = 0;
+    document.getElementById("deduct-input-loose").value = 500;
+};
+
+window.applyShiftEndShortcut = function() {
+    document.getElementById("deduct-input-boxes").value = 0;
+    document.getElementById("deduct-input-loose").value = 0;
 };
 
 /**
@@ -1015,8 +954,8 @@ window.processStockTransaction = async function(action) {
 
         // Save detailed logging entries to activity_log
         await supabaseClient.from("activity_log").insert({
-            user_id: window.currentUser?.id || null,
-            username: window.currentUser?.profile?.username || "unknown_user",
+            user_id: currentUser?.id || null,
+            username: currentUser?.profile?.username || "unknown_user",
             module: "labels",
             action: `stock_${action}`,
             details: {
