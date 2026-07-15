@@ -295,9 +295,10 @@ async function loadInventoryForPartCode(partCode) {
     const userRoleId = currentUser.profile?.role_id;
     // Everyone verified has rights to trigger inventory modifications
     const canModify = (userRoleId === 1 || userRoleId === 3 || userRoleId === 2);
+    const isAdmin = (userRoleId === 1);
 
-    document.getElementById("table-action-header").style.display = canModify ? "" : "none";
-    document.getElementById("table-action-footer").style.display = canModify ? "" : "none";
+    document.getElementById("table-action-header").style.display = (canModify || isAdmin) ? "" : "none";
+    document.getElementById("table-action-footer").style.display = (canModify || isAdmin) ? "" : "none";
 
     const matchedPart = cachedPartCodesArray.find(p => p.part_code === partCode);
     if (!matchedPart) return;
@@ -347,13 +348,18 @@ async function loadInventoryForPartCode(partCode) {
             <td style="text-align: center; font-weight: 600;">${record.current_loose_labels.toLocaleString()} Labels</td>
             <td style="text-align: center; color: #475569; font-weight: 600;">${effectiveQtyPerBox.toLocaleString()} / box</td>
             <td style="text-align: center; font-weight: 800; color: #0f172a;">${supplierSubtotal.toLocaleString()}</td>
-            ${canModify ? `
-                <td style="text-align: right;">
+            <td style="text-align: right; display: flex; gap: 8px; justify-content: flex-end;">
+                ${canModify ? `
                     <button type="button" class="inv-btn-edit" onclick="openUpdateModal('${partCode}', ${supplier.id}, '${supplier.supplier_name}', ${record.current_full_boxes}, ${record.current_loose_labels}, ${effectiveQtyPerBox})">
                         ✏️ Update Count
                     </button>
-                </td>
-            ` : '<td style="display:none;"></td>'}
+                ` : ''}
+                ${isAdmin ? `
+                    <button type="button" class="inv-btn-specs" onclick="openSpecsEditModal('${partCode}', ${supplier.id}, '${matchedPart.label_name}', '${supplier.supplier_name}', ${effectiveQtyPerBox})">
+                        ⚙️ Edit Specs
+                    </button>
+                ` : ''}
+            </td>
         `;
         tableBody.appendChild(row);
     });
@@ -364,6 +370,103 @@ async function loadInventoryForPartCode(partCode) {
 
     rootContainer.style.display = "block";
 }
+
+/**
+ * Opens detailed specifications modifier modal - SECURED ONLY FOR SUPER ADMINS
+ */
+window.openSpecsEditModal = function(partCode, supplierId, labelName, supplierName, qtyPerBox) {
+    const userRoleId = currentUser.profile?.role_id;
+    if (userRoleId !== 1) {
+        alert("Unauthorized action execution barred. Admins only.");
+        return;
+    }
+
+    document.getElementById("specs-target-code").value = partCode;
+    document.getElementById("specs-target-supplier-id").value = supplierId;
+    document.getElementById("edit-part-code").value = partCode;
+    document.getElementById("edit-label-name").value = labelName;
+    document.getElementById("edit-supplier-name").value = supplierName;
+    document.getElementById("edit-qty-per-box").value = qtyPerBox;
+
+    document.getElementById("specsEditModalContainer").style.display = "block";
+};
+
+window.closeSpecsModal = function() {
+    document.getElementById("specsEditModalContainer").style.display = "none";
+};
+
+/**
+ * Handles database specifications update routines
+ */
+window.saveSpecsModification = async function() {
+    const userRoleId = currentUser.profile?.role_id;
+    if (userRoleId !== 1) {
+        alert("Unauthorized execution barrier.");
+        return;
+    }
+
+    const originalPartCode = document.getElementById("specs-target-code").value;
+    const originalSupplierId = parseInt(document.getElementById("specs-target-supplier-id").value, 10);
+
+    const updatedPartCode = document.getElementById("edit-part-code").value.trim();
+    const updatedLabelName = document.getElementById("edit-label-name").value.trim();
+    const updatedSupplierName = document.getElementById("edit-supplier-name").value.trim();
+    const updatedQtyPerBox = parseInt(document.getElementById("edit-qty-per-box").value, 10);
+
+    if (!updatedPartCode || updatedPartCode.length !== 4 || isNaN(updatedPartCode)) {
+        alert("Verification Error: Part Code must be a 4-digit number.");
+        return;
+    }
+    if (!updatedLabelName || !updatedSupplierName || isNaN(updatedQtyPerBox) || updatedQtyPerBox <= 0) {
+        alert("Please provide valid description title, supplier reference, and quantities per box.");
+        return;
+    }
+
+    try {
+        // Update part_codes specifications
+        const { error: partError } = await supabaseClient
+            .from("part_codes")
+            .update({ part_code: updatedPartCode, label_name: updatedLabelName })
+            .eq("part_code", originalPartCode);
+
+        if (partError) throw partError;
+
+        // Update supplier name details
+        const { error: supplierError } = await supabaseClient
+            .from("suppliers")
+            .update({ supplier_name: updatedSupplierName })
+            .eq("id", originalSupplierId);
+
+        if (supplierError) throw supplierError;
+
+        // Update box quantities mapping 
+        const { error: invError } = await supabaseClient
+            .from("labels_inventory")
+            .update({ part_code: updatedPartCode, qty_per_box: updatedQtyPerBox })
+            .eq("part_code", originalPartCode)
+            .eq("supplier_id", originalSupplierId);
+
+        if (invError) throw invError;
+
+        await supabaseClient.from("activity_log").insert({
+            user_id: currentUser?.id || null,
+            username: currentUser?.profile?.username || "admin",
+            module: "labels",
+            action: "edit_specs",
+            details: { original_code: originalPartCode, updated_code: updatedPartCode, label_name: updatedLabelName, qty: updatedQtyPerBox }
+        });
+
+        alert("Specifications saved successfully!");
+        closeSpecsModal();
+        await refreshPartCodesCatalogDropdown();
+        await buildGlobalInventoryCacheSnapshot();
+        await loadInventoryForPartCode(updatedPartCode);
+
+    } catch (err) {
+        console.error("Critical spec update failure:", err);
+        alert(`Failed to save specs update: ${err.message}`);
+    }
+};
 
 /**
  * Builds standard flat arrays tracking full inventory levels to calculate system exceptions
