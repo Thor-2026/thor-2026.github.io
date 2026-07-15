@@ -609,7 +609,175 @@
 </div>
 
 <script>
-    // System UI Interface Handlers
+    // --- Mock Database Arrays ---
+    const mockSuppliers = [
+        { id: "S1", name: "Sunrise Paper Ltd", checked: true, boxQty: 5000 },
+        { id: "S2", name: "Cascades West packaging", checked: true, boxQty: 8000 },
+        { id: "S3", name: "Can-Am Container Group", checked: false, boxQty: 10000 }
+    ];
+
+    const mockData = [
+        { code: "4012", name: "Large Brown Egg Labels - Premium Grade", supplier: "Sunrise Paper Ltd", boxes: 12, loose: 450, boxQty: 5000 },
+        { code: "1055", name: "Medium White Egg Labels - Standard Class", supplier: "Cascades West packaging", boxes: 5, loose: 1200, boxQty: 8000 }
+    ];
+
+    // --- Automatic Authorization Execution ---
+    // Instantly renders Super Admin layouts upon load.
+    document.addEventListener("DOMContentLoaded", () => {
+        initializeSuperAdminAccess();
+        renderSupplierAdminCheckboxes();
+        loadInventoryTable();
+    });
+
+    function initializeSuperAdminAccess() {
+        // Unhide column actions in table markup
+        document.getElementById('table-action-header').style.display = 'table-cell';
+        document.getElementById('table-action-footer').style.display = 'table-cell';
+        
+        // Unhide master admin configuration modules
+        document.getElementById('catalog-management-row').style.display = 'block';
+        
+        // Mount Super Admin Status visual card indicator
+        document.getElementById('auth-status-area').innerHTML = `
+            <span style="background: #ecfdf5; color: #047857; border: 2px solid #a7f3d0; padding: 8px 16px; font-weight: 800; font-size: 13px; border-radius: 6px; letter-spacing: 0.05em;">
+                🛡️ SUPER ADMIN CONSOLE ACTIVE
+            </span>
+        `;
+
+        // Enable column forms within the transactional modal frame
+        document.getElementById('btn-submit-add').disabled = false;
+        document.getElementById('btn-submit-correct').disabled = false;
+    }
+
+    // Render supplier checklist options in the catalog command card
+    function renderSupplierAdminCheckboxes() {
+        const container = document.getElementById('catalog-supplier-checkboxes');
+        if (!container) return;
+        
+        container.innerHTML = "";
+        mockSuppliers.forEach(sup => {
+            const row = document.createElement('div');
+            row.className = 'supplier-config-row';
+            row.innerHTML = `
+                <label class="supplier-label-item">
+                    <input type="checkbox" id="chk-${sup.id}" ${sup.checked ? 'checked' : ''}>
+                    <span>${sup.name}</span>
+                </label>
+                <input type="number" class="supplier-box-qty-input" id="qty-${sup.id}" value="${sup.boxQty}">
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    // Renders custom rows to our main floor database display
+    function loadInventoryTable() {
+        const tbody = document.getElementById('inventory-table-body');
+        if (!tbody) return;
+        
+        tbody.innerHTML = "";
+        let totalBoxes = 0;
+        let totalLoose = 0;
+        let totalLabels = 0;
+
+        mockData.forEach(item => {
+            const rowTotal = (item.boxes * item.boxQty) + item.loose;
+            totalBoxes += item.boxes;
+            totalLoose += item.loose;
+            totalLabels += rowTotal;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${item.supplier}</strong></td>
+                <td style="text-align: center;">${item.boxes} Boxes</td>
+                <td style="text-align: center;">${item.loose.toLocaleString()} Loose</td>
+                <td style="text-align: center; color: #64748b;">${item.boxQty.toLocaleString()}</td>
+                <td style="text-align: center; font-weight: 700;">${rowTotal.toLocaleString()}</td>
+                <td style="text-align: right;" class="action-cell">
+                    <button type="button" class="inv-btn-edit" onclick="triggerEditModal('${item.code}', '${item.supplier}', ${item.boxes}, ${item.loose}, ${item.boxQty})">
+                        ✏️ Edit Stock
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('grand-boxes-cell').textContent = `${totalBoxes} Boxes`;
+        document.getElementById('grand-loose-cell').textContent = `${totalLoose.toLocaleString()} Loose`;
+        document.getElementById('grand-labels-cell').textContent = `${totalLabels.toLocaleString()} Labels`;
+        document.getElementById('display-label-name').textContent = "📦 CURRENT ON-HAND PLANT INVENTORY MATRICES";
+    }
+
+    // Modal Trigger which loads detailed variables
+    function triggerEditModal(code, supplier, boxes, loose, boxQty) {
+        const total = (boxes * boxQty) + loose;
+        
+        document.getElementById('modal-title-text').textContent = `Adjust Stock balance: [Part ${code}] - Supplier: ${supplier}`;
+        document.getElementById('modal-current-balance-badge').textContent = total.toLocaleString();
+        document.getElementById('modal-box-qty-badge').textContent = boxQty.toLocaleString();
+        
+        document.getElementById('modal-part-code').value = code;
+        document.getElementById('modal-supplier-name').value = supplier;
+        document.getElementById('modal-qty-per-box').value = boxQty;
+        document.getElementById('modal-current-boxes').value = boxes;
+        document.getElementById('modal-current-loose').value = loose;
+
+        // Clean input layouts
+        document.getElementById('add-input-boxes').value = '';
+        document.getElementById('deduct-input-boxes').value = '';
+        document.getElementById('deduct-input-loose').value = '';
+        document.getElementById('correct-input-boxes').value = boxes;
+        document.getElementById('correct-input-loose').value = loose;
+
+        document.getElementById('customUpdateModalContainer').style.display = 'block';
+    }
+
+    // Process local modification execution
+    function processStockTransaction(action) {
+        const currentBoxes = parseInt(document.getElementById('modal-current-boxes').value) || 0;
+        const currentLoose = parseInt(document.getElementById('modal-current-loose').value) || 0;
+        const boxQty = parseInt(document.getElementById('modal-qty-per-box').value) || 5000;
+        const partCode = document.getElementById('modal-part-code').value;
+        const supplierName = document.getElementById('modal-supplier-name').value;
+
+        let finalBoxes = currentBoxes;
+        let finalLoose = currentLoose;
+
+        if (action === 'add') {
+            const inputVal = parseInt(document.getElementById('add-input-boxes').value) || 0;
+            if (inputVal <= 0) { alert("Please enter a valid box value to add!"); return; }
+            finalBoxes += inputVal;
+        } 
+        else if (action === 'deduct') {
+            const inputBoxes = parseInt(document.getElementById('deduct-input-boxes').value) || 0;
+            const inputLoose = parseInt(document.getElementById('deduct-input-loose').value) || 0;
+            
+            let currentTotal = (currentBoxes * boxQty) + currentLoose;
+            let deductTotal = (inputBoxes * boxQty) + inputLoose;
+            
+            if (deductTotal <= 0) { alert("Please specify an amount of labels consumed to deduct."); return; }
+            if (deductTotal > currentTotal) { alert("Insufficient inventory! You cannot deduct more than is currently in stock."); return; }
+            
+            let finalTotal = currentTotal - deductTotal;
+            finalBoxes = Math.floor(finalTotal / boxQty);
+            finalLoose = finalTotal % boxQty;
+        } 
+        else if (action === 'correct') {
+            finalBoxes = parseInt(document.getElementById('correct-input-boxes').value) || 0;
+            finalLoose = parseInt(document.getElementById('correct-input-loose').value) || 0;
+        }
+
+        // Apply changes directly to our memory model
+        const target = mockData.find(item => item.code === partCode && item.supplier === supplierName);
+        if (target) {
+            target.boxes = finalBoxes;
+            target.loose = finalLoose;
+        }
+
+        loadInventoryTable();
+        closeCustomModal();
+    }
+
+    // --- Auxiliary UI Interaction Functions ---
     function showComboDropdown() {
         document.getElementById('part-combo-dropdown').style.display = 'block';
     }
@@ -636,17 +804,13 @@
         document.getElementById('deduct-input-loose').value = 0;
     }
 
-    // Placeholders for database functions to prevent console exceptions
+    // Placeholders for external/database routines
     function filterComboOptions() {}
     function executeViewPageGlobalSearch() {}
-    function generateDatabaseExcelExport() {}
-    function submitNewCatalogPartCode() {}
-    function deleteCurrentSelectedPartCode() {}
-    function promptCreateNewSupplier() {}
-    function processStockTransaction(action) {
-        console.log("Processing transaction type: " + action);
-        closeCustomModal();
-    }
+    function generateDatabaseExcelExport() { alert("Exporting mock data database as excel..."); }
+    function submitNewCatalogPartCode() { alert("Registering dynamic code catalog entry..."); }
+    function deleteCurrentSelectedPartCode() { alert("Removing code target index..."); }
+    function promptCreateNewSupplier() { alert("Loading new corporate partner wizard..."); }
 </script>
 </body>
 </html>
