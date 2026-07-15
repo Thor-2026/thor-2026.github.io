@@ -1,473 +1,70 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Label Inventory Controller Panel</title>
-</head>
-<body>
-
-<style>
-    /* High-Contrast Premium Studio Workspace Custom Theme Rules */
-    .inv-container { 
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-        padding: 30px; 
-        background: #f8fafc; 
-        min-height: 100vh;
-        box-sizing: border-box;
-    }
-    
-    /* Header Workspace Presentation Banner */
-    .inv-header-flex { 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        margin-bottom: 25px; 
-        border-bottom: 2px solid #e2e8f0; 
-        padding-bottom: 20px; 
-    }
-    .inv-title-area h2 { 
-        margin: 0 0 6px 0; 
-        font-size: 28px; 
-        font-weight: 800;
-        color: #0f172a !important; 
-        letter-spacing: -0.02em;
-    }
-    .inv-title-area p { 
-        margin: 0; 
-        color: #475569 !important; 
-        font-size: 15px; 
-    }
-    
-    /* Administrative Management Catalog Command Card */
-    .catalog-admin-panel {
-        background: #ffffff;
-        border: 2px solid #cbd5e1;
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 25px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    .catalog-row-flex {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-        align-items: flex-end;
-    }
-    .catalog-input-group {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-    .catalog-input-group label {
-        font-weight: 700;
-        font-size: 13px;
-        color: #334155;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-    .catalog-field {
-        padding: 10px 12px;
-        font-size: 14px;
-        border: 2px solid #cbd5e1;
-        border-radius: 6px;
-        background: #ffffff;
-        color: #0f172a;
-        outline: none;
-    }
-    .catalog-field:focus { border-color: #2563eb; }
-    
-    /* Advanced Supplier Matrix Configuration Grid */
-    .supplier-config-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        padding: 12px;
-        background: #f1f5f9;
-        border: 1px solid #cbd5e1;
-        border-radius: 6px;
-        width: 100%;
-        box-sizing: border-box;
-    }
-    .supplier-config-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 15px;
-        background: #ffffff;
-        padding: 8px 12px;
-        border-radius: 4px;
-        border: 1px solid #e2e8f0;
-    }
-    .supplier-label-item {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 14px;
-        font-weight: 700;
-        color: #0f172a;
-        cursor: pointer;
-    }
-    .supplier-label-item input[type="checkbox"] {
-        cursor: pointer;
-        width: 16px;
-        height: 16px;
-    }
-    .supplier-box-qty-input {
-        width: 110px;
-        padding: 6px 8px;
-        font-size: 13px;
-        border: 1px solid #cbd5e1;
-        border-radius: 4px;
-        font-weight: 600;
-        text-align: right;
-    }
-    .add-supplier-link {
-        font-size: 12px;
-        font-weight: 700;
-        color: #2563eb;
-        text-decoration: none;
-        margin-top: 4px;
-        display: inline-block;
-    }
-    .add-supplier-link:hover { text-decoration: underline; }
-    
-    /* Core Content Action Buttons System */
-    .btn-action-add { background: #059669; color: white; border: none; padding: 11px 20px; font-weight: 700; font-size: 14px; border-radius: 6px; cursor: pointer; height: 42px; }
-    .btn-action-add:hover { background: #047857; }
-    .btn-action-del { background: #dc2626; color: white; border: none; padding: 11px 20px; font-weight: 700; font-size: 14px; border-radius: 6px; cursor: pointer; height: 42px; }
-    .btn-action-del:hover { background: #b91c1c; }
-    .btn-action-excel { background: #1e3a8a; color: white; border: none; padding: 11px 20px; font-weight: 700; font-size: 14px; border-radius: 6px; cursor: pointer; height: 42px; display: inline-flex; align-items: center; gap: 8px; }
-    .btn-action-excel:hover { background: #172554; }
-
-    /* Workspace Card Container Controls */
-    .inv-card { 
-        background: #ffffff; 
-        border-radius: 8px; 
-        border: 2px solid #cbd5e1; 
-        padding: 24px; 
-        margin-bottom: 25px; 
-    }
-    .inv-label { 
-        display: block; 
-        font-weight: 700; 
-        margin-bottom: 10px; 
-        color: #1e293b !important; 
-        font-size: 16px; 
-    }
-
-    /* Custom Searchable Combo Picker Engine Layout styles */
-    .combo-wrapper { position: relative; max-width: 500px; width: 100%; }
-    .combo-input { width: 100%; padding: 12px 14px; font-size: 16px; font-weight: 600; border-radius: 6px; border: 2px solid #94a3b8; background: #ffffff; color: #0f172a; box-sizing: border-box; outline: none; }
-    .combo-input:focus { border-color: #2563eb; }
-    .combo-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #ffffff; border: 2px solid #cbd5e1; border-top: none; border-radius: 0 0 6px 6px; max-height: 240px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-    .combo-item { padding: 10px 14px; cursor: pointer; font-weight: 600; color: #334155; font-size: 15px; }
-    .combo-item:hover { background: #f1f5f9; color: #0f172a; }
-    .combo-no-results { padding: 10px 14px; color: #94a3b8; font-style: italic; }
-    
-    /* Crisp High-Contrast Enterprise Data Tables */
-    .inv-table-card { 
-        background: #ffffff; 
-        border-radius: 8px; 
-        border: 2px solid #cbd5e1; 
-        overflow: hidden; 
-        margin-bottom: 25px; 
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    }
-    .inv-table-title { 
-        background: #0f172a; 
-        color: #ffffff !important; 
-        margin: 0; 
-        padding: 18px 24px; 
-        font-size: 20px; 
-        font-weight: 700; 
-    }
-    .inv-table { 
-        width: 100%; 
-        border-collapse: collapse; 
-        text-align: left; 
-        font-size: 16px; 
-        background: #ffffff;
-    }
-    .inv-table th { 
-        background: #f1f5f9; 
-        color: #334155 !important; 
-        font-weight: 700; 
-        padding: 16px 24px; 
-        border-bottom: 2px solid #cbd5e1; 
-        text-transform: uppercase;
-        font-size: 13px;
-        letter-spacing: 0.05em;
-    }
-    .inv-table td { 
-        padding: 18px 24px; 
-        border-bottom: 1px solid #e2e8f0; 
-        color: #0f172a !important; 
-        font-weight: 500;
-    }
-    .inv-table tr:hover td { 
-        background: #f8fafc; 
-    }
-    .inv-tfoot { 
-        background: #fefce8; 
-        font-weight: 800; 
-        border-top: 3px solid #e2e8f0; 
-    }
-    .inv-tfoot td { 
-        color: #0f172a !important; 
-        padding: 22px 24px; 
-        font-size: 17px;
-    }
-    
-    .inv-btn-edit { 
-        background: #2563eb; 
-        color: white !important; 
-        border: none; 
-        padding: 10px 18px; 
-        font-weight: 700; 
-        border-radius: 6px; 
-        cursor: pointer; 
-        font-size: 14px; 
-    }
-    .inv-btn-edit:hover { background: #1d4ed8; }
-    
-    /* Interactive Warning Bar Controls */
-    .inv-alert-trigger { 
-        background: #fee2e2; 
-        border-left: 5px solid #ef4444; 
-        border-top: 1px solid #fee2e2;
-        border-right: 1px solid #fee2e2;
-        border-bottom: 1px solid #fee2e2;
-        color: #991b1b !important; 
-        padding: 18px 24px; 
-        border-radius: 6px; 
-        font-weight: 700; 
-        margin-top: 25px; 
-        font-size: 15px; 
-        cursor: pointer;
-        transition: background 0.2s ease;
-        text-align: left;
-        width: 100%;
-        box-sizing: border-box;
-    }
-    .inv-alert-trigger:hover { background: #fca5a5; }
-
-    .shortcut-row { display: flex; gap: 10px; margin-bottom: 18px; }
-    .btn-shortcut { flex: 1; background: #f1f5f9; color: #1e293b; border: 2px solid #cbd5e1; padding: 10px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; }
-    .btn-shortcut:hover { background: #e2e8f0; }
-    
-    .inv-modal-backdrop { position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 999999; }
-    .inv-modal-content { background: #ffffff; border-radius: 12px; width: 100%; max-width: 520px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid #cbd5e1; }
-    .inv-modal-header { background: #0f172a; color: #ffffff !important; padding: 20px 24px; font-size: 18px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
-    .inv-modal-close { background: none; border: none; color: #94a3b8; font-size: 28px; cursor: pointer; }
-    .inv-modal-close:hover { color: white; }
-    .inv-modal-body { padding: 24px; background: #ffffff; max-height: 400px; overflow-y: auto; }
-    .inv-modal-footer { padding: 18px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 12px; }
-    .inv-form-control { width: 100%; padding: 12px; font-size: 16px; border-radius: 6px; border: 2px solid #cbd5e1; background: #ffffff; color: #0f172a; box-sizing: border-box; margin-top: 6px; outline: none; font-weight: 600; }
-    .inv-form-control:focus { border-color: #2563eb; }
-    .inv-btn-sub { background: #059669; color: white !important; border: none; padding: 12px 24px; font-weight: 700; border-radius: 6px; cursor: pointer; font-size: 15px; }
-    .inv-btn-sub:hover { background: #047857; }
-    .inv-btn-can { background: #64748b; color: white !important; border: none; padding: 12px 20px; font-weight: 700; border-radius: 6px; cursor: pointer; font-size: 15px; }
-    .inv-btn-can:hover { background: #475569; }
-
-    .permission-denied-block {
-        background: #ffffff;
-        border: 2px dashed #ef4444;
-        border-radius: 8px;
-        padding: 40px;
-        text-align: center;
-        max-width: 600px;
-        margin: 80px auto;
-    }
-</style>
-
-<div class="inv-container" id="authorized-view-wrapper" style="display: none;">
-    <div class="inv-header-flex">
-        <div class="inv-title-area">
-            <h2>Label Inventory Management Control</h2>
-            <p>Authorized Console: Adjust floor balances, alter limits, and configure supply codes.</p>
-        </div>
-        <div id="auth-status-area" style="display: flex; align-items: center; gap: 12px;"></div>
-    </div>
-
-    <!-- Master Catalog Administration Panel (Gated strictly by script via display adjustments) -->
-    <div id="catalog-management-row" class="catalog-admin-panel" style="display: none;">
-        <h4 style="margin: 0 0 15px 0; color: #0f172a; font-weight: 700; font-size: 16px;">⚙️ Master Part Code Catalog Administration</h4>
-        <div class="catalog-row-flex">
-            <div class="catalog-input-group">
-                <label for="new-part-code">4-Digit Code</label>
-                <input type="text" id="new-part-code" class="catalog-field" maxlength="4" placeholder="e.g. 4012" style="width: 100px;">
-            </div>
-            
-            <div class="catalog-input-group" style="flex: 2; min-width: 180px;">
-                <label for="new-label-name">Label Title Description Name</label>
-                <input type="text" id="new-label-name" class="catalog-field" placeholder="e.g. Large Brown - Free Range Premium">
-            </div>
-
-            <div class="catalog-input-group" style="width: 120px;">
-                <label for="new-min-stock">Min Alert Limit</label>
-                <input type="number" id="new-min-stock" class="catalog-field" placeholder="30000" value="30000" min="0" step="500">
-            </div>
-
-            <div class="catalog-input-group" style="flex: 3; min-width: 320px;">
-                <label>Supplier Line Matrix & Qty per Box Configuration</label>
-                <div id="catalog-supplier-checkboxes" class="supplier-config-grid">
-                    <span style="font-size:12px; color:#64748b;">Loading active suppliers...</span>
-                </div>
-                <a href="#" class="add-supplier-link" onclick="promptCreateNewSupplier(); return false;">➕ Register New Supplier Option...</a>
-            </div>
-            
-            <button type="button" class="btn-action-add" onclick="submitNewCatalogPartCode()">➕ Add Part Code</button>
-            <div style="border-left: 2px solid #cbd5e1; height: 42px; margin: 0 5px;"></div>
-            <button type="button" class="btn-action-del" onclick="deleteCurrentSelectedPartCode()">🗑️ Delete Selected Code</button>
-        </div>
-    </div>
-
-    <!-- View Page Global Layout Controls: Search Bar and Excel Actions -->
-    <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
-        <div style="flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 6px;">
-            <label for="view-page-search" style="font-weight: 700; font-size: 14px; color: #334155;">🔍 Global Label Catalog Stock Search:</label>
-            <input type="text" id="view-page-search" class="catalog-field" placeholder="Type here to instantly inspect total stock by code or title description..." oninput="executeViewPageGlobalSearch()">
-        </div>
-        <div style="padding-top: 24px;">
-            <button type="button" class="btn-action-excel" onclick="generateDatabaseExcelExport()">📊 Export Audit Sheet (Excel)</button>
-        </div>
-    </div>
-
-    <!-- Master Searchable Part Selector Dropdown Card Row -->
-    <div class="inv-card" id="part-selector-card-block">
-        <label for="part-combo-input" class="inv-label">Select Active Production Part Code:</label>
-        <div class="combo-wrapper">
-            <input type="text" id="part-combo-input" class="combo-input" placeholder="Click or type to search Part Codes..." autocomplete="off" onfocus="showComboDropdown()" oninput="filterComboOptions()">
-            <input type="hidden" id="part-code-selector">
-            <div id="part-combo-dropdown" class="combo-dropdown"></div>
-        </div>
-    </div>
-
-    <!-- Main Output Matrix Dynamic Section Grid -->
-    <div id="inventory-display-root" style="display: none;">
-        <div class="inv-table-card">
-            <h4 id="display-label-name" class="inv-table-title">--</h4>
-            <table class="inv-table">
-                <thead>
-                    <tr>
-                        <th>Supplier Line Name</th>
-                        <th style="text-align: center;">Sealed Full Boxes</th>
-                        <th style="text-align: center;">Loose Labels Remaining</th>
-                        <th style="text-align: center;">Standard Qty / Box</th>
-                        <th style="text-align: center;">Supplier Balance</th>
-                        <th id="table-action-header" style="text-align: right; display: none;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="inventory-table-body"></tbody>
-                <tfoot>
-                    <tr class="inv-tfoot">
-                        <td>PLANT GRAND TOTAL</td>
-                        <td id="grand-boxes-cell" style="text-align: center;">0 Boxes</td>
-                        <td id="grand-loose-cell" style="text-align: center;">0 Loose</td>
-                        <td style="text-align: center; color: #64748b;">—</td>
-                        <td id="grand-labels-cell" style="text-align: center; color: #2563eb; font-weight: 800;">0 Labels</td>
-                        <td id="table-action-footer" style="display: none;"></td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    </div>
-
-    <!-- Critical Low Stock Setpoint Interlocking Summary Button Trigger -->
-    <button type="button" id="low-stock-summary-trigger" class="inv-alert-trigger" style="display: none;" onclick="openLowStockSummaryModal()">
-        ⚠️ <strong>Critical Stock Setpoint Alert:</strong> <span id="low-stock-summary-count">0</span> part configuration(s) are running below parameters. Click here to list low stock lines.
-    </button>
-</div>
-
-<!-- Lock Screen Error Placeholder -->
-<div id="unauthorized-barrier-wrapper" class="permission-denied-block" style="display: none;">
-    <h2 style="color: #dc2626; margin-top: 0;">🔒 Access Restrained</h2>
-    <p style="color: #475569; font-size: 16px; line-height: 1.5;">Your profile does not hold modification rights for label stock balances. If you are trying to view balances, please use the public floor monitor dashboard link below.</p>
-    <div style="margin-top: 25px;">
-        <a href="../labels-view.html" style="background:#2563eb; color:white; text-decoration:none; padding:12px 24px; font-weight:700; border-radius:6px; display:inline-block;">🌐 Open Public Read-Only Dashboard</a>
-    </div>
-</div>
-
 <!-- Custom Inventory Form Overlay Modal Container Layout -->
 <div id="customUpdateModalContainer" style="display: none;">
     <div class="inv-modal-backdrop">
-        <div class="inv-modal-content">
-            <div class="inv-modal-header">
-                <span id="modal-title-text">Update Count</span>
+        <div class="inv-modal-content" style="max-width: 550px;">
+            <div class="inv-modal-header" id="modal-header-accent" style="background: #2563eb;">
+                <span id="modal-title-text">Update Count Matrix</span>
                 <button type="button" class="inv-modal-close" onclick="closeCustomModal()">&times;</button>
             </div>
             <form id="stock-update-form">
-                <div class="inv-modal-body">
+                <div class="inv-modal-body" style="background: #f8fafc; padding: 20px;">
+                    <!-- Context Hidden Values -->
                     <input type="hidden" id="modal-part-code">
                     <input type="hidden" id="modal-supplier-id">
                     <input type="hidden" id="modal-supplier-name">
                     <input type="hidden" id="modal-qty-per-box">
                     
-                    <div style="background: #f8fafc; padding: 10px; border: 1px dashed #cbd5e1; border-radius: 6px; margin-bottom: 15px; font-size: 13px; font-weight: 600; color: #475569;">
-                        📋 Assigned Box Calibration Rule: <span id="modal-box-qty-badge" style="color:#0f172a; font-weight:800;">--</span> labels per full box.
+                    <!-- Base Metrics Insight Header -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #ffffff; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px; font-size: 14px;">
+                        <div>
+                            <span style="display:block; font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Calibration Rule:</span>
+                            <strong id="modal-box-qty-badge" style="color:#0f172a;">--</strong> labels/box
+                        </div>
+                        <div>
+                            <span style="display:block; font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Current System Balance:</span>
+                            <strong id="modal-current-bal-badge" style="color:#2563eb;">--</strong> labels
+                        </div>
                     </div>
 
-                    <label class="inv-label" style="font-size: 13px; text-transform: uppercase; color:#64748b; margin-bottom: 6px;">End of Run Instant Calculators:</label>
-                    <div class="shortcut-row">
-                        <button type="button" class="btn-shortcut" onclick="applyBoxLeftShortcut()">📦 Box Left Only (0 Full / 500 Loose)</button>
-                        <button type="button" class="btn-shortcut" onclick="applyShiftEndShortcut()">⏱️ Clear / Shift End (0 / 0)</button>
+                    <!-- Operational Mode Selection Row -->
+                    <label class="inv-label" style="font-size: 13px; text-transform: uppercase; color:#475569; letter-spacing: 0.05em;">Select Action Profile Mode:</label>
+                    <div style="display: flex; gap: 8px; margin-bottom: 20px;" id="modal-mode-selector-wrapper">
+                        <button type="button" id="btn-mode-deduct" class="btn-shortcut" style="flex:1; border-color:#2563eb; background:#eff6ff; color:#1e40af; padding:12px;" onclick="switchInventoryModalMode('DEDUCT')">📤 Deduct Usage</button>
+                        <button type="button" id="btn-mode-add" class="btn-shortcut" style="flex:1; padding:12px;" onclick="switchInventoryModalMode('ADD')">📥 Add Incoming</button>
+                        <button type="button" id="btn-mode-correct" class="btn-shortcut" style="flex:1; padding:12px;" onclick="switchInventoryModalMode('CORRECT')">🛠️ Fix / Overwrite</button>
                     </div>
 
-                    <div style="margin-bottom: 20px;">
-                        <label for="input-full-boxes" class="inv-label">How many FULL, sealed boxes are left?</label>
-                        <input type="number" class="inv-form-control" id="input-full-boxes" min="0" required placeholder="0">
+                    <!-- Operator End of Run Quick Calculators -->
+                    <div id="operator-shortcut-block" style="margin-bottom: 15px;">
+                        <span style="display:block; font-size: 12px; font-weight:700; color:#64748b; margin-bottom:6px;">End of Run Fast Templates:</span>
+                        <div class="shortcut-row" style="margin-bottom: 0;">
+                            <button type="button" class="btn-shortcut" onclick="applyBoxLeftShortcut()">📦 Box Left Only (0 Full / 500 Loose)</button>
+                            <button type="button" class="btn-shortcut" onclick="applyShiftEndShortcut()">⏱️ Clear / Shift End (0 / 0)</button>
+                        </div>
                     </div>
-                    <div>
-                        <label for="input-loose-labels" class="inv-label">How many LOOSE labels are left inside the open box?</label>
-                        <input type="number" class="inv-form-control" id="input-loose-labels" min="0" required placeholder="0">
+
+                    <!-- Primary Quantitative Count Input Blocks -->
+                    <div style="background:#ffffff; padding:18px; border:2px solid #cbd5e1; border-radius:8px;">
+                        <div style="margin-bottom: 16px;">
+                            <label for="input-full-boxes" id="label-full-boxes" class="inv-label" style="font-size:15px;">How many FULL boxes are you deducting?</label>
+                            <input type="number" class="inv-form-control" id="input-full-boxes" min="0" value="0" required oninput="calculateLiveMathConfirmation()">
+                        </div>
+                        <div>
+                            <label for="input-loose-labels" id="label-loose-labels" class="inv-label" style="font-size:15px;">How many LOOSE labels are you deducting?</label>
+                            <input type="number" class="inv-form-control" id="input-loose-labels" min="0" value="0" required oninput="calculateLiveMathConfirmation()">
+                        </div>
+                    </div>
+
+                    <!-- Live Math Interlocking Confirmation Banner -->
+                    <div id="live-math-banner" style="margin-top: 18px; padding: 14px; border-radius: 6px; font-size: 14px; font-weight: 700; text-align: center; background:#f1f5f9; border:1px solid #cbd5e1; color:#334155;">
+                        Enter values above to verify balance calculations...
                     </div>
                 </div>
                 <div class="inv-modal-footer">
                     <button type="button" class="inv-btn-can" onclick="closeCustomModal()">Cancel</button>
-                    <button type="submit" class="inv-btn-sub" id="submit-count-btn">Submit End of Run Count</button>
+                    <button type="submit" class="inv-btn-sub" id="submit-count-btn" style="background:#2563eb;">Confirm Action</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
-<!-- Modal Container Layout for Listing Critical Low Stock Items -->
-<div id="lowStockItemsModalContainer" style="display: none;">
-    <div class="inv-modal-backdrop">
-        <div class="inv-modal-content" style="max-width: 600px;">
-            <div class="inv-modal-header" style="background: #dc2626;">
-                <span>⚠️ Low Stock Material Exceptions</span>
-                <button type="button" class="inv-modal-close" onclick="closeLowStockModal()">&times;</button>
-            </div>
-            <div class="inv-modal-body">
-                <table class="inv-table" style="font-size:14px;">
-                    <thead>
-                        <tr>
-                            <th>Part Code</th>
-                            <th>Description</th>
-                            <th style="text-align:right;">Current Stock</th>
-                            <th style="text-align:right;">Setpoint Min</th>
-                        </tr>
-                    </thead>
-                    <tbody id="low-stock-modal-tbody"></tbody>
-                </table>
-            </div>
-            <div class="inv-modal-footer">
-                <button type="button" class="inv-btn-can" onclick="closeLowStockModal()">Dismiss Window</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    function applyBoxLeftShortcut() {
-        document.getElementById('input-full-boxes').value = 0;
-        document.getElementById('input-loose-labels').value = 500;
-    }
-    function applyShiftEndShortcut() {
-        document.getElementById('input-full-boxes').value = 0;
-        document.getElementById('input-loose-labels').value = 0;
-    }
-</script>
-</body>
-</html>
