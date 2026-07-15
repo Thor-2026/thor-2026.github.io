@@ -18,15 +18,18 @@ async function initLabelsPage() {
     // Evaluate if the logged-in personnel holds access permissions via global userPermissions map
     const userHasAccess = evaluateLabelUpdatePermissions();
     
+    const authorizedWrapper = document.getElementById("authorized-view-wrapper");
+    const unauthorizedWrapper = document.getElementById("unauthorized-barrier-wrapper");
+    
     if (!userHasAccess) {
-        document.getElementById("authorized-view-wrapper").style.display = "none";
-        document.getElementById("unauthorized-barrier-wrapper").style.display = "block";
+        if (authorizedWrapper) authorizedWrapper.style.display = "none";
+        if (unauthorizedWrapper) unauthorizedWrapper.style.display = "block";
         return;
     }
 
     // Is clear, show form layout management fields
-    document.getElementById("unauthorized-barrier-wrapper").style.display = "none";
-    document.getElementById("authorized-view-wrapper").style.display = "block";
+    if (unauthorizedWrapper) unauthorizedWrapper.style.display = "none";
+    if (authorizedWrapper) authorizedWrapper.style.display = "block";
 
     // 1. Establish Authentication View Modes Layout Elements
     renderAuthStatusArea();
