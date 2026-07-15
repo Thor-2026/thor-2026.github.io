@@ -261,7 +261,14 @@
     .inv-modal-close { background: none; border: none; color: #94a3b8; font-size: 28px; cursor: pointer; }
     .inv-modal-close:hover { color: white; }
     .inv-modal-body { padding: 24px; background: #ffffff; max-height: 550px; overflow-y: auto; }
+    .inv-modal-footer { padding: 16px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; }
     
+    /* Missing baseline form & button styling declarations */
+    .inv-form-control { width: 100%; padding: 10px 12px; font-size: 14px; border: 2px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none; background: #ffffff; color: #0f172a; font-weight: 600; }
+    .inv-form-control:focus { border-color: #2563eb; }
+    .inv-btn-can { background: #64748b; color: white; border: none; padding: 10px 20px; font-weight: 700; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .inv-btn-can:hover { background: #475569; }
+
     /* Three-Column Traffic Light Layout Rules */
     .traffic-light-grid {
         display: grid;
@@ -367,7 +374,8 @@
     }
 </style>
 
-<div class="inv-container" id="authorized-view-wrapper" style="display: none;">
+<!-- Toggle this inline style to block/flex for previewing permissions states -->
+<div class="inv-container" id="authorized-view-wrapper" style="display: block;">
     <div class="inv-header-flex">
         <div class="inv-title-area">
             <h2>Label Inventory Management Control</h2>
@@ -377,7 +385,7 @@
     </div>
 
     <!-- Master Catalog Administration Panel -->
-    <div id="catalog-management-row" class="catalog-admin-panel" style="display: none;">
+    <div id="catalog-management-row" class="catalog-admin-panel" style="display: block;">
         <h4 style="margin: 0 0 15px 0; color: #0f172a; font-weight: 700; font-size: 16px;">⚙️ Master Part Code Catalog Administration</h4>
         <div class="catalog-row-flex">
             <div class="catalog-input-group">
@@ -431,7 +439,7 @@
     </div>
 
     <!-- Main Output Matrix Dynamic Section Grid -->
-    <div id="inventory-display-root" style="display: none;">
+    <div id="inventory-display-root" style="display: block;">
         <div class="inv-table-card">
             <h4 id="display-label-name" class="inv-table-title">--</h4>
             <table class="inv-table">
@@ -601,13 +609,43 @@
 </div>
 
 <script>
+    // System UI Interface Handlers
+    function showComboDropdown() {
+        document.getElementById('part-combo-dropdown').style.display = 'block';
+    }
+    
+    function closeCustomModal() {
+        document.getElementById('customUpdateModalContainer').style.display = 'none';
+    }
+    
+    function closeLowStockModal() {
+        document.getElementById('lowStockItemsModalContainer').style.display = 'none';
+    }
+    
+    function openLowStockSummaryModal() {
+        document.getElementById('lowStockItemsModalContainer').style.display = 'block';
+    }
+
     function applyBoxLeftShortcut() {
         document.getElementById('deduct-input-boxes').value = 0;
         document.getElementById('deduct-input-loose').value = 500;
     }
+    
     function applyShiftEndShortcut() {
         document.getElementById('deduct-input-boxes').value = 0;
         document.getElementById('deduct-input-loose').value = 0;
+    }
+
+    // Placeholders for database functions to prevent console exceptions
+    function filterComboOptions() {}
+    function executeViewPageGlobalSearch() {}
+    function generateDatabaseExcelExport() {}
+    function submitNewCatalogPartCode() {}
+    function deleteCurrentSelectedPartCode() {}
+    function promptCreateNewSupplier() {}
+    function processStockTransaction(action) {
+        console.log("Processing transaction type: " + action);
+        closeCustomModal();
     }
 </script>
 </body>
