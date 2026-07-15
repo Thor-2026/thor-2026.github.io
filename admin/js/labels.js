@@ -184,87 +184,101 @@ window.closeCustomModal = function() {
 };
 
 /**
- * Form Submit Interceptor Listener Binding
+ * Safe Form Submit Interceptor Listener Binding and Initialization Function
  */
-document.getElementById("stock-update-form").addEventListener("submit", async function(e) {
-    e.preventDefault();
+function initializeInventoryFormListener() {
+    const formElement = document.getElementById("stock-update-form");
     
-    const submitBtn = document.getElementById("submit-count-btn");
-    if (!submitBtn || submitBtn.disabled) return; 
+    // If the form element doesn't exist on this current page/view, exit cleanly without throwing errors
+    if (!formElement) return;
 
-    submitBtn.disabled = true;
-    const oldBtnText = submitBtn.textContent;
-    submitBtn.textContent = "Processing Transaction...";
-
-    const partCode = document.getElementById("modal-part-code").value;
-    const supplierId = parseInt(document.getElementById("modal-supplier-id").value);
-    const supplierName = document.getElementById("modal-supplier-name").value;
-    const qtyPerBox = parseInt(document.getElementById("modal-qty-per-box").value) || 6000;
-    
-    const inputBoxes = parseInt(document.getElementById("input-full-boxes").value) || 0;
-    const inputLoose = parseInt(document.getElementById("input-loose-labels").value) || 0;
-    const inputTransactionTotal = (inputBoxes * qtyPerBox) + inputLoose;
-
-    let finalBoxesTarget = inputBoxes;
-    let finalLooseTarget = inputLoose;
-
-    if (activeModalMode === "DEDUCT") {
-        const currentTotal = (modalCurrentFullBoxesSnapshot * qtyPerBox) + modalCurrentLooseLabelsSnapshot;
-        let newTotal = currentTotal - inputTransactionTotal;
-        if (newTotal < 0) newTotal = 0;
+    formElement.addEventListener("submit", async function(e) {
+        e.preventDefault();
         
-        finalBoxesTarget = Math.floor(newTotal / qtyPerBox);
-        finalLooseTarget = newTotal % qtyPerBox;
+        const submitBtn = document.getElementById("submit-count-btn");
+        if (!submitBtn || submitBtn.disabled) return; 
+
+        submitBtn.disabled = true;
+        const oldBtnText = submitBtn.textContent;
+        submitBtn.textContent = "Processing Transaction...";
+
+        const partCode = document.getElementById("modal-part-code").value;
+        const supplierId = parseInt(document.getElementById("modal-supplier-id").value);
+        const supplierName = document.getElementById("modal-supplier-name").value;
+        const qtyPerBox = parseInt(document.getElementById("modal-qty-per-box").value) || 6000;
         
-    } else if (activeModalMode === "ADD") {
-        const currentTotal = (modalCurrentFullBoxesSnapshot * qtyPerBox) + modalCurrentLooseLabelsSnapshot;
-        const newTotal = currentTotal + inputTransactionTotal;
-        
-        finalBoxesTarget = Math.floor(newTotal / qtyPerBox);
-        finalLooseTarget = newTotal % qtyPerBox;
-    }
+        const inputBoxes = parseInt(document.getElementById("input-full-boxes").value) || 0;
+        const inputLoose = parseInt(document.getElementById("input-loose-labels").value) || 0;
+        const inputTransactionTotal = (inputBoxes * qtyPerBox) + inputLoose;
 
-    const calculatedGrandTotalSum = (finalBoxesTarget * qtyPerBox) + finalLooseTarget;
+        let finalBoxesTarget = inputBoxes;
+        let finalLooseTarget = inputLoose;
 
-    try {
-        const { error: upsertError } = await supabaseClient
-            .from("labels_inventory")
-            .upsert({
-                part_code: partCode,
-                supplier_id: supplierId,
-                current_full_boxes: finalBoxesTarget,
-                current_loose_labels: finalLooseTarget,
-                qty_per_box: qtyPerBox 
-            }, { onConflict: 'part_code, supplier_id' });
+        if (activeModalMode === "DEDUCT") {
+            const currentTotal = (modalCurrentFullBoxesSnapshot * qtyPerBox) + modalCurrentLooseLabelsSnapshot;
+            let newTotal = currentTotal - inputTransactionTotal;
+            if (newTotal < 0) newTotal = 0;
+            
+            finalBoxesTarget = Math.floor(newTotal / qtyPerBox);
+            finalLooseTarget = newTotal % qtyPerBox;
+            
+        } else if (activeModalMode === "ADD") {
+            const currentTotal = (modalCurrentFullBoxesSnapshot * qtyPerBox) + modalCurrentLooseLabelsSnapshot;
+            const newTotal = currentTotal + inputTransactionTotal;
+            
+            finalBoxesTarget = Math.floor(newTotal / qtyPerBox);
+            finalLooseTarget = newTotal % qtyPerBox;
+        }
 
-        if (upsertError) throw upsertError;
+        const calculatedGrandTotalSum = (finalBoxesTarget * qtyPerBox) + finalLooseTarget;
 
-        await supabaseClient.from("activity_log").insert({
-            user_id: currentUser?.id || null,
-            username: currentUser?.profile?.username || "floor_user",
-            module: "labels",
-            action: `update_stock_${activeModalMode.toLowerCase()}`,
-            details: {
-                part_code: partCode,
-                supplier: supplierName,
-                mode_executed: activeModalMode,
-                input_boxes: inputBoxes,
-                input_loose: inputLoose,
-                database_final_boxes: finalBoxesTarget,
-                database_final_loose: finalLooseTarget,
-                calculated_total_balance: calculatedGrandTotalSum
-            }
-        });
+        try {
+            const { error: upsertError } = await supabaseClient
+                .from("labels_inventory")
+                .upsert({
+                    part_code: partCode,
+                    supplier_id: supplierId,
+                    current_full_boxes: finalBoxesTarget,
+                    current_loose_labels: finalLooseTarget,
+                    qty_per_box: qtyPerBox 
+                }, { onConflict: 'part_code, supplier_id' });
 
-        closeCustomModal();
-        if (typeof loadInventoryForPartCode === "function") await loadInventoryForPartCode(partCode);
-        if (typeof buildGlobalInventoryCacheSnapshot === "function") await buildGlobalInventoryCacheSnapshot();
+            if (upsertError) throw upsertError;
 
-    } catch (err) {
-        console.error("Transaction failed:", err);
-        alert(`Storage Rejection Error: ${err.message}`);
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = oldBtnText;
-    }
-});
+            await supabaseClient.from("activity_log").insert({
+                user_id: currentUser?.id || null,
+                username: currentUser?.profile?.username || "floor_user",
+                module: "labels",
+                action: `update_stock_${activeModalMode.toLowerCase()}`,
+                details: {
+                    part_code: partCode,
+                    supplier: supplierName,
+                    mode_executed: activeModalMode,
+                    input_boxes: inputBoxes,
+                    input_loose: inputLoose,
+                    database_final_boxes: finalBoxesTarget,
+                    database_final_loose: finalLooseTarget,
+                    calculated_total_balance: calculatedGrandTotalSum
+                }
+            });
+
+            closeCustomModal();
+            if (typeof loadInventoryForPartCode === "function") await loadInventoryForPartCode(partCode);
+            if (typeof buildGlobalInventoryCacheSnapshot === "function") await buildGlobalInventoryCacheSnapshot();
+
+        } catch (err) {
+            console.error("Transaction failed:", err);
+            alert(`Storage Rejection Error: ${err.message}`);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = oldBtnText;
+        }
+    });
+}
+
+// Intercept execution and wait until DOM elements are fully loaded before binding events
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializeInventoryFormListener);
+} else {
+    initializeInventoryFormListener();
+}
