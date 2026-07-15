@@ -11,7 +11,7 @@ let activeLowStockItemsList = [];
 
 /**
  * Main Initialization Lifecycle Module Router Hook
- */
+ **/
 async function initLabelsPage() {
     console.log("Initializing Gated Labels Inventory Controller System...");
     
