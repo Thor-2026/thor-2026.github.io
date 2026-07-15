@@ -15,7 +15,7 @@ let activeLowStockItemsList = [];
 async function initLabelsPage() {
     console.log("Initializing Gated Labels Inventory Controller System...");
     
-    // Evaluate if the logged-in personnel holds access permissions via global userPermissions map
+    // Evaluate if the logged-in personnel holds access permissions
     const userHasAccess = evaluateLabelUpdatePermissions();
     
     const authorizedWrapper = document.getElementById("authorized-view-wrapper");
@@ -27,7 +27,7 @@ async function initLabelsPage() {
         return;
     }
 
-    // Is clear, show form layout management fields
+    // Access granted: Toggle views safely
     if (unauthorizedWrapper) unauthorizedWrapper.style.display = "none";
     if (authorizedWrapper) authorizedWrapper.style.display = "block";
 
