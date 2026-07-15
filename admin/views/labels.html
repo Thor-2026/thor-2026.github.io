@@ -388,10 +388,6 @@
 
 <!-- Main Container -->
 <div class="inv-container" id="authorized-view-wrapper" style="display: block;">
-    <!-- ... Rest of your HTML ... -->
-    
-<!-- Main Container -->
-<div class="inv-container" id="authorized-view-wrapper" style="display: block;">
     <div class="inv-header-flex">
         <div class="inv-title-area">
             <h2>Label Inventory Management Control</h2>
@@ -440,6 +436,10 @@
         <div style="flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 6px;">
             <label for="view-page-search" style="font-weight: 700; font-size: 14px; color: #334155;">🔍 Global Label Catalog Stock Search:</label>
             <input type="text" id="view-page-search" class="catalog-field" placeholder="Type here to instantly inspect total stock by code or title description..." oninput="executeViewPageGlobalSearch()">
+            
+            <!-- HIDDEN INPUTS AND INPUT CACHES REQUIRED BY THE SEARCH ENGINE -->
+            <input type="hidden" id="part-code-selector" value="">
+            <input type="hidden" id="part-combo-input" value="">
         </div>
         <div style="padding-top: 24px;">
             <button type="button" class="btn-action-excel" onclick="generateDatabaseExcelExport()">📊 Export Audit Sheet (Excel)</button>
