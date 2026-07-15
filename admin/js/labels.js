@@ -362,21 +362,6 @@ async function loadInventoryForPartCode(partCode) {
     document.getElementById("grand-loose-cell").textContent = `${grandTotalLoose.toLocaleString()} Loose`;
     document.getElementById("grand-labels-cell").textContent = `${grandTotalLabels.toLocaleString()} Labels`;
 
-    // Hook to automatically populate the Admin Edit panel when a code is selected
-    if (userRoleId === 1) {
-        const editCodeInput = document.getElementById("edit-part-code");
-        const editNameInput = document.getElementById("edit-label-name");
-        const editMinInput = document.getElementById("edit-min-stock");
-        
-        if (editCodeInput && editNameInput && editMinInput) {
-            editCodeInput.value = matchedPart.part_code;
-            editNameInput.value = matchedPart.label_name;
-            // Fetch min stock from existing inventory records or default to 30000
-            const currentMinStock = selectedPartCodeData.length > 0 ? selectedPartCodeData[0].min_setpoint : 30000;
-            editMinInput.value = currentMinStock;
-        }
-    }
-
     rootContainer.style.display = "block";
 }
 
@@ -654,86 +639,6 @@ window.submitNewCatalogPartCode = async function() {
 };
 
 /**
- * CATALOG EDITING TOOL: Saves modified metadata for selected Part Codes directly to Supabase
- */
-window.submitCatalogPartCodeEdit = async function() {
-    const userRoleId = currentUser.profile?.role_id;
-    if (userRoleId !== 1) {
-        alert("Unauthorized action execution barred.");
-        return;
-    }
-
-    const editCodeInput = document.getElementById("edit-part-code");
-    const editNameInput = document.getElementById("edit-label-name");
-    const editMinStockInput = document.getElementById("edit-min-stock");
-    const submitBtn = document.getElementById("btn-submit-edit-catalog");
-
-    if (!editCodeInput || !editNameInput || !editMinStockInput) return;
-
-    const partCode = editCodeInput.value.trim();
-    const newLabelName = editNameInput.value.trim();
-    const parsedMinStock = parseInt(editMinStockInput.value, 10);
-    const newMinSetpoint = isNaN(parsedMinStock) ? 30000 : parsedMinStock;
-
-    if (!partCode) {
-        alert("Error: Please select a Part Code from the combobox to edit first.");
-        return;
-    }
-    if (!newLabelName) {
-        alert("Error: Description title name cannot be empty.");
-        return;
-    }
-
-    try {
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.textContent = "Saving...";
-        }
-
-        // 1. Update master descriptor in part_codes table
-        const { error: partUpdateErr } = await supabaseClient
-            .from("part_codes")
-            .update({ label_name: newLabelName })
-            .eq("part_code", partCode);
-
-        if (partUpdateErr) throw partUpdateErr;
-
-        // 2. Update safety setpoints across corresponding row configurations inside labels_inventory
-        const { error: invUpdateErr } = await supabaseClient
-            .from("labels_inventory")
-            .update({ min_setpoint: newMinSetpoint })
-            .eq("part_code", partCode);
-
-        if (invUpdateErr) throw invUpdateErr;
-
-        // 3. Write record event to activity_log
-        await supabaseClient.from("activity_log").insert({
-            user_id: currentUser?.id || null,
-            username: currentUser?.profile?.username || "admin",
-            module: "labels",
-            action: "edit_part_code",
-            details: { part_code: partCode, new_label_name: newLabelName, new_min_setpoint: newMinSetpoint }
-        });
-
-        alert(`Success: Part code ${partCode} has been updated.`);
-
-        // 4. Force reload lists, sync dropdown caches, and refresh UI bindings
-        await refreshPartCodesCatalogDropdown();
-        await buildGlobalInventoryCacheSnapshot();
-        await selectComboValue(partCode, `${partCode} - ${newLabelName}`);
-
-    } catch (err) {
-        console.error("Critical failure during catalog edit execution:", err);
-        alert(`Failed to apply code edits. Custom Details: ${err.message}`);
-    } finally {
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.textContent = "💾 Save Changes";
-        }
-    }
-};
-
-/**
  * ENGINEERING TOOL: Purges Selected Part Code records
  */
 window.deleteCurrentSelectedPartCode = async function() {
@@ -764,14 +669,6 @@ window.deleteCurrentSelectedPartCode = async function() {
         document.getElementById("inventory-display-root").style.display = "none";
         document.getElementById("part-combo-input").value = "";
         document.getElementById("part-code-selector").value = "";
-        
-        // Clear edit panel values
-        const editCodeInput = document.getElementById("edit-part-code");
-        const editNameInput = document.getElementById("edit-label-name");
-        const editMinStockInput = document.getElementById("edit-min-stock");
-        if (editCodeInput) editCodeInput.value = "";
-        if (editNameInput) editNameInput.value = "";
-        if (editMinStockInput) editMinStockInput.value = "";
         
         await refreshPartCodesCatalogDropdown();
         await buildGlobalInventoryCacheSnapshot();
