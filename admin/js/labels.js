@@ -8,10 +8,15 @@ let modalCurrentLooseLabelsSnapshot = 0;
  */
 window.openUpdateModal = function(partCode, supplierId, supplierName, currentBoxes, currentLoose, effectiveQtyPerBox) {
     // 1. Assign Local Operational Memory State Fields
-    document.getElementById("modal-part-code").value = partCode;
-    document.getElementById("modal-supplier-id").value = supplierId;
-    document.getElementById("modal-supplier-name").value = supplierName;
-    document.getElementById("modal-qty-per-box").value = effectiveQtyPerBox;
+    const partCodeInput = document.getElementById("modal-part-code");
+    const supplierIdInput = document.getElementById("modal-supplier-id");
+    const supplierNameInput = document.getElementById("modal-supplier-name");
+    const qtyPerBoxInput = document.getElementById("modal-qty-per-box");
+
+    if (partCodeInput) partCodeInput.value = partCode;
+    if (supplierIdInput) supplierIdInput.value = supplierId;
+    if (supplierNameInput) supplierNameInput.value = supplierName;
+    if (qtyPerBoxInput) qtyPerBoxInput.value = effectiveQtyPerBox;
     
     modalCurrentFullBoxesSnapshot = currentBoxes;
     modalCurrentLooseLabelsSnapshot = currentLoose;
@@ -19,11 +24,13 @@ window.openUpdateModal = function(partCode, supplierId, supplierName, currentBox
     const currentTotalLabels = (currentBoxes * effectiveQtyPerBox) + currentLoose;
     
     // 2. Refresh Static Target Presentation Labels
-    document.getElementById("modal-box-qty-badge").textContent = effectiveQtyPerBox.toLocaleString();
-    document.getElementById("modal-current-bal-badge").textContent = currentTotalLabels.toLocaleString();
+    const boxQtyBadge = document.getElementById("modal-box-qty-badge");
+    const currentBalBadge = document.getElementById("modal-current-bal-badge");
+    if (boxQtyBadge) boxQtyBadge.textContent = effectiveQtyPerBox.toLocaleString();
+    if (currentBalBadge) currentBalBadge.textContent = currentTotalLabels.toLocaleString();
     
     // 3. Evaluate Profile Permissions to Filter Tab Layout Access Options
-    const userRoleId = currentUser.profile?.role_id; // 1 = Admin, 2 = Staff, 3 = Operator
+    const userRoleId = window.currentUser?.profile?.role_id; // 1 = Admin, 2 = Staff, 3 = Operator
     const addModeBtn = document.getElementById("btn-mode-add");
     const correctModeBtn = document.getElementById("btn-mode-correct");
     
@@ -37,7 +44,8 @@ window.openUpdateModal = function(partCode, supplierId, supplierName, currentBox
 
     // 4. Force default initialization straight to the Operator DEDUCT mode
     switchInventoryModalMode("DEDUCT");
-    document.getElementById("customUpdateModalContainer").style.display = "block";
+    const modalContainer = document.getElementById("customUpdateModalContainer");
+    if (modalContainer) modalContainer.style.display = "block";
 };
 
 /**
@@ -49,8 +57,8 @@ window.switchInventoryModalMode = function(targetMode) {
     const header = document.getElementById("modal-header-accent");
     const submitBtn = document.getElementById("submit-count-btn");
     const shortcutBlock = document.getElementById("operator-shortcut-block");
-    const partCode = document.getElementById("modal-part-code").value;
-    const supplierName = document.getElementById("modal-supplier-name").value;
+    const partCode = document.getElementById("modal-part-code")?.value || "";
+    const supplierName = document.getElementById("modal-supplier-name")?.value || "";
     
     // Reset all context selector buttons to passive design colors
     ["btn-mode-deduct", "btn-mode-add", "btn-mode-correct"].forEach(id => {
@@ -63,55 +71,84 @@ window.switchInventoryModalMode = function(targetMode) {
     });
 
     // Clear operational inputs to prevent carrying values between modes
-    document.getElementById("input-full-boxes").value = 0;
-    document.getElementById("input-loose-labels").value = 0;
+    const fullBoxesInput = document.getElementById("input-full-boxes");
+    const looseLabelsInput = document.getElementById("input-loose-labels");
+    if (fullBoxesInput) fullBoxesInput.value = 0;
+    if (looseLabelsInput) looseLabelsInput.value = 0;
 
     // Apply specific color configurations based on active processing rules
     if (targetMode === "DEDUCT") {
-        document.getElementById("btn-mode-deduct").style.background = "#eff6ff";
-        document.getElementById("btn-mode-deduct").style.color = "#1e40af";
-        document.getElementById("btn-mode-deduct").style.borderColor = "#2563eb";
+        const btnDeduct = document.getElementById("btn-mode-deduct");
+        if (btnDeduct) {
+            btnDeduct.style.background = "#eff6ff";
+            btnDeduct.style.color = "#1e40af";
+            btnDeduct.style.borderColor = "#2563eb";
+        }
         
-        header.style.background = "#2563eb";
-        submitBtn.style.background = "#2563eb";
-        submitBtn.textContent = "Submit Operational Production Deduction";
+        if (header) header.style.background = "#2563eb";
+        if (submitBtn) {
+            submitBtn.style.background = "#2563eb";
+            submitBtn.textContent = "Submit Operational Production Deduction";
+        }
         if (shortcutBlock) shortcutBlock.style.display = "block";
         
-        document.getElementById("modal-title-text").textContent = `Deduct Usage Logs: Run ${partCode} (${supplierName})`;
-        document.getElementById("label-full-boxes").textContent = "How many FULL boxes did you completely USE?";
-        document.getElementById("label-loose-labels").textContent = "How many LOOSE labels were consumed from the open box?";
+        const titleText = document.getElementById("modal-title-text");
+        const lblFull = document.getElementById("label-full-boxes");
+        const lblLoose = document.getElementById("label-loose-labels");
+        
+        if (titleText) titleText.textContent = `Deduct Usage Logs: Run ${partCode} (${supplierName})`;
+        if (lblFull) lblFull.textContent = "How many FULL boxes did you completely USE?";
+        if (lblLoose) lblLoose.textContent = "How many LOOSE labels were consumed from the open box?";
         
     } else if (targetMode === "ADD") {
-        document.getElementById("btn-mode-add").style.background = "#ecfdf5";
-        document.getElementById("btn-mode-add").style.color = "#065f46";
-        document.getElementById("btn-mode-add").style.borderColor = "#059669";
+        const btnAdd = document.getElementById("btn-mode-add");
+        if (btnAdd) {
+            btnAdd.style.background = "#ecfdf5";
+            btnAdd.style.color = "#065f46";
+            btnAdd.style.borderColor = "#059669";
+        }
         
-        header.style.background = "#059669";
-        submitBtn.style.background = "#059669";
-        submitBtn.textContent = "Receive Incoming Stock Allocation";
+        if (header) header.style.background = "#059669";
+        if (submitBtn) {
+            submitBtn.style.background = "#059669";
+            submitBtn.textContent = "Receive Incoming Stock Allocation";
+        }
         if (shortcutBlock) shortcutBlock.style.display = "none";
         
-        document.getElementById("modal-title-text").textContent = `New Shipment Arrival: Run ${partCode} (${supplierName})`;
-        document.getElementById("label-full-boxes").textContent = "How many NEW full boxes arrived?";
-        document.getElementById("label-loose-labels").textContent = "How many EXTRA loose labels arrived?";
+        const titleText = document.getElementById("modal-title-text");
+        const lblFull = document.getElementById("label-full-boxes");
+        const lblLoose = document.getElementById("label-loose-labels");
+
+        if (titleText) titleText.textContent = `New Shipment Arrival: Run ${partCode} (${supplierName})`;
+        if (lblFull) lblFull.textContent = "How many NEW full boxes arrived?";
+        if (lblLoose) lblLoose.textContent = "How many EXTRA loose labels arrived?";
         
     } else if (targetMode === "CORRECT") {
-        document.getElementById("btn-mode-correct").style.background = "#fef2f2";
-        document.getElementById("btn-mode-correct").style.color = "#991b1b";
-        document.getElementById("btn-mode-correct").style.borderColor = "#ef4444";
+        const btnCorrect = document.getElementById("btn-mode-correct");
+        if (btnCorrect) {
+            btnCorrect.style.background = "#fef2f2";
+            btnCorrect.style.color = "#991b1b";
+            btnCorrect.style.borderColor = "#ef4444";
+        }
         
-        header.style.background = "#dc2626";
-        submitBtn.style.background = "#dc2626";
-        submitBtn.textContent = "⚠️ OVERWRITE & CORRECT INVENTORY";
+        if (header) header.style.background = "#dc2626";
+        if (submitBtn) {
+            submitBtn.style.background = "#dc2626";
+            submitBtn.textContent = "⚠️ OVERWRITE & CORRECT INVENTORY";
+        }
         if (shortcutBlock) shortcutBlock.style.display = "none";
         
         // Match old values for convenience in correction mode
-        document.getElementById("input-full-boxes").value = modalCurrentFullBoxesSnapshot;
-        document.getElementById("input-loose-labels").value = modalCurrentLooseLabelsSnapshot;
+        if (fullBoxesInput) fullBoxesInput.value = modalCurrentFullBoxesSnapshot;
+        if (looseLabelsInput) looseLabelsInput.value = modalCurrentLooseLabelsSnapshot;
         
-        document.getElementById("modal-title-text").textContent = `Absolute Count Correction: Run ${partCode} (${supplierName})`;
-        document.getElementById("label-full-boxes").textContent = "Correct Count: Actual FULL boxes on pallet:";
-        document.getElementById("label-loose-labels").textContent = "Correct Count: Actual LOOSE pieces inside open box:";
+        const titleText = document.getElementById("modal-title-text");
+        const lblFull = document.getElementById("label-full-boxes");
+        const lblLoose = document.getElementById("label-loose-labels");
+
+        if (titleText) titleText.textContent = `Absolute Count Correction: Run ${partCode} (${supplierName})`;
+        if (lblFull) lblFull.textContent = "Correct Count: Actual FULL boxes on pallet:";
+        if (lblLoose) lblLoose.textContent = "Correct Count: Actual LOOSE pieces inside open box:";
     }
 
     calculateLiveMathConfirmation();
@@ -121,9 +158,9 @@ window.switchInventoryModalMode = function(targetMode) {
  * Calculates and outputs a live structural math verification directly to the view field
  */
 window.calculateLiveMathConfirmation = function() {
-    const qtyPerBox = parseInt(document.getElementById("modal-qty-per-box").value) || 6000;
-    const inputBoxes = parseInt(document.getElementById("input-full-boxes").value) || 0;
-    const inputLoose = parseInt(document.getElementById("input-loose-labels").value) || 0;
+    const qtyPerBox = parseInt(document.getElementById("modal-qty-per-box")?.value) || 6000;
+    const inputBoxes = parseInt(document.getElementById("input-full-boxes")?.value) || 0;
+    const inputLoose = parseInt(document.getElementById("input-loose-labels")?.value) || 0;
     
     const initialTotal = (modalCurrentFullBoxesSnapshot * qtyPerBox) + modalCurrentLooseLabelsSnapshot;
     const inputTransactionTotal = (inputBoxes * qtyPerBox) + inputLoose;
@@ -165,14 +202,18 @@ window.calculateLiveMathConfirmation = function() {
  * Shortcuts to optimize processing speeds for production operators
  */
 window.applyBoxLeftShortcut = function() {
-    document.getElementById("input-full-boxes").value = 0;
-    document.getElementById("input-loose-labels").value = 500;
+    const looseField = document.getElementById("input-loose-labels");
+    const fullField = document.getElementById("input-full-boxes");
+    if (fullField) fullField.value = 0;
+    if (looseField) looseField.value = 500;
     calculateLiveMathConfirmation();
 };
 
 window.applyShiftEndShortcut = function() {
-    document.getElementById("input-full-boxes").value = 0;
-    document.getElementById("input-loose-labels").value = 0;
+    const looseField = document.getElementById("input-loose-labels");
+    const fullField = document.getElementById("input-full-boxes");
+    if (fullField) fullField.value = 0;
+    if (looseField) looseField.value = 0;
     calculateLiveMathConfirmation();
 };
 
@@ -180,19 +221,17 @@ window.applyShiftEndShortcut = function() {
  * Close modal utilities
  */
 window.closeCustomModal = function() {
-    document.getElementById("customUpdateModalContainer").style.display = "none";
+    const modalContainer = document.getElementById("customUpdateModalContainer");
+    if (modalContainer) modalContainer.style.display = "none";
 };
 
 /**
- * Safe Form Submit Interceptor Listener Binding and Initialization Function
+ * Completely safe initialization sequence. Uses optional chaining (?.)
+ * so that if "stock-update-form" does not exist in the DOM, it silently ignores
+ * the execution rather than throwing a crash error.
  */
 function initializeInventoryFormListener() {
-    const formElement = document.getElementById("stock-update-form");
-    
-    // If the form element doesn't exist on this current page/view, exit cleanly without throwing errors
-    if (!formElement) return;
-
-    formElement.addEventListener("submit", async function(e) {
+    document.getElementById("stock-update-form")?.addEventListener("submit", async function(e) {
         e.preventDefault();
         
         const submitBtn = document.getElementById("submit-count-btn");
@@ -202,13 +241,13 @@ function initializeInventoryFormListener() {
         const oldBtnText = submitBtn.textContent;
         submitBtn.textContent = "Processing Transaction...";
 
-        const partCode = document.getElementById("modal-part-code").value;
-        const supplierId = parseInt(document.getElementById("modal-supplier-id").value);
-        const supplierName = document.getElementById("modal-supplier-name").value;
-        const qtyPerBox = parseInt(document.getElementById("modal-qty-per-box").value) || 6000;
+        const partCode = document.getElementById("modal-part-code")?.value || "";
+        const supplierId = parseInt(document.getElementById("modal-supplier-id")?.value) || 0;
+        const supplierName = document.getElementById("modal-supplier-name")?.value || "";
+        const qtyPerBox = parseInt(document.getElementById("modal-qty-per-box")?.value) || 6000;
         
-        const inputBoxes = parseInt(document.getElementById("input-full-boxes").value) || 0;
-        const inputLoose = parseInt(document.getElementById("input-loose-labels").value) || 0;
+        const inputBoxes = parseInt(document.getElementById("input-full-boxes")?.value) || 0;
+        const inputLoose = parseInt(document.getElementById("input-loose-labels")?.value) || 0;
         const inputTransactionTotal = (inputBoxes * qtyPerBox) + inputLoose;
 
         let finalBoxesTarget = inputBoxes;
@@ -233,7 +272,7 @@ function initializeInventoryFormListener() {
         const calculatedGrandTotalSum = (finalBoxesTarget * qtyPerBox) + finalLooseTarget;
 
         try {
-            const { error: upsertError } = await supabaseClient
+            const { error: upsertError } = await window.supabaseClient
                 .from("labels_inventory")
                 .upsert({
                     part_code: partCode,
@@ -245,9 +284,9 @@ function initializeInventoryFormListener() {
 
             if (upsertError) throw upsertError;
 
-            await supabaseClient.from("activity_log").insert({
-                user_id: currentUser?.id || null,
-                username: currentUser?.profile?.username || "floor_user",
+            await window.supabaseClient.from("activity_log").insert({
+                user_id: window.currentUser?.id || null,
+                username: window.currentUser?.profile?.username || "floor_user",
                 module: "labels",
                 action: `update_stock_${activeModalMode.toLowerCase()}`,
                 details: {
@@ -263,8 +302,8 @@ function initializeInventoryFormListener() {
             });
 
             closeCustomModal();
-            if (typeof loadInventoryForPartCode === "function") await loadInventoryForPartCode(partCode);
-            if (typeof buildGlobalInventoryCacheSnapshot === "function") await buildGlobalInventoryCacheSnapshot();
+            if (typeof window.loadInventoryForPartCode === "function") await window.loadInventoryForPartCode(partCode);
+            if (typeof window.buildGlobalInventoryCacheSnapshot === "function") await window.buildGlobalInventoryCacheSnapshot();
 
         } catch (err) {
             console.error("Transaction failed:", err);
