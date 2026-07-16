@@ -329,11 +329,13 @@ async function loadInventoryForPartCode(partCode) {
         const record = selectedPartCodeData.find(r => r.supplier_id === supplier.id) || {
             current_full_boxes: 0,
             current_loose_labels: 0,
-            qty_per_box: supplier.qty_per_box
+            qty_per_box: supplier.qty_per_box,
+            min_setpoint: 30000
         };
 
         const effectiveQtyPerBox = record.qty_per_box ? record.qty_per_box : supplier.qty_per_box;
         const supplierSubtotal = (record.current_full_boxes * effectiveQtyPerBox) + record.current_loose_labels;
+        const currentMinSetpoint = record.min_setpoint !== undefined ? record.min_setpoint : 30000;
 
         grandTotalBoxes += record.current_full_boxes;
         grandTotalLoose += record.current_loose_labels;
@@ -354,7 +356,7 @@ async function loadInventoryForPartCode(partCode) {
                         ✏️ Edit Stock
                     </button>
                     ${userRoleId === 1 ? `
-                    <button type="button" class="inv-btn-specs" onclick="openSpecsEditModal('${partCode}', ${supplier.id}, '${matchedPart.label_name.replace(/'/g, "\\'")}', '${supplier.supplier_name.replace(/'/g, "\\'")}', ${effectiveQtyPerBox})">
+                    <button type="button" class="inv-btn-specs" onclick="openSpecsEditModal('${partCode}', ${supplier.id}, '${matchedPart.label_name.replace(/'/g, "\\'")}', '${supplier.supplier_name.replace(/'/g, "\\'")}', ${effectiveQtyPerBox}, ${currentMinSetpoint})">
                         ⚙️ Edit Specs
                     </button>
                     ` : ''}
@@ -688,7 +690,7 @@ window.deleteCurrentSelectedPartCode = async function() {
 /**
  * OPENS THE NEW SPECIFICATIONS EDIT MODAL
  */
-window.openSpecsEditModal = function(partCode, supplierId, labelName, supplierName, qtyPerBox) {
+window.openSpecsEditModal = function(partCode, supplierId, labelName, supplierName, qtyPerBox, minSetpoint) {
     document.getElementById("specs-target-code").value = partCode;
     document.getElementById("specs-target-supplier-id").value = supplierId;
     
@@ -696,6 +698,7 @@ window.openSpecsEditModal = function(partCode, supplierId, labelName, supplierNa
     document.getElementById("edit-label-name").value = labelName;
     document.getElementById("edit-supplier-name").value = supplierName;
     document.getElementById("edit-qty-per-box").value = qtyPerBox;
+    document.getElementById("edit-min-setpoint").value = minSetpoint !== undefined ? minSetpoint : 30000;
 
     document.getElementById("specsEditModalContainer").style.display = "block";
 };
@@ -714,9 +717,10 @@ window.saveSpecsModification = async function() {
     const updatedPartCode = document.getElementById("edit-part-code").value.trim();
     const updatedLabelName = document.getElementById("edit-label-name").value.trim();
     const updatedQty = parseInt(document.getElementById("edit-qty-per-box").value, 10);
+    const updatedMinSetpoint = parseInt(document.getElementById("edit-min-setpoint").value, 10);
 
-    if (!updatedPartCode || !updatedLabelName || isNaN(updatedQty) || updatedQty <= 0) {
-        alert("All fields are required. Box quantity calibration setting must be a number greater than 0.");
+    if (!updatedPartCode || !updatedLabelName || isNaN(updatedQty) || updatedQty <= 0 || isNaN(updatedMinSetpoint) || updatedMinSetpoint < 0) {
+        alert("All fields are required. Box quantity calibration and Minimum Quantity Setpoint must be valid positive numbers.");
         return;
     }
 
@@ -732,7 +736,11 @@ window.saveSpecsModification = async function() {
         // 2. Update child table labels_inventory entry
         const { error: liError } = await supabaseClient
             .from("labels_inventory")
-            .update({ part_code: updatedPartCode, qty_per_box: updatedQty })
+            .update({ 
+                part_code: updatedPartCode, 
+                qty_per_box: updatedQty,
+                min_setpoint: updatedMinSetpoint
+            })
             .eq("part_code", originalPartCode)
             .eq("supplier_id", supplierId);
 
