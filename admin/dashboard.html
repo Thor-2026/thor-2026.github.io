@@ -7,6 +7,18 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- 
+  FORCE BROWSER CACHE RELOAD ON BACK BUTTON
+  This script executes immediately to force a reload if the page is pulled from browser memory/bfcache
+-->
+<script>
+    window.addEventListener('pageshow', function (event) {
+        if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+            window.location.reload();
+        }
+    });
+</script>
+
 <title>Thor Display CMS</title>
 
 <!-- System Interface Theme Framework Layers -->
