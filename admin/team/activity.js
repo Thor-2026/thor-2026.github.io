@@ -171,48 +171,62 @@ function renderActivity() {
 
     }
 
-    table.innerHTML = filteredActivityRows.map(row => {
-        
-        // Convert the details column into a safe, escape-coded string payload string string mapping matrix
-        const detailsString = row.details ? JSON.stringify(row.details).replace(/'/g, "\\'") : "{}";
+    // Clear previous rows safely
+    table.innerHTML = "";
+
+    filteredActivityRows.forEach(row => {
+        const tr = document.createElement("tr");
+
+        const logTime = formatDate(row.created_at);
+        const userDisplayName = row.profiles?.full_name || row.profiles?.username || 'User';
         const hasDetails = row.module === 'labels' && row.details;
 
-        return `
-            <tr>
-
-                <td>${formatDate(row.created_at)}</td>
-
-                <td>
-
-                    ${row.profiles?.full_name || "-"}
-
-                    <br>
-
-                    <small>
-
-                        ${row.profiles?.username || ""}
-
-                    </small>
-
-                </td>
-
-                <td>${capitalize(row.module)}</td>
-
-                <td>${row.action}</td>
-
-                <td style="text-align: right; width: 120px; white-space: nowrap;">
-                    ${hasDetails ? `
-                        <button type="button" class="btn-log-details" onclick="openActivityDetailsModal('${detailsString}', '${row.action}', '${formatDate(row.created_at)}', '${row.profiles?.full_name || row.profiles?.username || 'User'}')">
-                            🔎 Details
-                        </button>
-                    ` : `
-                        <span style="color: #94a3b8; font-style: italic; font-size: 12px;">Standard Log</span>
-                    `}
-                </td>
-
-            </tr>
+        // Base structural content columns
+        tr.innerHTML = `
+            <td>${logTime}</td>
+            <td>
+                ${row.profiles?.full_name || "-"}
+                <br>
+                <small>${row.profiles?.username || ""}</small>
+            </td>
+            <td>${capitalize(row.module)}</td>
+            <td>${row.action}</td>
+            <td style="text-align: right; width: 120px; white-space: nowrap;" class="action-cell">
+                <!-- Button slot injected natively below to bypass inline string token issues -->
+            </td>
         `;
-    }).join("");
+
+        const cell = tr.querySelector(".action-cell");
+
+        if (hasDetails) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "btn-log-details";
+            btn.textContent = "🔎 Details";
+            
+            // SECURITY ARCHITECTURE FIX: Keep data isolated natively on the DOM element 
+            // instead of string-concatenating dynamic payloads into standard onClick attributes
+            btn.dataset.jsonPayload = JSON.stringify(row.details);
+            btn.dataset.logAction = row.action;
+            btn.dataset.logTime = logTime;
+            btn.dataset.logUser = userDisplayName;
+
+            btn.addEventListener("click", function() {
+                openActivityDetailsModal(
+                    this.dataset.jsonPayload,
+                    this.dataset.logAction,
+                    this.dataset.logTime,
+                    this.dataset.logUser
+                );
+            });
+
+            cell.appendChild(btn);
+        } else {
+            cell.innerHTML = `<span style="color: #94a3b8; font-style: italic; font-size: 12px;">Standard Log</span>`;
+        }
+
+        table.appendChild(tr);
+    });
 
 }
 
