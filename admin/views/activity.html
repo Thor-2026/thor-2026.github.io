@@ -1,3 +1,90 @@
+<style>
+    /* Premium High-Contrast Details Button Styling */
+    .btn-log-details {
+        background: #475569;
+        color: #ffffff !important;
+        border: none;
+        padding: 6px 12px;
+        font-weight: 700;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: background-color 0.2s ease;
+    }
+    .btn-log-details:hover {
+        background: #1e293b;
+    }
+
+    /* Modal Architecture Overlays matching main project styles */
+    .inv-modal-backdrop { 
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        width: 100vw; 
+        height: 100vh; 
+        background: rgba(15, 23, 42, 0.6); 
+        backdrop-filter: blur(4px); 
+        display: flex; 
+        justify-content: center; 
+        align-items: center; 
+        z-index: 999999; 
+    }
+    .inv-modal-content { 
+        background: #ffffff; 
+        border-radius: 12px; 
+        width: 100%; 
+        max-width: 500px; 
+        overflow: hidden; 
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
+        border: 1px solid #cbd5e1;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .inv-modal-header { 
+        background: #0f172a; 
+        color: #ffffff !important; 
+        padding: 16px 20px; 
+        font-size: 16px; 
+        font-weight: 700; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+    }
+    .inv-modal-close { 
+        background: none; 
+        border: none; 
+        color: #94a3b8; 
+        font-size: 24px; 
+        cursor: pointer; 
+    }
+    .inv-modal-close:hover { 
+        color: white; 
+    }
+    .inv-modal-body { 
+        padding: 20px; 
+        background: #ffffff; 
+    }
+    .inv-modal-footer { 
+        padding: 12px 20px; 
+        background: #f8fafc; 
+        border-top: 1px solid #e2e8f0; 
+        display: flex; 
+        justify-content: flex-end; 
+    }
+    .inv-btn-can { 
+        background: #64748b; 
+        color: white; 
+        border: none; 
+        padding: 8px 16px; 
+        font-weight: 700; 
+        border-radius: 6px; 
+        cursor: pointer; 
+        font-size: 13px; 
+    }
+    .inv-btn-can:hover { 
+        background: #475569; 
+    }
+</style>
+
 <div class="page-header">
 
     <h1>📜 Activity Log</h1>
@@ -38,6 +125,8 @@
 
                 <th>Action</th>
 
+                <th style="text-align: right;">Specs</th>
+
             </tr>
 
         </thead>
@@ -46,7 +135,7 @@
 
             <tr>
 
-                <td colspan="4">
+                <td colspan="5">
 
                     Loading activity...
 
@@ -58,4 +147,22 @@
 
     </table>
 
+</div>
+
+<!-- ================= MODAL OVERLAY PORT: ACTIVITY LOG ENTRY DETAILS ================= -->
+<div id="logDetailsModalContainer" style="display: none;">
+    <div class="inv-modal-backdrop">
+        <div class="inv-modal-content">
+            <div class="inv-modal-header">
+                <span id="logModalActionTitle">🔎 Activity Audit Details</span>
+                <button type="button" class="inv-modal-close" onclick="closeLogDetailsModal()">&times;</button>
+            </div>
+            <div class="inv-modal-body" id="logModalDataBody">
+                <!-- Data layout parameters dynamically injected via JavaScript engine mappings -->
+            </div>
+            <div class="inv-modal-footer">
+                <button type="button" class="inv-btn-can" onclick="closeLogDetailsModal()">Dismiss Panel</button>
+            </div>
+        </div>
+    </div>
 </div>
