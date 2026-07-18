@@ -22,7 +22,6 @@ async function logActivity(action, module) {
         const { error } = await supabaseClient
 
             .from("activity_log")
-
             .insert({
 
                 user_id: user.id,
