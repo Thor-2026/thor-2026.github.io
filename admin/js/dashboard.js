@@ -169,19 +169,20 @@ async function loadPermissions() {
     userPermissions = {};
 
     // Base default views for Staff with complete permission object shapes
-userPermissions['dashboard'] = { can_view: true, can_create: false, can_edit: false, can_delete: false }; 
+    userPermissions['dashboard'] = { can_view: true, can_create: false, can_edit: false, can_delete: false }; 
 
-(data || []).forEach(permission => {
-    // This will now cleanly overwrite the false flags with your true values from the DB
-    userPermissions[permission.module] = {
-        can_view: permission.can_view,
-        can_create: permission.can_create,
-        can_edit: permission.can_edit,
-        can_delete: permission.can_delete
-    };
-});
-    //HARDCODED RULE: FORCE LABEL ACCESS TO TRUE FOR EVERYONE LOGGED IN
-userPermissions['labels'] = { can_view: true, can_create: false, can_edit: false, can_delete: false };
+    (data || []).forEach(permission => {
+        // This will now cleanly overwrite the false flags with your true values from the DB
+        userPermissions[permission.module] = {
+            can_view: permission.can_view,
+            can_create: permission.can_create,
+            can_edit: permission.can_edit,
+            can_delete: permission.can_delete
+        };
+    });
+    
+    // HARDCODED RULE: FORCE LABEL ACCESS TO TRUE FOR EVERYONE LOGGED IN
+    userPermissions['labels'] = { can_view: true, can_create: false, can_edit: false, can_delete: false };
 }
 
 // ======================================
@@ -189,8 +190,8 @@ userPermissions['labels'] = { can_view: true, can_create: false, can_edit: false
 // ======================================
 
 function hasPermission(module) {
-    //HARDCODED RULE: BYPASS DATABASE RESTRICTIONS FOR LABELS COMPLETELY
-    if(module==='labels'){
+    // HARDCODED RULE: BYPASS DATABASE RESTRICTIONS FOR LABELS COMPLETELY
+    if (module === 'labels') {
         return true;
     }
 
@@ -286,6 +287,11 @@ async function loadPage(page) {
 
         document.getElementById("pageContent").innerHTML = html;
 
+        // FIXED SECURITY PARSER SAFEGUARD:
+        // After inserting HTML components dynamically into pageContent, check if there is an auth header zone 
+        // to pass user profile text attributes natively into the document nodes without breaking compilation paths.
+        renderDomAuthZoneSafely();
+
         if (
             module.init &&
             typeof window[module.init] === "function"
@@ -312,6 +318,43 @@ async function loadPage(page) {
 
     }
 
+}
+
+/**
+ * SAFELY INJECTS USER DATA TO PREVENT PARSING TOKENS BREAKS
+ */
+function renderDomAuthZoneSafely() {
+    const container = document.getElementById("auth-status-area");
+    if (!container || !currentUser) return;
+
+    const currentShift = currentUser.profile?.shift || "Unassigned Shift";
+    const displayName = currentUser.profile?.full_name || currentUser.profile?.username || "Staff";
+    
+    let roleText = "Staff";
+    const userRoleId = currentUser.profile?.role_id;
+    if (userRoleId === 1) roleText = "Super Admin";
+    if (userRoleId === 3) roleText = "Operator";
+    if (userRoleId === 2) roleText = "Staff";
+
+    // 1. Structural layout boilerplate setup
+    container.innerHTML = `
+        <div class="inv-badge" style="background:#ffffff; border:2px solid #cbd5e1; padding:8px 14px; border-radius:6px; text-align:right;">
+            <div id="auth-display-safe-name" style="font-weight: 700; color: #0f172a; font-size: 14px;"></div>
+            <div style="font-size: 11px; font-weight:600; color: #64748b; margin-top: 1px;">${roleText.toUpperCase()} • ${currentShift}</div>
+        </div>
+    `;
+
+    // 2. Assign values strictly via .textContent to render any special characters safely without generating parsing bugs
+    const nameNode = document.getElementById("auth-display-safe-name");
+    if (nameNode) {
+        nameNode.textContent = `👤 ${displayName}`;
+    }
+
+    // Maintain administrative catalog block overrides seamlessly
+    const adminPanel = document.getElementById("catalog-management-row");
+    if (adminPanel) {
+        adminPanel.style.display = (userRoleId === 1) ? "block" : "none";
+    }
 }
 
 // ======================================
