@@ -1,24 +1,22 @@
 // admin/team/activity.js
-// PART 1 OF 3
-
 // ======================================
-// THOR DISPLAY CMS
-// Activity Log
+// THOR DISPLAY CMS - Optimized Activity Logger
+// Includes Server-Side Pagination & Indexed Queries
 // ======================================
 
-let activityRows = [];
-let filteredActivityRows = [];
+let currentPage = 1;
+const PAGE_SIZE = 25;
+let totalLogCount = 0;
+let currentSearchQuery = "";
 
 // ======================================
 // INIT
 // ======================================
 
 async function initActivity() {
-
     bindActivityEvents();
-
+    currentPage = 1;
     await loadActivity();
-
 }
 
 // ======================================
@@ -26,31 +24,52 @@ async function initActivity() {
 // ======================================
 
 function bindActivityEvents() {
+    document.getElementById("refreshActivityBtn")?.addEventListener("click", () => {
+        currentPage = 1;
+        loadActivity();
+    });
 
-    document
-        .getElementById("refreshActivityBtn")
-        ?.addEventListener(
-            "click",
-            loadActivity
-        );
+    let searchDebounceTimeout;
+    document.getElementById("activitySearch")?.addEventListener("input", (e) => {
+        clearTimeout(searchDebounceTimeout);
+        searchDebounceTimeout = setTimeout(() => {
+            currentSearchQuery = e.target.value.trim();
+            currentPage = 1;
+            loadActivity();
+        }, 300); // 300ms debounce to prevent spamming Supabase while typing
+    });
 
-    document
-        .getElementById("activitySearch")
-        ?.addEventListener(
-            "input",
-            filterActivity
-        );
+    document.getElementById("prevPageBtn")?.addEventListener("click", () => {
+        if (currentPage > 1) {
+            currentPage--;
+            loadActivity();
+        }
+    });
 
+    document.getElementById("nextPageBtn")?.addEventListener("click", () => {
+        const maxPages = Math.ceil(totalLogCount / PAGE_SIZE);
+        if (currentPage < maxPages) {
+            currentPage++;
+            loadActivity();
+        }
+    });
 }
 
 // ======================================
-// LOAD
+// LOAD (SERVER-SIDE PAGINATED & FILTERED)
 // ======================================
 
 async function loadActivity() {
+    const table = document.getElementById("activityTable");
+    if (table) {
+        table.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#64748b;">Loading Activity Logs...</td></tr>`;
+    }
 
-    const { data, error } =
-        await supabaseClient
+    const fromIndex = (currentPage - 1) * PAGE_SIZE;
+    const toIndex = fromIndex + PAGE_SIZE - 1;
+
+    try {
+        let query = supabaseClient
             .from("activity_log")
             .select(`
                 *,
@@ -58,142 +77,65 @@ async function loadActivity() {
                     full_name,
                     username
                 )
-            `)
-            .order(
-                "created_at",
-                {
-                    ascending: false
-                }
-            );
+            `, { count: "exact" });
 
-    if (error) {
+        // Apply Server-Side Search Filtering if search term exists
+        if (currentSearchQuery) {
+            const queryLower = currentSearchQuery.toLowerCase();
+            query = query.or(`module.ilike.%${queryLower}%,action.ilike.%${queryLower}%,username.ilike.%${queryLower}%`);
+        }
 
-        console.error(error);
+        // Apply Server-Side Range Pagination and Descending Time Sorting
+        const { data, count, error } = await query
+            .order("created_at", { ascending: false })
+            .range(fromIndex, toIndex);
 
-        return;
+        if (error) throw error;
 
+        totalLogCount = count || 0;
+        renderActivity(data || []);
+        updatePaginationControls();
+
+    } catch (err) {
+        console.error("Error loading paginated logs:", err);
+        if (table) {
+            table.innerHTML = `<tr><td colspan="5" style="color:#dc2626; text-align:center;">Failed to load logs: ${err.message}</td></tr>`;
+        }
     }
-
-    activityRows = data || [];
-
-    filteredActivityRows = [...activityRows];
-
-    renderActivity();
-
-}
-
-// admin/team/activity.js
-// PART 2 OF 3
-
-// ======================================
-// FILTER
-// ======================================
-
-function filterActivity() {
-
-    const search =
-        document
-            .getElementById("activitySearch")
-            .value
-            .trim()
-            .toLowerCase();
-
-    if (!search) {
-
-        filteredActivityRows = [...activityRows];
-
-        renderActivity();
-
-        return;
-
-    }
-
-    filteredActivityRows = activityRows.filter(row => {
-
-        const user =
-            row.profiles?.full_name?.toLowerCase() || "";
-
-        const username =
-            row.profiles?.username?.toLowerCase() || "";
-
-        const module =
-            (row.module || "").toLowerCase();
-
-        const action =
-            (row.action || "").toLowerCase();
-
-        return (
-
-            user.includes(search) ||
-
-            username.includes(search) ||
-
-            module.includes(search) ||
-
-            action.includes(search)
-
-        );
-
-    });
-
-    renderActivity();
-
 }
 
 // ======================================
 // RENDER
 // ======================================
 
-function renderActivity() {
-
-    const table =
-        document.getElementById("activityTable");
-
+function renderActivity(rows) {
+    const table = document.getElementById("activityTable");
     if (!table) return;
 
-    if (!filteredActivityRows.length) {
-
-        table.innerHTML = `
-
-            <tr>
-
-                <td colspan="5">
-
-                    No activity found.
-
-                </td>
-
-            </tr>
-
-        `;
-
+    if (!rows.length) {
+        table.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#64748b;">No activity logs found.</td></tr>`;
         return;
-
     }
 
-    // Clear previous rows safely
     table.innerHTML = "";
 
-    filteredActivityRows.forEach(row => {
+    rows.forEach(row => {
         const tr = document.createElement("tr");
 
         const logTime = formatDate(row.created_at);
-        const userDisplayName = row.profiles?.full_name || row.profiles?.username || 'User';
+        const userDisplayName = row.profiles?.full_name || row.profiles?.username || row.username || 'User';
         const hasDetails = row.module === 'labels' && row.details;
 
-        // Base structural content columns
         tr.innerHTML = `
             <td>${logTime}</td>
             <td>
-                ${row.profiles?.full_name || "-"}
+                ${row.profiles?.full_name || row.username || "-"}
                 <br>
                 <small>${row.profiles?.username || ""}</small>
             </td>
             <td>${capitalize(row.module)}</td>
             <td>${row.action}</td>
-            <td style="text-align: right; width: 120px; white-space: nowrap;" class="action-cell">
-                <!-- Button slot injected natively below to bypass inline string token issues -->
-            </td>
+            <td style="text-align: right; width: 120px; white-space: nowrap;" class="action-cell"></td>
         `;
 
         const cell = tr.querySelector(".action-cell");
@@ -204,8 +146,6 @@ function renderActivity() {
             btn.className = "btn-log-details";
             btn.textContent = "🔎 Details";
             
-            // SECURITY ARCHITECTURE FIX: Keep data isolated natively on the DOM element 
-            // instead of string-concatenating dynamic payloads into standard onClick attributes
             btn.dataset.jsonPayload = JSON.stringify(row.details);
             btn.dataset.logAction = row.action;
             btn.dataset.logTime = logTime;
@@ -227,31 +167,38 @@ function renderActivity() {
 
         table.appendChild(tr);
     });
-
 }
 
-// admin/team/activity.js
-// PART 3 OF 3
+// ======================================
+// PAGINATOR UI CONTROLLER
+// ======================================
+
+function updatePaginationControls() {
+    const totalPages = Math.ceil(totalLogCount / PAGE_SIZE) || 1;
+    const pageIndicator = document.getElementById("pageIndicator");
+    const prevBtn = document.getElementById("prevPageBtn");
+    const nextBtn = document.getElementById("nextPageBtn");
+
+    if (pageIndicator) {
+        pageIndicator.textContent = `Page ${currentPage} of ${totalPages} (${totalLogCount.toLocaleString()} Total Logs)`;
+    }
+
+    if (prevBtn) prevBtn.disabled = (currentPage === 1);
+    if (nextBtn) nextBtn.disabled = (currentPage >= totalPages);
+}
 
 // ======================================
 // HELPERS
 // ======================================
 
 function formatDate(value) {
-
     if (!value) return "-";
-
     return new Date(value).toLocaleString();
-
 }
 
 function capitalize(text) {
-
     if (!text) return "-";
-
-    return text.charAt(0).toUpperCase() +
-        text.slice(1);
-
+    return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 // ======================================
@@ -263,7 +210,7 @@ window.openActivityDetailsModal = function(detailsString, action, time, user) {
     try {
         details = JSON.parse(detailsString);
     } catch(e) {
-        console.error("Failed to compile target metrics row string", e);
+        console.error("Failed to compile details JSON", e);
         alert("Failed to read action audit log maps.");
         return;
     }
@@ -274,7 +221,6 @@ window.openActivityDetailsModal = function(detailsString, action, time, user) {
 
     title.textContent = `Label Audit Action: ${action.toUpperCase()}`;
 
-    // Graceful extraction metrics
     const code = details.part_code || "—";
     const supplier = details.supplier || "—";
     const prevTotal = details.original_total !== undefined ? details.original_total.toLocaleString() : "—";
@@ -326,19 +272,9 @@ window.closeLogDetailsModal = function() {
     document.getElementById("logDetailsModalContainer").style.display = "none";
 };
 
-// ======================================
-// REFRESH
-// ======================================
-
 async function refreshActivity() {
-
     await loadActivity();
-
 }
-
-// ======================================
-// EXPORTS
-// ======================================
 
 window.initActivity = initActivity;
 window.loadActivity = loadActivity;
