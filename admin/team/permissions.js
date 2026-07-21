@@ -15,7 +15,8 @@ const MODULES = [
     "ticker",
     "settings",
     "team",
-    "labels"
+    "labels",
+    "activity_log"
 ];
 
 let permissionUsers = [];
