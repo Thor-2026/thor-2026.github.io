@@ -1,5 +1,4 @@
 <style>
-    
     /* Premium High-Contrast Details Button Styling */
     .btn-log-details {
         background: #475569;
@@ -16,7 +15,38 @@
         background: #1e293b;
     }
 
-    /* Modal Architecture Overlays matching main project styles */
+    /* Pagination Bar Styles */
+    .pagination-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 20px;
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+    }
+    .btn-page {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        font-weight: 700;
+        font-size: 13px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    .btn-page:disabled {
+        background: #cbd5e1;
+        cursor: not-allowed;
+    }
+    .page-indicator {
+        font-size: 13px;
+        font-weight: 700;
+        color: #475569;
+    }
+
+    /* Modal Architecture Overlays */
     .inv-modal-backdrop { 
         position: fixed; 
         top: 0; 
@@ -87,67 +117,42 @@
 </style>
 
 <div class="page-header">
-
     <h1>📜 Activity Log</h1>
-
-    <button
-        id="refreshActivityBtn"
-        class="primary-btn"
-        type="button">
-
+    <button id="refreshActivityBtn" class="primary-btn" type="button">
         Refresh
-
     </button>
-
 </div>
 
 <div class="activity-toolbar">
-
-    <input
-        type="text"
-        id="activitySearch"
-        placeholder="Search user, module or action...">
-
+    <input type="text" id="activitySearch" placeholder="Search user, module or action...">
 </div>
 
-<div class="activity-card">
-
+<div class="activity-card" style="margin-bottom: 0; border-bottom: none; border-bottom-left-radius: 0; border-bottom-right-radius: 0;">
     <table class="activity-table">
-
         <thead>
-
             <tr>
-
                 <th>Date / Time</th>
-
                 <th>User</th>
-
                 <th>Module</th>
-
                 <th>Action</th>
-
                 <th style="text-align: right;">Specs</th>
-
             </tr>
-
         </thead>
-
         <tbody id="activityTable">
-
             <tr>
-
                 <td colspan="5">
-
                     Loading activity...
-
                 </td>
-
             </tr>
-
         </tbody>
-
     </table>
+</div>
 
+<!-- PAGINATION CONTROLS BAR -->
+<div class="pagination-bar">
+    <button type="button" id="prevPageBtn" class="btn-page" disabled>◀ Previous</button>
+    <span id="pageIndicator" class="page-indicator">Page 1</span>
+    <button type="button" id="nextPageBtn" class="btn-page" disabled>Next ▶</button>
 </div>
 
 <!-- ================= MODAL OVERLAY PORT: ACTIVITY LOG ENTRY DETAILS ================= -->
