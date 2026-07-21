@@ -16,7 +16,7 @@ const MODULES = [
     "settings",
     "team",
     "labels",
-    "activity_log"
+    "activity"
 ];
 
 let permissionUsers = [];
