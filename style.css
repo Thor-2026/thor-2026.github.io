@@ -1,437 +1,343 @@
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Segoe UI,Arial,sans-serif;
+/* ==========================================================================
+   OPSVISION DESIGN SYSTEM
+   ========================================================================== */
+
+:root {
+  /* OpsVision Core Brand Colors */
+  --bg-dark: #0F172A;          /* Deep rich background */
+  --panel-bg: #1E293B;        /* Dark blue-slate card panel background */
+  --card-border: #334155;      /* Subtle border contrast */
+  --primary-blue: #2563EB;     /* Electric accent blue */
+  --cyan-accent: #06B6D4;     /* Tech cyan accent */
+  --text-muted: #94A3B8;      /* Muted gray text */
+  --text-light: #FFFFFF;      /* Clean white text */
+  --gold-accent: #FFD54F;      /* Weather/Highlight gold */
+  
+  /* Radii & Shadows */
+  --radius-lg: 16px;
+  --radius-md: 10px;
+  --radius-sm: 6px;
+  --shadow-glow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  --blue-glow: 0 0 20px rgba(37, 99, 235, 0.4);
 }
 
-:root{
-
-    --bg:#0f172a;
-    --panel:#1e293b;
-    --card:#334155;
-    --accent:#38bdf8;
-    --text:#ffffff;
-    --muted:#cbd5e1;
-
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-body{
-
-    background:linear-gradient(135deg,#0f172a,#111827,#1e293b);
-    color:var(--text);
-    min-height:100vh;
-
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-light);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
 }
 
-.wrapper{
+/* ==========================================================================
+   LAYOUT STRUCTURE
+   ========================================================================== */
 
-    display:flex;
-    flex-direction:column;
-    min-height:100vh;
-
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 24px;
+  gap: 20px;
+  padding-bottom: 90px; /* Spacing for the bottom control dock */
 }
 
-header{
+/* ==========================================================================
+   HEADER SECTION
+   ========================================================================== */
 
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:20px 35px;
-    background:rgba(255,255,255,.05);
-    backdrop-filter:blur(12px);
-    border-bottom:1px solid rgba(255,255,255,.1);
-
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--panel-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 20px 32px;
+  box-shadow: var(--shadow-glow);
+  animation: fade .8s ease-out;
 }
 
-.company{
-
-    display:flex;
-    align-items:center;
-    gap:20px;
-
+.company {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
-#logo{
-
-    width:70px;
-    height:70px;
-    object-fit:contain;
-
+#logo {
+  max-height: 60px;
+  width: auto;
+  object-fit: contain;
 }
 
-.company h1{
-
-    font-size:clamp(24px,3vw,42px);
-    color:var(--accent);
-
+.company-name {
+  color: var(--cyan-accent);
+  font-size: 0.85rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 2px;
 }
 
-.company-name{
-
-    margin:0 0 4px 0;
-
-    font-size:18px;
-
-    font-weight:700;
-
-    color:#FFD54F;
-
-    text-transform:uppercase;
-
-    letter-spacing:1.5px;
-
+#displayTitle {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--text-light);
 }
 
-.company p{
-
-    margin-top:6px;
-
-    font-size:18px;
-
-    color:var(--muted);
-
+#welcomeText {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-top: 2px;
 }
 
-.datetime{
-
-    text-align:right;
-
+.datetime {
+  text-align: right;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-#clock{
-
-    font-size:clamp(30px,4vw,58px);
-    font-weight:bold;
-
+#clock {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--cyan-accent);
+  font-family: monospace;
+  text-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
 }
 
-#date{
-
-    color:var(--muted);
-    margin-top:5px;
-    font-size:clamp(14px,1.4vw,20px);
-
+#date {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-top: 4px;
 }
 
-main{
+/* ==========================================================================
+   MAIN CONTENT AREA (SCHEDULE + SIDEBAR)
+   ========================================================================== */
 
-    flex:1;
-    display:grid;
-    grid-template-columns:3fr 1fr;
-    gap:20px;
-    padding:20px;
-
+main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
 }
 
-.schedule{
-
-    background:var(--panel);
-    border-radius:20px;
-    overflow:hidden;
-    box-shadow:0 10px 30px rgba(0,0,0,.35);
-
+/* Schedule Container */
+.schedule {
+  background: var(--panel-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  box-shadow: var(--shadow-glow);
+  animation: fade .8s ease-out;
 }
 
-/* Fix #1: Eradicate the white image container background leak */
 #scheduleImage {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    background: transparent !important; /* Forces the image to inherit the dark panel color */
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  background: transparent !important;
 }
 
-
-aside{
-
-    display:flex;
-    flex-direction:column;
-    gap:20px;
-
+/* Sidebar & Cards */
+aside {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.card{
-
-    background:rgba(255,255,255,.08);
-    border-radius:20px;
-    padding:20px;
-    backdrop-filter:blur(12px);
-    box-shadow:0 10px 20px rgba(0,0,0,.25);
-
+.card {
+  background: var(--panel-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-glow);
+  animation: fade .8s ease-out;
 }
 
-.card h2{
-
-    margin-bottom:15px;
-    color:var(--accent);
-
+.card h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  width: 100%;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 10px;
+  color: var(--text-light);
 }
 
-#weatherIcon{
-
-    font-size:55px;
-    text-align:center;
-
+/* Announcements List */
+#announcements {
+  list-style: none;
+  line-height: 1.6;
+  padding-left: 0;
 }
 
-#temperature{
-
-    font-size:42px;
-    text-align:center;
-    font-weight:bold;
-    margin-top:10px;
-
+#announcements li {
+  background: rgba(15, 23, 42, 0.5);
+  border-left: 4px solid var(--primary-blue);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 14px 16px;
 }
 
-#weatherText{
+/* ==========================================================================
+   FOOTER & RUNNING TICKER
+   ========================================================================== */
 
-    text-align:center;
-    margin-top:10px;
-    color:var(--muted);
-
+footer {
+  background: var(--panel-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-top: auto;
 }
 
-#announcements{
-
-    line-height:2;
-    font-size:18px;
-    padding-left:20px;
-
+.ticker {
+  height: 50px;
+  display: flex;
+  align-items: center;
 }
 
-footer{
-
-    background:#0284c7;
-    overflow:hidden;
-
+#tickerText {
+  white-space: nowrap;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--cyan-accent);
+  animation: scroll 22s linear infinite;
 }
 
-.ticker{
-
-    height:60px;
-    display:flex;
-    align-items:center;
-
+@keyframes scroll {
+  from { transform: translateX(100%); }
+  to { transform: translateX(-100%); }
 }
 
-#tickerText{
-
-    white-space:nowrap;
-    font-size:24px;
-    font-weight:bold;
-    animation:scroll 22s linear infinite;
-
+@keyframes fade {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-@keyframes scroll{
+/* ==========================================================================
+   FLOATING ACTION CONTROL DOCK
+   ========================================================================== */
 
-    from{
-
-        transform:translateX(100%);
-
-    }
-
-    to{
-
-        transform:translateX(-100%);
-
-    }
-
-}
-
-header,
-.schedule,
-.card{
-
-    animation:fade .8s;
-
-}
-
-@keyframes fade{
-
-    from{
-
-        opacity:0;
-        transform:translateY(15px);
-
-    }
-
-    to{
-
-        opacity:1;
-        transform:translateY(0);
-
-    }
-
-}
-
-/* ---------- TABLET ---------- */
-
-@media(max-width:1000px){
-
-main{
-
-grid-template-columns:1fr;
-
-}
-
-aside{
-
-display:grid;
-
-grid-template-columns:1fr 1fr;
-
-}
-
-}
-
-/* ---------- MOBILE ---------- */
-
-@media(max-width:700px){
-
-header{
-
-flex-direction:column;
-
-gap:20px;
-
-text-align:center;
-
-}
-
-.company{
-
-flex-direction:column;
-
-}
-
-.datetime{
-
-text-align:center;
-
-}
-
-aside{
-
-grid-template-columns:1fr;
-
-}
-
-main{
-
-padding:12px;
-
-gap:12px;
-
-}
-
-.card{
-
-padding:15px;
-
-}
-
-#tickerText{
-
-font-size:18px;
-
-}
-
-}
-/* ===========================
-   Admin Button
-=========================== */
-
-/*#adminButton{
-
-position:fixed;
-
-right:20px;
-
-bottom:20px;
-
-padding:10px 16px;
-
-background:rgba(0,0,0,.45);
-
-backdrop-filter:blur(8px);
-
-border:1px solid rgba(255,255,255,.15);
-
-border-radius:10px;
-
-color:white;
-
-font-size:15px;
-
-font-weight:600;
-
-text-decoration:none;
-
-transition:.25s;
-
-z-index:9999;
-
-opacity:.25;
-
-}
-
-#adminButton:hover{
-
-opacity:1;
-
-background:#2196F3;
-
-transform:translateY(-2px);
-
-}*/
-
-
-/* Fix #2: Layout Architecture for the Floating Action Control Dock */
 .main-nav-dock {
-    position: fixed; 
-    bottom: 25px; 
-    right: 25px; 
-    display: inline-flex; 
-    flex-direction: row; 
-    align-items: center; 
-    gap: 12px; 
-    z-index: 999999; 
-    white-space: nowrap;
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  z-index: 999999;
+  white-space: nowrap;
+  background: rgba(30, 41, 59, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  padding: 8px 12px;
+  border-radius: 40px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
-/* Fix #3: Reset rules for both buttons to ensure smooth flex layout without overlapping stack states */
 .main-nav-dock #labelsButton,
 .main-nav-dock #adminButton {
-    position: static !important; /* Destroys any lingering legacy position: fixed overrides */
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    text-decoration: none !important;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
-    transition: all 0.2s ease;
-    opacity: 0.85;
+  position: static !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 30px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none !important;
+  transition: all 0.2s ease;
+  opacity: 0.9;
 }
 
 .main-nav-dock #labelsButton {
-    background: #10b981;
-    color: white;
+  background: var(--cyan-accent);
+  color: #0F172A;
 }
 
 .main-nav-dock #adminButton {
-    background: #1f2937;
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--primary-blue);
+  color: white;
 }
 
 .main-nav-dock #labelsButton:hover,
 .main-nav-dock #adminButton:hover {
-    opacity: 1;
-    transform: translateY(-2px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+  opacity: 1;
+  transform: translateY(-2px);
+  box-shadow: var(--blue-glow);
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (TABLETS & MOBILE)
+   ========================================================================== */
+
+@media(max-width: 1000px) {
+  main {
+    grid-template-columns: 1fr;
+  }
+  
+  aside {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media(max-width: 700px) {
+  header {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .company {
+    flex-direction: column;
+  }
+
+  .datetime {
+    text-align: center;
+  }
+
+  aside {
+    grid-template-columns: 1fr;
+  }
+
+  main {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .main-nav-dock {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
 }
