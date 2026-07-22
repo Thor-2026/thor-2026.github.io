@@ -32,22 +32,6 @@ let SETTINGS = {
     temperature_unit: "C"
 };
 
-/* async function loadSettings() {
-
-    const { data, error } = await supabaseClient
-        .from("settings")
-        .select("*")
-        .eq("id", 1)
-        .single();
-
-    if (error) {
-        console.error(error);
-        return;
-    }
-
-    SETTINGS = data;
-} */
-
 async function loadSettings() {
 
     const { data, error } = await supabaseClient
@@ -59,22 +43,23 @@ async function loadSettings() {
     if(error){
         console.error(error);
         return;
-       
-const title = document.getElementById("displayTitle");
-
-if (title) {
-    title.textContent = SETTINGS.display_title;
-}
-       
     }
 
-    CONFIG.city=data.city;
-    CONFIG.latitude=data.latitude;
-    CONFIG.longitude=data.longitude;
+    const title = document.getElementById("displayTitle");
+
+    if (title && data && data.display_title) {
+        title.textContent = data.display_title;
+    }
+
+    if (data) {
+        CONFIG.city=data.city;
+        CONFIG.latitude=data.latitude;
+        CONFIG.longitude=data.longitude;
+    }
 
     const city=document.getElementById("weatherCity");
 
-    if(city){
+    if(city && data){
 
         city.textContent="📍 "+data.city;
 
@@ -86,27 +71,6 @@ if (title) {
 /* ===========================
       LIVE CLOCK & DATE
 =========================== */
-
-/* function updateClock() {
-
-    const now = new Date();
-
-    document.getElementById("clock").textContent =
-        now.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit"
-        });
-
-    document.getElementById("date").textContent =
-        now.toLocaleDateString([], {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric"
-        });
-
-} */
 
 function updateClock() {
 
@@ -164,8 +128,6 @@ document.getElementById("temperature").textContent =
     Math.round(temp) + unit;
 
 const code=data.current.weather_code;
-
-//document.getElementById("temperature").textContent=temp+"°C";
 
 let icon="☀️";
 let text="Clear";
@@ -334,8 +296,6 @@ const ticker=document.getElementById("tickerText");
 ticker.innerHTML=
 "📢 Welcome &nbsp;&nbsp; • &nbsp;&nbsp; Wear PPE &nbsp;&nbsp; • &nbsp;&nbsp; Check Today's Shift Schedule &nbsp;&nbsp; • &nbsp;&nbsp; Have A Safe Day &nbsp;&nbsp; • &nbsp;&nbsp;";
 
-;
-
 /* ===========================
         BRANDING
 =========================== */
@@ -362,7 +322,7 @@ async function loadBranding() {
     const companyName = document.getElementById("companyName");
 
     if (companyName) {
-        companyName.textContent = branding.company_name || "THOR DISPLAY";
+        companyName.textContent = branding.company_name || "OpsVision";
     }
 
     // Welcome Message
@@ -420,8 +380,6 @@ async function loadSchedule() {
     scheduleImage.src = imageUrl + "?t=" + Date.now();
 
 }
-
-//loadSchedule();
 
 // Check for a new schedule every minute
 setInterval(loadSchedule, 60000);
