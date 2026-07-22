@@ -5,8 +5,8 @@
 :root {
   /* OpsVision Core Brand Colors */
   --bg-dark: #0F172A;          /* Deep rich background */
-  --panel-bg: #1E293B;        /* Dark blue-slate card panel background */
-  --card-border: #334155;      /* Subtle border contrast */
+  --panel-bg: #1E293B;        /* Dark blue-slate card panel */
+  --card-border: #334155;      /* Border contrast */
   --primary-blue: #2563EB;     /* Electric accent blue */
   --cyan-accent: #06B6D4;     /* Tech cyan accent */
   --text-muted: #94A3B8;      /* Muted gray text */
@@ -29,8 +29,8 @@
 }
 
 body {
-  background-color: var(--bg-dark);
-  color: var(--text-light);
+  background-color: var(--bg-dark) !important;
+  color: var(--text-light) !important;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -47,7 +47,7 @@ body {
   min-height: 100vh;
   padding: 24px;
   gap: 20px;
-  padding-bottom: 90px; /* Spacing for the bottom control dock */
+  padding-bottom: 90px;
 }
 
 /* ==========================================================================
@@ -73,17 +73,17 @@ header {
 }
 
 #logo {
-  max-height: 60px;
+  max-height: 55px;
   width: auto;
   object-fit: contain;
 }
 
 .company-name {
-  color: var(--cyan-accent);
-  font-size: 0.85rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  font-weight: 700;
+  color: var(--cyan-accent) !important;
+  font-size: 0.9rem !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
   margin-bottom: 2px;
 }
 
@@ -163,11 +163,11 @@ aside {
 }
 
 .card {
-  background: var(--panel-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  box-shadow: var(--shadow-glow);
+  background: var(--panel-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: var(--radius-lg) !important;
+  padding: 24px !important;
+  box-shadow: var(--shadow-glow) !important;
   animation: fade .8s ease-out;
 }
 
@@ -179,6 +179,15 @@ aside {
   border-bottom: 1px solid var(--card-border);
   padding-bottom: 10px;
   color: var(--text-light);
+}
+
+/* Weather Overrides */
+#weatherCity {
+  color: var(--gold-accent) !important;
+}
+
+#weatherText, #weatherUpdated {
+  color: var(--text-muted) !important;
 }
 
 /* Announcements List */
@@ -193,6 +202,7 @@ aside {
   border-left: 4px solid var(--primary-blue);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   padding: 14px 16px;
+  margin-bottom: 10px;
 }
 
 /* ==========================================================================
@@ -200,7 +210,7 @@ aside {
    ========================================================================== */
 
 footer {
-  background: var(--panel-bg);
+  background: var(--panel-bg) !important;
   border: 1px solid var(--card-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -300,7 +310,7 @@ footer {
   main {
     grid-template-columns: 1fr;
   }
-  
+
   aside {
     display: grid;
     grid-template-columns: 1fr 1fr;
