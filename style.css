@@ -1,31 +1,28 @@
 /* ==========================================================================
-   OPSVISION EXACT TYPOGRAPHY & DESIGN SYSTEM
+   OPSVISION DESIGN SYSTEM
    ========================================================================== */
 
 :root {
-  --bg-dark: #090D16;          /* Deep dark slate background */
-  --panel-bg: #0F172A;        /* OpsVision container dark slate */
-  --panel-border: #1E293B;    /* Subtle card border */
+  --bg-dark: #070A10;          /* Deep slate black background */
+  --panel-bg: #0F172A;        /* Dark blue-slate container */
+  --panel-border: #1E293B;    /* Sharp card border */
   --primary-blue: #2563EB;    /* Electric OpsVision blue */
   --cyan-accent: #06B6D4;    /* Tech cyan accent */
   --text-white: #FFFFFF;     /* Pure white */
   --text-muted: #94A3B8;     /* Gray subtitle text */
-  --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: var(--font-main) !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 body {
-  background-color: var(--bg-dark) !important;
-  color: var(--text-white) !important;
+  background: var(--bg-dark);
+  color: var(--text-white);
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
 }
 
 .wrapper {
@@ -38,112 +35,93 @@ body {
 }
 
 /* ==========================================================================
-   HEADER & TEXT PLACEMENT
+   HEADER SECTION
    ========================================================================== */
 
 header {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  background: var(--panel-bg) !important;
-  border: 1px solid var(--panel-border) !important;
-  border-radius: 12px !important;
-  padding: 18px 28px !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 20px 30px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
 }
 
 .company {
-  display: flex !important;
-  align-items: center !important;
-  gap: 20px !important;
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
 #logo {
-  height: 54px !important;
-  width: auto !important;
-  object-fit: contain !important;
+  height: 52px;
+  width: auto;
+  object-fit: contain;
 }
 
-.brand-text-block {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-/* Company Title: Bold White ("Ops") + Electric Blue ("Vision") */
 .company-name {
-  font-size: 2rem !important;
-  font-weight: 800 !important;
-  color: var(--text-white) !important;
-  letter-spacing: -0.5px !important;
-  line-height: 1.1 !important;
-  text-transform: none !important;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-white);
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  text-transform: none;
 }
 
-.company-name .highlight-blue {
-  color: var(--primary-blue) !important;
-}
-
-/* Subtitle: SHIFT SCHEDULE in Tech Cyan */
 #displayTitle {
-  font-size: 0.85rem !important;
-  font-weight: 700 !important;
-  color: var(--cyan-accent) !important;
-  letter-spacing: 2px !important;
-  text-transform: uppercase !important;
-  margin-top: 4px !important;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--cyan-accent);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 4px;
 }
 
-/* Tagline: POWERING MODERN OPERATIONS */
 #welcomeText {
-  color: var(--text-muted) !important;
-  font-size: 0.75rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 3px !important;
-  text-transform: uppercase !important;
-  margin-top: 2px !important;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 2px;
 }
 
-/* Date / Clock Panel (Far Right) */
+/* Clock Container */
 .datetime {
-  background: #090D16 !important;
-  border: 1px solid var(--panel-border) !important;
-  padding: 10px 20px !important;
-  border-radius: 8px !important;
-  text-align: right !important;
+  background: #070A10;
+  border: 1px solid var(--panel-border);
+  padding: 10px 20px;
+  border-radius: 8px;
+  text-align: right;
 }
 
 #clock {
-  font-size: 2.2rem !important;
-  font-weight: 800 !important;
-  color: var(--cyan-accent) !important;
-  font-family: monospace !important;
-  letter-spacing: 1px;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--cyan-accent);
+  font-family: monospace;
 }
 
 #date {
-  font-size: 0.8rem !important;
-  font-weight: 500 !important;
-  color: var(--text-muted) !important;
-  margin-top: 2px !important;
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
 /* ==========================================================================
-   MAIN DASHBOARD CARDS
+   MAIN CONTENT AREA
    ========================================================================== */
 
 main {
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 340px;
+  grid-template-columns: 3fr 1fr;
   gap: 20px;
 }
 
 .schedule {
-  background: var(--panel-bg) !important;
-  border: 1px solid var(--panel-border) !important;
-  border-radius: 12px !important;
-  padding: 16px !important;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -163,95 +141,60 @@ aside {
 }
 
 .card {
-  background: var(--panel-bg) !important;
-  border: 1px solid var(--panel-border) !important;
-  border-radius: 12px !important;
-  padding: 20px !important;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 20px;
 }
 
 .card h2 {
-  font-size: 1rem !important;
-  font-weight: 700 !important;
-  color: var(--text-white) !important;
-  border-bottom: 1px solid var(--panel-border) !important;
-  padding-bottom: 10px !important;
-  margin-bottom: 14px !important;
-  letter-spacing: 0.5px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-white);
+  border-bottom: 1px solid var(--panel-border);
+  padding-bottom: 10px;
+  margin-bottom: 15px;
 }
 
-/* Weather Overrides (Eradicates yellow text) */
-#weatherCity {
-  color: var(--cyan-accent) !important;
-  font-size: 0.9rem !important;
-  font-weight: 700 !important;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-#weatherIcon {
-  font-size: 48px !important;
-  margin: 8px 0 !important;
-}
-
-#temperature {
-  color: var(--text-white) !important;
-  font-size: 2.8rem !important;
-  font-weight: 800 !important;
-}
-
-#weatherText, #weatherUpdated {
-  color: var(--text-muted) !important;
-  font-size: 0.85rem !important;
-}
-
-/* Announcements Overrides */
+/* Announcements List */
 #announcements {
-  list-style: none !important;
-  padding-left: 0 !important;
+  line-height: 1.8;
+  font-size: 16px;
+  padding-left: 0;
+  list-style: none;
 }
 
 #announcements li {
-  background: #090D16 !important;
-  border: 1px solid var(--panel-border) !important;
-  border-left: 4px solid var(--primary-blue) !important;
-  border-radius: 6px !important;
-  padding: 12px 14px !important;
-  margin-bottom: 8px !important;
-}
-
-#announcements li strong {
-  color: var(--cyan-accent) !important;
-  font-size: 0.95rem !important;
-  font-weight: 700 !important;
-}
-
-#announcements li span {
-  color: var(--text-white) !important;
-  font-size: 0.85rem !important;
+  background: #070A10;
+  border: 1px solid var(--panel-border);
+  border-left: 4px solid var(--primary-blue);
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
 }
 
 /* ==========================================================================
-   FOOTER TICKER
+   FOOTER & NAVIGATION DOCK
    ========================================================================== */
 
 footer {
-  background: var(--panel-bg) !important;
-  border: 1px solid var(--panel-border) !important;
-  border-radius: 12px !important;
-  overflow: hidden !important;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .ticker {
-  height: 44px;
+  height: 48px;
   display: flex;
   align-items: center;
 }
 
 #tickerText {
   white-space: nowrap;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: var(--cyan-accent) !important;
+  color: var(--cyan-accent);
   animation: scroll 22s linear infinite;
 }
 
@@ -259,10 +202,6 @@ footer {
   from { transform: translateX(100%); }
   to { transform: translateX(-100%); }
 }
-
-/* ==========================================================================
-   FLOATING ACTION DOCK
-   ========================================================================== */
 
 .main-nav-dock {
   position: fixed;
@@ -283,17 +222,29 @@ footer {
   border-radius: 20px;
   font-size: 0.85rem;
   font-weight: 600;
-  text-decoration: none !important;
+  text-decoration: none;
   transition: all 0.2s ease;
 }
 
 #labelsButton {
-  background: rgba(6, 182, 212, 0.15) !important;
-  color: var(--cyan-accent) !important;
-  border: 1px solid rgba(6, 182, 212, 0.4) !important;
+  background: rgba(6, 182, 212, 0.15);
+  color: var(--cyan-accent);
+  border: 1px solid rgba(6, 182, 212, 0.4);
 }
 
 #adminButton {
-  background: var(--primary-blue) !important;
-  color: #FFFFFF !important;
+  background: var(--primary-blue);
+  color: #FFFFFF;
+}
+
+@media(max-width: 1000px) {
+  main { grid-template-columns: 1fr; }
+  aside { display: grid; grid-template-columns: 1fr 1fr; }
+}
+
+@media(max-width: 700px) {
+  header { flex-direction: column; gap: 15px; text-align: center; }
+  .company { flex-direction: column; }
+  .datetime { text-align: center; }
+  aside { grid-template-columns: 1fr; }
 }
