@@ -6,12 +6,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>OpsVision - Shift Schedule</title>
+<title>OpsVision Display</title>
 
-<!-- Google Font: Inter (Exact Match for OpsVision Branding) -->
+<!-- OpsVision Inter Font -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="style.css">
 
@@ -30,22 +30,19 @@ id="logo"
 src="logo.svg"
 alt="Company Logo">
 
-<div class="brand-text-block">
+<div>
 
-  <div class="brand-title-row">
-    <!-- Styled in CSS: "Ops" in White, "Vision" in Gradient Blue -->
-    <h3 id="companyName" class="company-name">
-      Ops<span class="highlight-blue">Vision</span>
-    </h3>
-  </div>
+<h3 id="companyName" class="company-name">
+  Ops<span style="color: #2563EB;">Vision</span>
+</h3>
 
-  <h1 id="displayTitle">
-    SHIFT SCHEDULE
-  </h1>
+<h1 id="displayTitle">
+  SHIFT SCHEDULE
+</h1>
 
-  <p id="welcomeText">
-    POWERING MODERN OPERATIONS
-  </p>
+<p id="welcomeText">
+  Welcome
+</p>
 
 </div>
 
@@ -78,23 +75,28 @@ alt="Schedule">
   
 <h2>🌤 Weather</h2>
 
-<div id="weatherCity">
+<div id="weatherCity"
+style="font-size:18px;font-weight:bold;color:#06B6D4;margin-bottom:8px;">
 📍 Loading...
 </div>
 
-<div id="weatherIcon">
+<div id="weatherIcon"
+style="font-size:56px;">
 ☀️
 </div>
 
-<div id="temperature">
+<div id="temperature"
+style="font-size:40px;font-weight:bold;">
 --°C
 </div>
 
-<div id="weatherText">
+<div id="weatherText"
+style="font-size:18px;margin-top:8px;color:#94A3B8;">
 Loading...
 </div>
 
-<div id="weatherUpdated">
+<div id="weatherUpdated"
+style="margin-top:12px;font-size:14px;opacity:.8;color:#94A3B8;">
 Updated: --
 </div>
 
@@ -147,15 +149,25 @@ Welcome • Stay Safe • Have a Great Shift • Follow Safety Procedures • Re
 </div>
   
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script src="js/supabase.js"></script>
+
 <script src="js/settings.js"></script>
+
 <script src="js/clock.js"></script>
+
 <script src="js/weather.js"></script>
+
 <script src="js/announcements.js"></script>
+
 <script src="js/ticker.js"></script>
+
 <script src="js/branding.js"></script>
+
 <script src="js/schedule.js"></script>
+
 <script src="js/displayManager.js"></script>
+
 <script src="js/script.js"></script>
 </body>
 
