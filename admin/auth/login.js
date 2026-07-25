@@ -118,7 +118,7 @@ async function checkExistingSession() {
 
     const isTabInitialized = sessionStorage.getItem("tab_session_active");
 
-    // If tab is new, purge session state so user has to enter credentials
+    // If opening a new tab directly to login.html without an active session flag, purge token residue
     if (!isTabInitialized) {
         await supabaseClient.auth.signOut();
         sessionStorage.clear();
