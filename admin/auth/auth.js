@@ -1,7 +1,10 @@
 // ======================================
 // THOR DISPLAY CMS
-// Authentication Guard
+// Authentication Guard & Inactivity Monitor
 // ======================================
+
+const INACTIVITY_LIMIT_MS = 15 * 60 * 1000; // 15 Minutes
+let idleTimer = null;
 
 (async () => {
 
@@ -28,8 +31,7 @@
 
     if (error) {
         console.error(error);
-        await supabaseClient.auth.signOut();
-        window.location.replace("login.html");
+        await handleLogout();
         return;
     }
 
@@ -54,11 +56,51 @@
         return;
     }
 
+    // Start Inactivity Timer for active sessions
+    startInactivityTimer();
+
     supabaseClient.auth.onAuthStateChange((event) => {
         if (event === "SIGNED_OUT") {
-            // Overwrite browser history upon signing out
+            window.sessionStorage.clear();
             window.location.replace("login.html");
         }
     });
 
 })();
+
+// ======================================
+// Inactivity Monitor & Session Cleansing
+// ======================================
+
+function startInactivityTimer() {
+    resetIdleTimer();
+
+    let throttleTimeout = null;
+    const activityEvents = ["mousemove", "keydown", "click", "touchstart", "scroll"];
+
+    activityEvents.forEach(eventType => {
+        window.addEventListener(eventType, () => {
+            if (!throttleTimeout) {
+                throttleTimeout = setTimeout(() => {
+                    resetIdleTimer();
+                    throttleTimeout = null;
+                }, 3000); // Throttled to execute at most once every 3 seconds
+            }
+        }, { passive: true });
+    });
+}
+
+function resetIdleTimer() {
+    if (idleTimer) clearTimeout(idleTimer);
+
+    idleTimer = setTimeout(async () => {
+        alert("Your session has expired due to inactivity.");
+        await handleLogout();
+    }, INACTIVITY_LIMIT_MS);
+}
+
+async function handleLogout() {
+    await supabaseClient.auth.signOut();
+    window.sessionStorage.clear();
+    window.location.replace("login.html");
+}
