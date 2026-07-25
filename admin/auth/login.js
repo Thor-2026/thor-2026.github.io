@@ -124,41 +124,37 @@ async function login() {
 
     const {
 
-    data: profile,
+        data: profile,
 
-    error: profileError
+        error: profileError
 
-} = await supabaseClient
+    } = await supabaseClient
 
-    .from("profiles")
+        .from("profiles")
 
-    .select("must_change_password")
+        .select("must_change_password")
 
-    .eq("id", (await supabaseClient.auth.getUser()).data.user.id)
+        .eq("id", (await supabaseClient.auth.getUser()).data.user.id)
 
-    .single();
+        .single();
 
-if (profileError) {
+    if (profileError) {
 
-    errorBox.textContent = profileError.message;
+        errorBox.textContent = profileError.message;
 
-    return;
+        return;
 
-}
+    }
 
-if (profile.must_change_password) {
+    if (profile.must_change_password) {
 
-    window.location.href =
+        window.location.replace("change-password.html");
 
-        "change-password.html";
+        return;
 
-    return;
+    }
 
-}
-
-window.location.href =
-
-    "dashboard.html";
+    window.location.replace("dashboard.html");
 
 }
 
@@ -176,8 +172,7 @@ async function checkExistingSession() {
 
     if (session) {
 
-        window.location.href =
-            "dashboard.html";
+        window.location.replace("dashboard.html");
 
     }
 
