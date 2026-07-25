@@ -61,31 +61,33 @@ async function loadBranding() {
 
 async function login() {
 
-    const username = document.getElementById("username").value.trim().toLowerCase();
-    const password = document.getElementById("password").value;
+    const username = document.getElementById("username")?.value.trim().toLowerCase();
+    const password = document.getElementById("password")?.value;
     const errorBox = document.getElementById("loginError");
 
-    errorBox.textContent = "";
+    if (errorBox) errorBox.textContent = "";
 
     if (!username || !password) {
-        errorBox.textContent = "Please enter username and password.";
+        if (errorBox) errorBox.textContent = "Please enter username and password.";
         return;
     }
 
     const email = `${username}@thor.local`;
 
-    const { error } = await supabaseClient.auth.signInWithPassword({
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
         email,
         password
     });
 
     if (error) {
-        errorBox.textContent = "Invalid username or password.";
+        if (errorBox) errorBox.textContent = "Invalid username or password.";
         return;
     }
 
-    // Set tab isolation token on successful login
+    // Explicitly flag this browser tab as authenticated
     sessionStorage.setItem("tab_session_active", "true");
+
+    const user = data.user;
 
     const {
         data: profile,
@@ -93,11 +95,11 @@ async function login() {
     } = await supabaseClient
         .from("profiles")
         .select("must_change_password")
-        .eq("id", (await supabaseClient.auth.getUser()).data.user.id)
+        .eq("id", user.id)
         .single();
 
     if (profileError) {
-        errorBox.textContent = profileError.message;
+        if (errorBox) errorBox.textContent = profileError.message;
         return;
     }
 
@@ -111,18 +113,16 @@ async function login() {
 }
 
 // ======================================
-// Existing Session Verification
+// Existing Session Check
 // ======================================
 
 async function checkExistingSession() {
 
-    const isTabInitialized = sessionStorage.getItem("tab_session_active");
+    const isTabActive = sessionStorage.getItem("tab_session_active");
 
-    // If opening a new tab directly to login.html without an active session flag, purge token residue
-    if (!isTabInitialized) {
-        await supabaseClient.auth.signOut();
-        sessionStorage.clear();
-        return;
+    // Only redirect if this tab was initialized by a successful login
+    if (!isTabActive) {
+        return; 
     }
 
     const {
