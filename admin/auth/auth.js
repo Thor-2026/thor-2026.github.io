@@ -1,22 +1,23 @@
 // ======================================
 // THOR DISPLAY CMS
-// Strict Tab Isolation & Auth Guard
+// Tab Isolation Guard & Inactivity Monitor
 // ======================================
+
+const INACTIVITY_LIMIT_MS = 15 * 60 * 1000; // 15 Minutes (Adjust as needed)
+let idleTimer = null;
 
 (async () => {
 
-    // 1. Isolate Tab Sessions: Check if this tab is brand new
+    // 1. ISOLATE TAB SESSION
+    // If opening a brand-new tab/browser window without active flag, force login
     const isTabInitialized = sessionStorage.getItem("tab_session_active");
 
     if (!isTabInitialized) {
-        // This is a newly opened tab — destroy any inherited session and force login
-        await supabaseClient.auth.signOut();
-        sessionStorage.clear();
-        window.location.replace("login.html");
+        await handleLogout();
         return;
     }
 
-    // 2. Fetch active Supabase session
+    // 2. VERIFY SUPABASE SESSION
     const {
         data: { session }
     } = await supabaseClient.auth.getSession();
@@ -27,7 +28,7 @@
         return;
     }
 
-    // 3. Verify user profile and forced password changes
+    // 3. VERIFY PROFILE & PASSWORD REQUIREMENTS
     const {
         data: profile,
         error
@@ -39,9 +40,7 @@
 
     if (error) {
         console.error(error);
-        await supabaseClient.auth.signOut();
-        sessionStorage.clear();
-        window.location.replace("login.html");
+        await handleLogout();
         return;
     }
 
@@ -57,7 +56,10 @@
         return;
     }
 
-    // 4. Listen for logouts across the app
+    // 4. START INACTIVITY MONITORING
+    startInactivityTimer();
+
+    // 5. LISTEN FOR LOGOUTS ACROSS APP
     supabaseClient.auth.onAuthStateChange((event) => {
         if (event === "SIGNED_OUT") {
             sessionStorage.clear();
@@ -66,3 +68,46 @@
     });
 
 })();
+
+// ======================================
+// INACTIVITY TIMER LOGIC
+// ======================================
+
+function startInactivityTimer() {
+    resetIdleTimer();
+
+    // List of user interaction events to track activity
+    const activityEvents = ["mousemove", "keydown", "click", "touchstart", "scroll"];
+    let throttleTimeout = null;
+
+    activityEvents.forEach(eventType => {
+        window.addEventListener(eventType, () => {
+            // Throttle reset calls to prevent high CPU usage on mouse movement
+            if (!throttleTimeout) {
+                throttleTimeout = setTimeout(() => {
+                    resetIdleTimer();
+                    throttleTimeout = null;
+                }, 2000);
+            }
+        }, { passive: true });
+    });
+}
+
+function resetIdleTimer() {
+    if (idleTimer) clearTimeout(idleTimer);
+
+    idleTimer = setTimeout(async () => {
+        alert("Your session has expired due to inactivity.");
+        await handleLogout();
+    }, INACTIVITY_LIMIT_MS);
+}
+
+// ======================================
+// LOGOUT HELPER
+// ======================================
+
+async function handleLogout() {
+    await supabaseClient.auth.signOut();
+    sessionStorage.clear();
+    window.location.replace("login.html");
+}
