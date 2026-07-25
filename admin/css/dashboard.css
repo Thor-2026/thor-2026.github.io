@@ -168,10 +168,10 @@ body {
   font-weight: 600;
 }
 
-/* Embedded Sidebar Bottom Logout Section */
+/* Sidebar Embedded Logout Button Styling (Solid Red) */
 .sidebar-logout-container {
-  margin-top: auto;
-  padding-top: 15px;
+  margin-top: 8px;
+  padding-top: 10px;
   border-top: 1px solid #1e293b;
   flex-shrink: 0;
 }
@@ -181,13 +181,12 @@ body {
   padding: 12px 14px;
   border: none;
   border-radius: 12px;
-  background: rgba(220, 38, 38, 0.15);
-  border: 1px solid rgba(220, 38, 38, 0.3);
-  color: #fca5a5;
+  background: #dc2626;
+  color: white;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: bold;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, transform 0.1s ease;
   text-align: left;
   display: flex;
   align-items: center;
@@ -195,9 +194,11 @@ body {
 }
 
 .sidebar-logout-btn:hover {
-  background: #dc2626;
-  color: white;
-  border-color: #dc2626;
+  background: #b91c1c;
+}
+
+.sidebar-logout-btn:active {
+  transform: scale(0.98);
 }
 
 /* Main Content Area */
@@ -434,12 +435,13 @@ textarea, input {
     flex: 0 0 auto;
   }
 
-  /* Adapts sidebar logout button cleanly into horizontal mobile navbar */
+  /* Mobile Logout Button Adjustment */
   .sidebar-logout-container {
+    margin-top: 0;
     padding-top: 0;
     border-top: none;
-    margin-top: 0;
-    display: inline-block;
+    display: flex;
+    flex: 0 0 auto;
   }
 
   .sidebar-logout-btn {
