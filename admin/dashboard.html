@@ -31,60 +31,72 @@
 
 <body>
 
+<!-- Persistent Top-Right Profile Bar -->
+<div class="user-profile-widget" id="userProfileWidget">
+    <button class="profile-avatar-btn" id="profileAvatarBtn" title="Account Menu">
+        <span class="avatar-icon">👤</span>
+    </button>
+    
+    <div class="profile-dropdown" id="profileDropdown">
+        <div class="profile-header">
+            <div id="dropdownUserName" class="profile-name">User</div>
+            <div id="dropdownUserRole" class="profile-role">Staff</div>
+        </div>
+        <hr class="profile-divider">
+        <button id="logoutBtn" class="dropdown-logout-btn">
+            🚪 Logout
+        </button>
+    </div>
+</div>
+
 <div class="sidebar">
 
     <h2>OpsVision Display</h2>
 
-    <button class="menu active" data-page="dashboard">
-        📊 Dashboard
-    </button>
-
-    <button class="menu" data-page="labels">
-        📋 Label Inventory
-    </button>
-
-    <button class="menu" data-page="schedule">
-        📄 Schedule
-    </button>
-
-    <button class="menu" data-page="announcements">
-        📢 Announcements
-    </button>
-
-    <button class="menu" data-page="ticker">
-        📰 Ticker
-    </button>
-
-    <button class="menu" data-page="branding">
-        🖼 Branding
-    </button>
-
-    <button class="menu" data-page="weather">
-        🌤 Weather
-    </button>
-
-    <button class="menu" data-page="settings">
-        ⚙ Settings
-    </button>
-
-    <button class="menu" data-page="team">
-        👥 Team
-    </button>
-
-    <button class="menu" data-page="permissions">
-        🔐 Permissions
-    </button>
-
-    <button class="menu" data-page="activity">
-        📜 Activity Log
-    </button>
-
-    <div class="bottom">
-
-        <button id="logoutBtn">
-            🚪 Logout
+    <div class="menu-container">
+        <button class="menu active" data-page="dashboard">
+            📊 Dashboard
         </button>
 
+        <button class="menu" data-page="labels">
+            📋 Label Inventory
+        </button>
+
+        <button class="menu" data-page="schedule">
+            📄 Schedule
+        </button>
+
+        <button class="menu" data-page="announcements">
+            📢 Announcements
+        </button>
+
+        <button class="menu" data-page="ticker">
+            📰 Ticker
+        </button>
+
+        <button class="menu" data-page="branding">
+            🖼 Branding
+        </button>
+
+        <button class="menu" data-page="weather">
+            🌤 Weather
+        </button>
+
+        <button class="menu" data-page="settings">
+            ⚙ Settings
+        </button>
+
+        <button class="menu" data-page="team">
+            👥 Team
+        </button>
+
+        <button class="menu" data-page="permissions">
+            🔐 Permissions
+        </button>
+
+        <button class="menu" data-page="activity">
+            📜 Activity Log
+        </button>
     </div>
 
 </div>
