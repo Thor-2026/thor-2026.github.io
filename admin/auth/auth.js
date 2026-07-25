@@ -3,32 +3,27 @@
 // Tab Isolation Guard & Inactivity Monitor
 // ======================================
 
-const INACTIVITY_LIMIT_MS = 15 * 60 * 1000; // 15 Minutes (Adjust as needed)
+const INACTIVITY_LIMIT_MS = 15 * 60 * 1000; // 15 Minutes
 let idleTimer = null;
 
 (async () => {
 
-    // 1. ISOLATE TAB SESSION
-    // If opening a brand-new tab/browser window without active flag, force login
-    const isTabInitialized = sessionStorage.getItem("tab_session_active");
-
-    if (!isTabInitialized) {
-        await handleLogout();
-        return;
-    }
-
-    // 2. VERIFY SUPABASE SESSION
+    // 1. Fetch current active Supabase session
     const {
         data: { session }
     } = await supabaseClient.auth.getSession();
 
-    if (!session) {
+    // 2. Check tab initialization state
+    const isTabActive = sessionStorage.getItem("tab_session_active");
+
+    // If no active session OR opened in an unverified new tab -> Redirect to Login
+    if (!session || !isTabActive) {
         sessionStorage.clear();
         window.location.replace("login.html");
         return;
     }
 
-    // 3. VERIFY PROFILE & PASSWORD REQUIREMENTS
+    // 3. Verify User Profile & Password Change State
     const {
         data: profile,
         error
@@ -56,10 +51,10 @@ let idleTimer = null;
         return;
     }
 
-    // 4. START INACTIVITY MONITORING
+    // 4. Start Inactivity Monitoring
     startInactivityTimer();
 
-    // 5. LISTEN FOR LOGOUTS ACROSS APP
+    // 5. Auth Listener
     supabaseClient.auth.onAuthStateChange((event) => {
         if (event === "SIGNED_OUT") {
             sessionStorage.clear();
@@ -70,19 +65,17 @@ let idleTimer = null;
 })();
 
 // ======================================
-// INACTIVITY TIMER LOGIC
+// Inactivity Monitor Logic
 // ======================================
 
 function startInactivityTimer() {
     resetIdleTimer();
 
-    // List of user interaction events to track activity
     const activityEvents = ["mousemove", "keydown", "click", "touchstart", "scroll"];
     let throttleTimeout = null;
 
     activityEvents.forEach(eventType => {
         window.addEventListener(eventType, () => {
-            // Throttle reset calls to prevent high CPU usage on mouse movement
             if (!throttleTimeout) {
                 throttleTimeout = setTimeout(() => {
                     resetIdleTimer();
@@ -103,7 +96,7 @@ function resetIdleTimer() {
 }
 
 // ======================================
-// LOGOUT HELPER
+// Logout Helper
 // ======================================
 
 async function handleLogout() {
