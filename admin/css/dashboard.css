@@ -10,11 +10,111 @@ body {
   background: #0f172a;
   color: white;
   min-height: 100vh;
-  min-height: -webkit-fill-available;
 }
 
 /* ==========================================
-   Desktop Sidebar Layout
+   Top-Right Fixed Profile Widget & Dropdown
+========================================== */
+.user-profile-widget {
+  position: fixed;
+  top: 20px;
+  right: 25px;
+  z-index: 1000;
+}
+
+.profile-avatar-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #1e293b;
+  border: 2px solid #334155;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.profile-avatar-btn:hover {
+  background: #2563eb;
+  border-color: #60a5fa;
+  transform: scale(1.05);
+}
+
+.avatar-icon {
+  font-size: 20px;
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: 52px;
+  right: 0;
+  width: 220px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  display: none;
+  flex-direction: column;
+  z-index: 1001;
+}
+
+.profile-dropdown.show {
+  display: flex;
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.profile-header {
+  padding-bottom: 8px;
+}
+
+.profile-name {
+  font-weight: bold;
+  font-size: 15px;
+  color: #f8fafc;
+  word-break: break-word;
+}
+
+.profile-role {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.profile-divider {
+  border: none;
+  border-top: 1px solid #334155;
+  margin: 8px 0 12px;
+}
+
+.dropdown-logout-btn {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background: #dc2626;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.2s;
+}
+
+.dropdown-logout-btn:hover {
+  background: #b91c1c;
+}
+
+/* ==========================================
+   Sidebar Navigation
 ========================================== */
 .sidebar {
   width: 260px;
@@ -24,16 +124,16 @@ body {
   top: 0;
   left: 0;
   background: #111827;
-  padding: 20px;
+  padding: 25px 20px;
   display: flex;
   flex-direction: column;
   z-index: 100;
-  overflow: hidden;
 }
 
 .sidebar h2 {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
   flex-shrink: 0;
+  font-size: 20px;
 }
 
 .menu-container {
@@ -41,57 +141,37 @@ body {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   padding-right: 4px;
 }
 
 .menu {
   width: 100%;
-  padding: 14px;
+  padding: 12px 14px;
   border: none;
   border-radius: 12px;
   background: #1e293b;
   color: white;
-  font-size: 16px;
+  font-size: 15px;
   cursor: pointer;
-  transition: 0.3s;
+  transition: 0.2s;
   text-align: left;
   flex-shrink: 0;
 }
 
-.menu:hover,
+.menu:hover {
+  background: #334155;
+}
+
 .menu.active {
   background: #2563eb;
-}
-
-.bottom {
-  margin-top: auto;
-  padding-top: 15px;
-  flex-shrink: 0;
-  background: #111827;
-}
-
-#logoutBtn {
-  width: 100%;
-  padding: 14px;
-  border: none;
-  border-radius: 12px;
-  background: #dc2626;
-  color: white;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
-  transition: background 0.2s ease;
-}
-
-#logoutBtn:hover {
-  background: #b91c1c;
+  font-weight: 600;
 }
 
 /* Main Content Area */
 .content {
   flex: 1;
-  padding: 40px;
+  padding: 80px 40px 40px; /* Top padding accommodates fixed profile icon */
   margin-left: 260px;
   width: calc(100% - 260px);
 }
@@ -107,7 +187,7 @@ body {
   background: #1e293b;
   padding: 25px;
   border-radius: 18px;
-  transition: 0.3s;
+  transition: .3s;
 }
 
 .card:hover {
@@ -115,9 +195,8 @@ body {
 }
 
 /* ==========================================
-   Announcements
+   Announcements View
 ========================================== */
-
 .announcement-layout {
   display: grid;
   grid-template-columns: 320px 1fr;
@@ -172,7 +251,7 @@ body {
 
 .announcement-item p {
   margin: 0;
-  opacity: 0.7;
+  opacity: .7;
   font-size: 14px;
 }
 
@@ -183,8 +262,7 @@ body {
   flex-wrap: wrap;
 }
 
-textarea,
-input {
+textarea, input {
   width: 100%;
   padding: 12px;
   border-radius: 10px;
@@ -263,12 +341,16 @@ input {
 }
 
 /* ==========================================
-   MOBILE FIX: Floating Bottom Action Bar
+   Mobile Responsive Rules
 ========================================== */
 @media (max-width: 768px) {
   body {
     flex-direction: column;
-    padding-bottom: 80px; /* Gives space so content isn't covered by logout bar */
+  }
+
+  .user-profile-widget {
+    top: 15px;
+    right: 15px;
   }
 
   .sidebar {
@@ -276,24 +358,6 @@ input {
     width: 100%;
     height: auto;
     padding: 15px;
-    background: #111827;
-  }
-
-  .bottom {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 12px 20px;
-    background: #0f172a;
-    border-top: 1px solid #1e293b;
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.4);
-    z-index: 999; /* Keeps logout button floating on top of all page elements */
-  }
-
-  #logoutBtn {
-    padding: 12px;
-    font-size: 15px;
   }
 
   .content {
