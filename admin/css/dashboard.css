@@ -168,12 +168,36 @@ body {
   font-weight: 600;
 }
 
-/* Sidebar Logout Button Container (if embedded in sidebar) */
+/* Embedded Sidebar Bottom Logout Section */
 .sidebar-logout-container {
   margin-top: auto;
   padding-top: 15px;
   border-top: 1px solid #1e293b;
   flex-shrink: 0;
+}
+
+.sidebar-logout-btn {
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(220, 38, 38, 0.15);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  color: #fca5a5;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-logout-btn:hover {
+  background: #dc2626;
+  color: white;
+  border-color: #dc2626;
 }
 
 /* Main Content Area */
@@ -349,7 +373,7 @@ textarea, input {
 }
 
 /* ==========================================
-   Mobile Responsive & Fixed Logout Rules
+   Mobile Responsive & Mobile Logout Positioning
 ========================================== */
 @media (max-width: 768px) {
   body {
@@ -357,7 +381,6 @@ textarea, input {
     overflow-x: hidden;
   }
 
-  /* Fixed Top-Right Avatar Widget Position */
   .user-profile-widget {
     top: 10px;
     right: 12px;
@@ -369,7 +392,6 @@ textarea, input {
     height: 38px;
   }
 
-  /* Position Dropdown cleanly over mobile header without getting cut off */
   .profile-dropdown {
     top: 46px;
     right: 0;
@@ -377,7 +399,6 @@ textarea, input {
     z-index: 1003;
   }
 
-  /* Sticky Header & Navigation Bar */
   .sidebar {
     position: sticky;
     top: 0;
@@ -392,10 +413,9 @@ textarea, input {
   .sidebar h2 {
     margin-bottom: 10px;
     font-size: 18px;
-    padding-right: 50px; /* Ensures title text never collides with profile icon */
+    padding-right: 50px;
   }
 
-  /* Horizontal Scroll Navigation Bar */
   .menu-container {
     flex-direction: row;
     overflow-x: auto;
@@ -414,14 +434,22 @@ textarea, input {
     flex: 0 0 auto;
   }
 
-  /* Embedded Sidebar Logout Button mobile positioning */
+  /* Adapts sidebar logout button cleanly into horizontal mobile navbar */
   .sidebar-logout-container {
     padding-top: 0;
     border-top: none;
     margin-top: 0;
+    display: inline-block;
   }
 
-  /* Main content layout resets */
+  .sidebar-logout-btn {
+    width: auto;
+    padding: 8px 14px;
+    font-size: 14px;
+    border-radius: 8px;
+    flex: 0 0 auto;
+  }
+
   .content {
     margin-left: 0;
     width: 100%;
