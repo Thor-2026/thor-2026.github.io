@@ -1,20 +1,32 @@
 // ======================================
 // THOR DISPLAY CMS
-// Authentication Guard & Inactivity Monitor
+// Authentication Guard, Mobile Tab Fix & Inactivity Monitor
 // ======================================
 
 const INACTIVITY_LIMIT_MS = 15 * 60 * 1000; // 15 Minutes
+const MOBILE_TAB_CLOSE_THRESHOLD_MS = 5000;  // 5 Seconds threshold for tab/browser close
 let idleTimer = null;
 
 (async () => {
 
+    // 1. Check if the user closed the tab/browser previously (Mobile Tab Closure Fix)
+    const lastActiveTime = window.sessionStorage.getItem("last_active_timestamp");
+    const now = Date.now();
+
+    if (lastActiveTime && (now - parseInt(lastActiveTime, 10)) > MOBILE_TAB_CLOSE_THRESHOLD_MS) {
+        // Tab/Browser was closed or inactive beyond the threshold — force logout
+        await handleLogout();
+        return;
+    }
+
+    // 2. Fetch session from Supabase
     const {
         data: {
             session
         }
     } = await supabaseClient.auth.getSession();
 
-    // If no session exists, boot them out immediately and overwrite history state
+    // If no session exists, boot them out immediately
     if (!session) {
         window.location.replace("login.html");
         return;
@@ -56,8 +68,11 @@ let idleTimer = null;
         return;
     }
 
-    // Start Inactivity Timer for active sessions
+    // Start active monitoring
     startInactivityTimer();
+
+    // Keep updating active timestamp on user interaction & page unload
+    setupTabLifecycleTracker();
 
     supabaseClient.auth.onAuthStateChange((event) => {
         if (event === "SIGNED_OUT") {
@@ -67,6 +82,33 @@ let idleTimer = null;
     });
 
 })();
+
+// ======================================
+// Tab Lifecycle & Heartbeat Tracker
+// ======================================
+
+function setupTabLifecycleTracker() {
+    // Update timestamp immediately
+    window.sessionStorage.setItem("last_active_timestamp", Date.now().toString());
+
+    // Update timestamp periodically while actively viewing page
+    setInterval(() => {
+        if (document.visibilityState === "visible") {
+            window.sessionStorage.setItem("last_active_timestamp", Date.now().toString());
+        }
+    }, 2000);
+
+    // Track tab hide/close events on mobile browsers
+    window.addEventListener("pagehide", () => {
+        window.sessionStorage.setItem("last_active_timestamp", Date.now().toString());
+    });
+
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") {
+            window.sessionStorage.setItem("last_active_timestamp", Date.now().toString());
+        }
+    });
+}
 
 // ======================================
 // Inactivity Monitor & Session Cleansing
@@ -84,7 +126,7 @@ function startInactivityTimer() {
                 throttleTimeout = setTimeout(() => {
                     resetIdleTimer();
                     throttleTimeout = null;
-                }, 3000); // Throttled to execute at most once every 3 seconds
+                }, 3000);
             }
         }, { passive: true });
     });
