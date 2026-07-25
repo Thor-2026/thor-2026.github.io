@@ -5,7 +5,7 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
 <!-- 
   FORCE BROWSER CACHE RELOAD ON BACK BUTTON
@@ -99,6 +99,13 @@
         </button>
     </div>
 
+    <!-- Embedded Sidebar Bottom Logout Button -->
+    <div class="sidebar-logout-container">
+        <button id="sidebarLogoutBtn" class="sidebar-logout-btn">
+            🚪 Logout
+        </button>
+    </div>
+
 </div>
 
 <div class="content">
@@ -129,6 +136,23 @@
 <script src="team/team.js"></script>
 <script src="team/permissions.js"></script>
 <script src="team/activity.js"></script>
+
+<!-- Connect Sidebar Logout Button Listener -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const sidebarLogoutBtn = document.getElementById("sidebarLogoutBtn");
+        if (sidebarLogoutBtn) {
+            sidebarLogoutBtn.addEventListener("click", () => {
+                if (typeof handleLogout === "function") {
+                    handleLogout();
+                } else {
+                    const topLogoutBtn = document.getElementById("logoutBtn");
+                    if (topLogoutBtn) topLogoutBtn.click();
+                }
+            });
+        }
+    });
+</script>
 
 </body>
 
