@@ -122,6 +122,9 @@ async function login() {
 
     }
 
+    // Clear any residual session timestamps on fresh login
+    window.sessionStorage.removeItem("last_active_timestamp");
+
     const {
 
         data: profile,
@@ -163,6 +166,18 @@ async function login() {
 // ======================================
 
 async function checkExistingSession() {
+
+    // Check if tab/app was closed beyond the threshold
+    const lastActiveTime = window.sessionStorage.getItem("last_active_timestamp");
+    const now = Date.now();
+    const MOBILE_TAB_CLOSE_THRESHOLD_MS = 5000;
+
+    if (lastActiveTime && (now - parseInt(lastActiveTime, 10)) > MOBILE_TAB_CLOSE_THRESHOLD_MS) {
+        // Tab was closed — purge auth session immediately
+        await supabaseClient.auth.signOut();
+        window.sessionStorage.clear();
+        return;
+    }
 
     const {
 
