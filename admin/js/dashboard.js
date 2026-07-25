@@ -105,8 +105,52 @@ async function loadCurrentUser() {
         profile
     };
 
+    setupProfileDropdown();
+
     return true;
 
+}
+
+// ======================================
+// SETUP PROFILE DROPDOWN
+// ======================================
+
+function setupProfileDropdown() {
+    const avatarBtn = document.getElementById("profileAvatarBtn");
+    const dropdown = document.getElementById("profileDropdown");
+    const nameNode = document.getElementById("dropdownUserName");
+    const roleNode = document.getElementById("dropdownUserRole");
+
+    if (!currentUser) {
+        if (nameNode) nameNode.textContent = "Guest";
+        if (roleNode) roleNode.textContent = "Public View";
+        return;
+    }
+
+    const displayName = currentUser.profile?.full_name || currentUser.profile?.username || "Staff Member";
+    const currentShift = currentUser.profile?.shift || "Unassigned Shift";
+
+    let roleText = "Staff";
+    const userRoleId = currentUser.profile?.role_id;
+    if (userRoleId === 1) roleText = "Super Admin";
+    if (userRoleId === 3) roleText = "Operator";
+    if (userRoleId === 2) roleText = "Staff";
+
+    if (nameNode) nameNode.textContent = displayName;
+    if (roleNode) roleNode.textContent = `${roleText} • ${currentShift}`;
+
+    if (avatarBtn && dropdown) {
+        avatarBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle("show");
+        });
+
+        document.addEventListener("click", (e) => {
+            if (!dropdown.contains(e.target) && !avatarBtn.contains(e.target)) {
+                dropdown.classList.remove("show");
+            }
+        });
+    }
 }
 
 // ======================================
@@ -172,7 +216,6 @@ async function loadPermissions() {
     userPermissions['dashboard'] = { can_view: true, can_create: false, can_edit: false, can_delete: false }; 
 
     (data || []).forEach(permission => {
-        // This will now cleanly overwrite the false flags with your true values from the DB
         userPermissions[permission.module] = {
             can_view: permission.can_view,
             can_create: permission.can_create,
@@ -181,7 +224,6 @@ async function loadPermissions() {
         };
     });
     
-    // HARDCODED RULE: FORCE LABEL ACCESS TO TRUE FOR EVERYONE LOGGED IN
     userPermissions['labels'] = { can_view: true, can_create: false, can_edit: false, can_delete: false };
 }
 
@@ -190,7 +232,6 @@ async function loadPermissions() {
 // ======================================
 
 function hasPermission(module) {
-    // HARDCODED RULE: BYPASS DATABASE RESTRICTIONS FOR LABELS COMPLETELY
     if (module === 'labels') {
         return true;
     }
@@ -215,7 +256,6 @@ function hasPermission(module) {
 
 function updateSidebarPermissions() {
 
-    // If completely logged out (Guest Mode looking at labels) hide everything except exit button
     if (!currentUser) {
         document.querySelectorAll(".menu[data-page]").forEach(button => {
             button.style.display = "none";
@@ -225,7 +265,6 @@ function updateSidebarPermissions() {
         return;
     }
 
-    // Hide or display options based on dynamic permissions map
     document
         .querySelectorAll(".menu[data-page]")
         .forEach(button => {
@@ -241,7 +280,6 @@ function updateSidebarPermissions() {
 
         });
 
-    // If operator role is active, visually strip the menu down to bare bones
     if (currentUser?.profile?.role_id === 3) {
         document.querySelectorAll(".menu[data-page]:not([data-page='labels'])").forEach(button => {
             button.style.display = "none";
@@ -287,9 +325,6 @@ async function loadPage(page) {
 
         document.getElementById("pageContent").innerHTML = html;
 
-        // FIXED SECURITY PARSER SAFEGUARD:
-        // After inserting HTML components dynamically into pageContent, check if there is an auth header zone 
-        // to pass user profile text attributes natively into the document nodes without breaking compilation paths.
         renderDomAuthZoneSafely();
 
         if (
@@ -336,7 +371,6 @@ function renderDomAuthZoneSafely() {
     if (userRoleId === 3) roleText = "Operator";
     if (userRoleId === 2) roleText = "Staff";
 
-    // 1. Structural layout boilerplate setup
     container.innerHTML = `
         <div class="inv-badge" style="background:#ffffff; border:2px solid #cbd5e1; padding:8px 14px; border-radius:6px; text-align:right;">
             <div id="auth-display-safe-name" style="font-weight: 700; color: #0f172a; font-size: 14px;"></div>
@@ -344,13 +378,11 @@ function renderDomAuthZoneSafely() {
         </div>
     `;
 
-    // 2. Assign values strictly via .textContent to render any special characters safely without generating parsing bugs
     const nameNode = document.getElementById("auth-display-safe-name");
     if (nameNode) {
         nameNode.textContent = `👤 ${displayName}`;
     }
 
-    // Maintain administrative catalog block overrides seamlessly
     const adminPanel = document.getElementById("catalog-management-row");
     if (adminPanel) {
         adminPanel.style.display = (userRoleId === 1) ? "block" : "none";
@@ -409,6 +441,7 @@ function bindLogout() {
             }
 
             await supabaseClient.auth.signOut();
+            window.sessionStorage.clear();
             window.location.href = "login.html";
 
         });
@@ -433,7 +466,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     bindLogout();
 
-    // Check URL parameters for view commands
     const urlParams = new URLSearchParams(window.location.search);
     const initialView = urlParams.get('view');
 
@@ -444,7 +476,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         
         loadPage(initialView);
     } else {
-        // If logged in as operator, bypass generic dashboard, go to labels directly
         if (currentUser?.profile?.role_id === 3) {
             const labelMenu = document.querySelector(".menu[data-page='labels']");
             if (labelMenu) labelMenu.classList.add("active");
