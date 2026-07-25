@@ -10,30 +10,44 @@ body {
   background: #0f172a;
   color: white;
   min-height: 100vh;
+  min-height: -webkit-fill-available;
 }
 
-/* Updated sidebar to stay fixed to the screen */
+/* ==========================================
+   Desktop Sidebar Layout
+========================================== */
 .sidebar {
   width: 260px;
   height: 100vh;
+  height: 100dvh;
   position: fixed;
   top: 0;
   left: 0;
   background: #111827;
-  padding: 25px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   z-index: 100;
+  overflow: hidden;
 }
 
 .sidebar h2 {
-  margin-bottom: 35px;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.menu-container {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
 }
 
 .menu {
   width: 100%;
   padding: 14px;
-  margin-bottom: 10px;
   border: none;
   border-radius: 12px;
   background: #1e293b;
@@ -42,14 +56,7 @@ body {
   cursor: pointer;
   transition: 0.3s;
   text-align: left;
-}
-
-.menu:hover {
-  background: #334155;
-}
-
-.menu.active {
-  background: #2563eb;
+  flex-shrink: 0;
 }
 
 .menu:hover,
@@ -59,6 +66,9 @@ body {
 
 .bottom {
   margin-top: auto;
+  padding-top: 15px;
+  flex-shrink: 0;
+  background: #111827;
 }
 
 #logoutBtn {
@@ -70,6 +80,7 @@ body {
   color: white;
   cursor: pointer;
   font-size: 16px;
+  font-weight: bold;
   transition: background 0.2s ease;
 }
 
@@ -77,11 +88,12 @@ body {
   background: #b91c1c;
 }
 
-/* Offset content to respect fixed sidebar width */
+/* Main Content Area */
 .content {
   flex: 1;
   padding: 40px;
   margin-left: 260px;
+  width: calc(100% - 260px);
 }
 
 .cards {
@@ -140,7 +152,7 @@ body {
   border-radius: 12px;
   cursor: pointer;
   background: rgba(255, 255, 255, 0.05);
-  transition: 0.25s;
+  transition: .25s;
 }
 
 .announcement-item:hover {
@@ -250,27 +262,51 @@ input {
   gap: 16px;
 }
 
-/* Responsive adjust for screens below 900px */
-@media (max-width: 900px) {
-  .announcement-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .announcement-sidebar {
-    height: auto;
+/* ==========================================
+   MOBILE FIX: Floating Bottom Action Bar
+========================================== */
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+    padding-bottom: 80px; /* Gives space so content isn't covered by logout bar */
   }
 
   .sidebar {
     position: relative;
     width: 100%;
     height: auto;
+    padding: 15px;
+    background: #111827;
+  }
+
+  .bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 12px 20px;
+    background: #0f172a;
+    border-top: 1px solid #1e293b;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.4);
+    z-index: 999; /* Keeps logout button floating on top of all page elements */
+  }
+
+  #logoutBtn {
+    padding: 12px;
+    font-size: 15px;
   }
 
   .content {
     margin-left: 0;
+    width: 100%;
+    padding: 20px;
   }
 
-  body {
-    flex-direction: column;
+  .announcement-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .announcement-sidebar {
+    height: auto;
   }
 }
